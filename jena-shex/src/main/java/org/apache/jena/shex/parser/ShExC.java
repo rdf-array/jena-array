@@ -198,7 +198,7 @@ public class ShExC {
      * (only after imports closure)
      * TODO this comment does not correspond to what is being checked here
      */
-    private static void validatePhase2(ShexSchema shapes) {
+    /*package*/ static void validatePhase2(ShexSchema shapes) {
         if ( ! SysShex.STRICT )
             return;
         shapes.getShapes().forEach(shape->validatePhase2(shapes, shape));

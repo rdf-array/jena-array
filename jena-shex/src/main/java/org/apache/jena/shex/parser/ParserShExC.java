@@ -184,6 +184,7 @@ public class ParserShExC extends LangParserBase {
 
     protected void shapeExternal() {
         debug("shape external");
+        push(shapeExprStack, new ShapeExternal());
     }
 
     // Start of top level shape, "start="

@@ -22,8 +22,11 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.atlas.web.TypedInputStream;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.out.NodeFormatterTTL;
 import org.apache.jena.riot.system.RiotLib;
@@ -31,6 +34,7 @@ import org.apache.jena.riot.writer.DirectiveStyle;
 import org.apache.jena.shex.expressions.PrettyPrinter;
 import org.apache.jena.shex.parser.ShExC;
 import org.apache.jena.shex.parser.ShExJ;
+import org.apache.jena.shex.parser.ShExR;
 import org.apache.jena.shex.sys.SysShex;
 import org.apache.jena.sys.JenaSystem;
 
@@ -96,6 +100,56 @@ public class Shex {
         String parserBase = (base != null) ? base : IRILib.filenameToIRI(filenameOrURL);
         ShexSchema shapes = ShExC.parse(input, IRILib.filenameToIRI(filenameOrURL), parserBase);
         return shapes;
+    }
+
+    /**
+     * Parse the string in ShExR (RDF, Turtle) syntax to produce a ShEx schema.
+     * @param inputStr
+     * @param baseURI
+     * @return ShexSchema
+     */
+    public static ShexSchema schemaFromStringShExR(String inputStr, String baseURI) {
+        Graph graph = RDFParser.fromString(inputStr, Lang.TURTLE).base(baseURI).toGraph();
+        return schemaFromGraph(graph, baseURI);
+    }
+
+    /**
+     * Read the file or URL (ShExR, any RDF syntax {@link RDFDataMgr} recognizes) to produce a ShEx schema.
+     * @param filenameOrURL
+     * @return ShexSchema
+     */
+    public static ShexSchema readSchemaShExR(String filenameOrURL) {
+        return readSchemaShExR(filenameOrURL, null);
+    }
+
+    /**
+     * Read the file or URL (ShExR, any RDF syntax {@link RDFDataMgr} recognizes) to produce a ShEx schema.
+     * @param filenameOrURL
+     * @param base
+     * @return ShexSchema
+     */
+    public static ShexSchema readSchemaShExR(String filenameOrURL, String base) {
+        String parserBase = (base != null) ? base : IRILib.filenameToIRI(filenameOrURL);
+        return ShExR.parse(filenameOrURL, parserBase);
+    }
+
+    /**
+     * Build a ShEx schema from an already-parsed RDF graph in ShExR form.
+     * @param graph
+     * @return ShexSchema
+     */
+    public static ShexSchema schemaFromGraph(Graph graph) {
+        return schemaFromGraph(graph, null);
+    }
+
+    /**
+     * Build a ShEx schema from an already-parsed RDF graph in ShExR form.
+     * @param graph
+     * @param baseURI
+     * @return ShexSchema
+     */
+    public static ShexSchema schemaFromGraph(Graph graph, String baseURI) {
+        return ShExR.parse(graph, null, baseURI);
     }
 
     /** Print shapes - the format details the internal structure */

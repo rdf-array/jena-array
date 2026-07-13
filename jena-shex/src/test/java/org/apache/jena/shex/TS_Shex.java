@@ -18,6 +18,7 @@
 
 package org.apache.jena.shex;
 
+import org.apache.jena.shex.parser.TestParserShExR;
 import org.apache.jena.shex.validation.MatchingSearchProbesTest;
 import org.apache.jena.shex.validation.TestFeasibleMatchingSearch;
 import org.junit.runner.RunWith;
@@ -32,7 +33,8 @@ import org.junit.runners.Suite;
     TestShexPrintShexC.class,
     TestShexStructureBad.class,
     TestFeasibleMatchingSearch.class,
-    MatchingSearchProbesTest.class
+    MatchingSearchProbesTest.class,
+    TestParserShExR.class
 })
 
 public class TS_Shex {
