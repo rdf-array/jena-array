@@ -40,6 +40,15 @@ public class ValueSetItem {
             throw new ShexException("Not literal: "+ShexLib.displayStr(literal));
     }
 
+    /** The IRI (or IRI stem) of the item, or null. */
+    public String getIriStr() { return iriStr; }
+
+    /** The language tag (or language stem) of the item, or null. */
+    public String getLangStr() { return langStr; }
+
+    /** The literal (or literal stem) of the item, or null. */
+    public Node getLiteral() { return literal; }
+
     public boolean isStem() {
         return isStem;
     }

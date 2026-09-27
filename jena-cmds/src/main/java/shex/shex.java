@@ -47,7 +47,7 @@ public class shex {
             case "-h" :
             case "-help" :
             case "--help" :
-                System.err.println("Commands: validate (v), parse (p)");
+                System.err.println("Commands: validate (v), parse (p), map (m)");
                 return;
             case "version":
             case "--version":
@@ -66,12 +66,16 @@ public class shex {
             case "parse": case "p": case "print":
                 cmdExec = "parse";
                 break;
+            case "map": case "m": case "shexmap":
+                cmdExec = "map";
+                break;
         }
 
         // Execute sub-command
         switch (cmdExec) {
             case "validate":        shex_validate.main(argsSub); break;
             case "parse":           shex_parse.main(argsSub); break;
+            case "map":             shex_map.main(argsSub); break;
             default:
                 System.err.println("Failed to find a command match for '"+cmd+"'");
         }
