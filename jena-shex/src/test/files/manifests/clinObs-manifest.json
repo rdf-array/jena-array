@@ -1,0 +1,28 @@
+[
+  {
+    "schemaLabel": "clinical observation",
+    "schema": "ClinObs.shex",
+    "dataLabel": "the least an Observation can be",
+    "data": "PREFIX : <http://hl7.org/fhir/>\n<Obs1> :subject <Patient2> .\n",
+    "queryMap": "<Obs1>@START",
+    "status": "conformant",
+    "comment": "The schema's BASE names the shape; the manifest's URL names the node."
+  },
+  {
+    "schemaLabel": "clinical observation",
+    "schemaURL": "ClinObs.shex",
+    "dataLabel": "the same measurement, in two documents",
+    "dataURL": ["ClinObs-observation.ttl", "ClinObs-patient.ttl"],
+    "queryMap": "<http://hl7.example/Obs1>@<ObservationShape>",
+    "status": "conformant"
+  },
+  {
+    "schemaLabel": "clinical observation",
+    "schemaURL": "ClinObs.shex",
+    "dataLabel": "no subject",
+    "data": "PREFIX : <http://hl7.org/fhir/>\n<Obs1> :status \"final\" .\n",
+    "node": "Obs1",
+    "shape": "http://schema.example/ObservationShape",
+    "status": "nonconformant"
+  }
+]

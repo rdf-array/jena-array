@@ -111,6 +111,8 @@ public class ParserShExR {
         }
 
         List<SemAct> startActs = handleSemActsIfPresent(graph, schemaNode, VocabShExR.startActs);
+        if ( startActs == null )
+            startActs = new ArrayList<>();   // as ParserShExC has it: the validator walks the list
 
         List<Node> shapeDeclNodes = List.of();
         Node shapesHead = getZeroOrOneSP(graph, schemaNode, VocabShExR.shapes);

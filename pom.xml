@@ -72,6 +72,7 @@
     <ver.libthrift>0.19.0</ver.libthrift>
 
     <ver.caffeine>3.1.8</ver.caffeine>
+    <ver.snakeyaml>2.4</ver.snakeyaml>
     <!-- Most of Jena uses other libraries for equivalent functionality. -->
     <ver.guava>33.0.0-jre</ver.guava>
 
@@ -392,6 +393,13 @@
         <groupId>com.github.ben-manes.caffeine</groupId>
         <artifactId>caffeine</artifactId>
         <version>${ver.caffeine}</version>
+      </dependency>
+
+      <!-- YAML-LD manifests (jena-shex) -->
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>${ver.snakeyaml}</version>
       </dependency>
 
       <dependency>

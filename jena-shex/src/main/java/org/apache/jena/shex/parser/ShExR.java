@@ -22,6 +22,7 @@ import java.io.InputStream;
 
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFParser;
@@ -34,6 +35,17 @@ public class ShExR {
     public static ShexSchema parse(Graph graph, String sourceURI, String baseURI) {
         ShexSchema schema = ParserShExR.parse(graph, sourceURI, baseURI);
         // Same facet-ordering / numeric-datatype checks ShExC applies after parsing.
+        ShExC.validatePhase2(schema);
+        return schema;
+    }
+
+    /**
+     * Parse the schema that {@code schemaNode} is, in a graph holding more than one
+     * {@code sx:Schema} or more than a schema: a manifest that is also its own schema and
+     * data names its schema node with a fragment.
+     */
+    public static ShexSchema parse(Graph graph, Node schemaNode, String sourceURI, String baseURI) {
+        ShexSchema schema = ParserShExR.parse(graph, schemaNode, sourceURI, baseURI);
         ShExC.validatePhase2(schema);
         return schema;
     }

@@ -1,0 +1,33 @@
+# Three validations of the clinical-observation schema, in the YAML-LD form shex.js's
+# examples manifests are written in.  clinObs-manifest.json is the classic (deployed, no
+# @context) form of the same entries and clinObs-manifest.ttl the graph they expand to.
+"@context":
+  - https://www.w3.org/ns/shex-manifest.jsonld
+  - https://shex.js.org/doc/manifest-context.jsonld
+entries:
+  - schemaLabel: clinical observation
+    schemaURL: ClinObs.shex
+    dataLabel: the least an Observation can be
+    data: |
+      PREFIX : <http://hl7.org/fhir/>
+      <Obs1> :subject <Patient2> .
+    queryMap: <Obs1>@START
+    status: conformant
+    comment: The schema's BASE names the shape; the manifest's URL names the node.
+  - schemaLabel: clinical observation
+    schemaURL: ClinObs.shex
+    dataLabel: the same measurement, in two documents
+    dataURL:
+      - ClinObs-observation.ttl
+      - ClinObs-patient.ttl
+    queryMap: <http://hl7.example/Obs1>@<ObservationShape>
+    status: conformant
+  - schemaLabel: clinical observation
+    schemaURL: ClinObs.shex
+    dataLabel: no subject
+    data: |
+      PREFIX : <http://hl7.org/fhir/>
+      <Obs1> :status "final" .
+    node: Obs1
+    shape: http://schema.example/ObservationShape
+    status: nonconformant

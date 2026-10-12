@@ -1,0 +1,33 @@
+# The entries of clinObs-manifest.yaml as the graph they expand to: the ShEx manifest
+# vocabulary, with references resolved against this document.
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX shex: <http://www.w3.org/ns/shex#>
+PREFIX shexMan: <http://www.w3.org/ns/shex-manifest#>
+
+<> shexMan:entries ( _:least _:two _:none ) .
+
+_:least
+  shexMan:schemaLabel "clinical observation" ;
+  shexMan:schema <ClinObs.shex> ;
+  shexMan:dataLabel "the least an Observation can be" ;
+  shexMan:data "PREFIX : <http://hl7.org/fhir/>\n<Obs1> :subject <Patient2> .\n" ;
+  shexMan:queryMap "<Obs1>@START" ;
+  shex:status "conformant" ;
+  rdfs:comment "The schema's BASE names the shape; the manifest's URL names the node." .
+
+_:two
+  shexMan:schemaLabel "clinical observation" ;
+  shexMan:schema <ClinObs.shex> ;
+  shexMan:dataLabel "the same measurement, in two documents" ;
+  shexMan:data <ClinObs-observation.ttl>, <ClinObs-patient.ttl> ;
+  shexMan:queryMap "<http://hl7.example/Obs1>@<ObservationShape>" ;
+  shex:status "conformant" .
+
+_:none
+  shexMan:schemaLabel "clinical observation" ;
+  shexMan:schema <ClinObs.shex> ;
+  shexMan:dataLabel "no subject" ;
+  shexMan:data "PREFIX : <http://hl7.org/fhir/>\n<Obs1> :status \"final\" .\n" ;
+  shex:node <Obs1> ;
+  shex:shape <http://schema.example/ObservationShape> ;
+  shex:status "nonconformant" .
