@@ -18,12 +18,13 @@
 
 package org.apache.jena.shex.validation;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.shex.ShexSchemaStructureException;
+import org.apache.jena.shex.calc.AccumulationUtil;
 import org.apache.jena.shex.calc.TypedNodeConstraintComponentVisitor;
 import org.apache.jena.shex.calc.TypedShapeExprVisitor;
 import org.apache.jena.shex.calc.Util;
@@ -58,11 +59,22 @@ public class ShapeExprEval {
             else {
                 List<Node> nonAbstractDescendants = vCxt.nonAbstractDescendants(ref.getLabel());
 
+                // An abstract reference with no non-abstract descendant cannot be satisfied.
+                if (nonAbstractDescendants.isEmpty()) {
+                    reporter.informDescendantConformance(false, null);
+                    return false;
+                }
+
                 boolean isDescendant = nonAbstractDescendants.get(0) != ref.getLabel(); /// <errorReporting/>
 
                 for (Node descendant : nonAbstractDescendants) {
                     // TODO why not recurse on the reference here ? -> there is a reason I do not recall
                     ShapeExpr defn = vCxt.getDefinition(descendant);
+                    // Only the parts of a proper descendant that actually extend the referenced
+                    // label establish the node as that label (ShapeOr disjuncts that don't extend
+                    // it are dropped).
+                    if (!descendant.equals(ref.getLabel()))
+                        defn = vCxt.restrictToExtending(defn, ref.getLabel());
                     Reporter defnReporter = reporter.createChild(dataNode, defn, neigh);
 
                     /// <errorReporting> the first element of nonAbstractDescendants is not a proper descendant
@@ -102,28 +114,123 @@ public class ShapeExprEval {
                                           Reporter shapeReporter) {
         // Notifies the reporter about conformant / non-conformant.
 
-        // 1. Collect the shapes to be satisfied, distinguishing the main triple expressions and the constraints
-        //    The shape's triple expression and constraint are added to the maps with key null
-        //    If the shape is not in an extension hierarchy, then these maps contain only one entry with null key
-        Map<Node, TripleExpr> mainTripleExprs = new HashMap<>();
-        Map<Node, List<ShapeExpr>> constraints = new HashMap<>();
-        mainTripleExprs.put(null, shape.getTripleExpr());
-        for (ShapeExprRef ref: shape.getExtends()) {
-            for (Node superType: vCxt.getSupertypes(ref.getLabel())) {
-                Pair<Shape, List<ShapeExpr>> mc = Util.mainShapeAndConstraints(vCxt.getDefinition(superType), vCxt::getDefinition);
-                mainTripleExprs.put(superType, mc.getLeft().getTripleExpr());
-                constraints.put(superType, mc.getRight());
-            }
+        // 1. Collect each supertype's definition (deduped: a diamond is processed once).
+        //    A supertype defined as a ShapeOr is a choice point: the node satisfies the
+        //    extension through exactly one disjunct, and the closed check must see only that
+        //    disjunct's predicates.  So the ShapeOr disjuncts are enumerated (the cartesian
+        //    product over all ShapeOr supertypes) and each combination is tried; the node
+        //    conforms if any combination does.  Shape and ShapeAnd supertypes contribute a
+        //    single alternative each (see addSupertypeContribution).
+        LinkedHashMap<Node, ShapeExpr> superDefs = new LinkedHashMap<>();
+        for (ShapeExprRef ref: shape.getExtends())
+            for (Node superType: vCxt.getSupertypes(ref.getLabel()))
+                superDefs.putIfAbsent(superType, vCxt.getDefinition(superType));
+
+        List<Node> superTypesList = new ArrayList<>(superDefs.keySet());
+        List<List<ShapeExpr>> alternatives = new ArrayList<>();
+        long combos = 1;
+        for (Node st : superTypesList) {
+            ShapeExpr def = Util.dereference(superDefs.get(st), vCxt::getDefinition);
+            List<ShapeExpr> alts = (def instanceof ShapeOr so)
+                    ? new ArrayList<>(so.getShapeExprs())
+                    : List.of(def);
+            alternatives.add(alts);
+            combos *= alts.size();
         }
 
+        if (combos == 1) {
+            // Common case: no ShapeOr supertype.  One combination, on the shape's own reporter.
+            Map<Node, TripleExpr> mainTripleExprs = new HashMap<>();
+            Map<Node, List<ShapeExpr>> constraints = new HashMap<>();
+            mainTripleExprs.put(null, shape.getTripleExpr());
+            for (int i = 0; i < superTypesList.size(); i++)
+                addSupertypeContribution(superTypesList.get(i), alternatives.get(i).get(0),
+                        mainTripleExprs, constraints, vCxt);
+            return satisfiesWithExprs(dataNode, shape, triples, mainTripleExprs, constraints, vCxt, shapeReporter);
+        }
+
+        // ShapeOr supertype(s): try each combination of disjunct choices (first that conforms wins).
+        for (long c = 0; c < combos; c++) {
+            Map<Node, TripleExpr> mainTripleExprs = new HashMap<>();
+            Map<Node, List<ShapeExpr>> constraints = new HashMap<>();
+            mainTripleExprs.put(null, shape.getTripleExpr());
+            long rem = c;
+            for (int i = 0; i < superTypesList.size(); i++) {
+                List<ShapeExpr> alts = alternatives.get(i);
+                ShapeExpr chosen = alts.get((int) (rem % alts.size()));
+                rem /= alts.size();
+                addSupertypeContribution(superTypesList.get(i), chosen, mainTripleExprs, constraints, vCxt);
+            }
+            Reporter comboReporter = shapeReporter.createChild(dataNode, shape, triples);
+            if (satisfiesWithExprs(dataNode, shape, triples, mainTripleExprs, constraints, vCxt, comboReporter))
+                return shapeReporter.setIsConformant(true);
+        }
+        return shapeReporter.setIsConformant(false);
+    }
+
+    /** Add one supertype's contribution to the main triple expressions (visible to the
+     *  partition) and the post-partition constraints.  The definition is a Shape or a
+     *  ShapeAnd; a ShapeOr supertype is split into disjuncts by the caller, each disjunct
+     *  arriving here.  For a ShapeAnd, every Shape conjunct contributes its triple expression
+     *  (combined into an EachOf, the first participating normally and the rest wrapped {0,inf}
+     *  so their predicates are matchable without forcing extra allocation); all conjuncts are
+     *  kept as post-partition constraints. */
+    private static void addSupertypeContribution(Node superType, ShapeExpr def,
+                                                 Map<Node, TripleExpr> mainTripleExprs,
+                                                 Map<Node, List<ShapeExpr>> constraints,
+                                                 ValidationContext vCxt) {
+        ShapeExpr d = Util.dereference(def, vCxt::getDefinition);
+        if (d instanceof Shape sh) {
+            mainTripleExprs.put(superType, sh.getTripleExpr());
+            constraints.put(superType, List.of());
+        } else if (d instanceof ShapeAnd sa) {
+            List<TripleExpr> allShapeTEs = new ArrayList<>();
+            for (ShapeExpr conjunct : sa.getShapeExprs()) {
+                ShapeExpr deref = Util.dereference(conjunct, vCxt::getDefinition);
+                if (deref instanceof Shape shConj)
+                    allShapeTEs.add(shConj.getTripleExpr());
+            }
+            if (allShapeTEs.isEmpty())
+                throw new ShexSchemaStructureException(
+                    "Extending shape " + superType + " has no Shape conjunct");
+            TripleExpr combined;
+            if (allShapeTEs.size() == 1) {
+                combined = allShapeTEs.get(0);
+            } else {
+                List<TripleExpr> parts = new ArrayList<>();
+                parts.add(allShapeTEs.get(0));
+                for (int i = 1; i < allShapeTEs.size(); i++)
+                    parts.add(TripleExprCardinality.create(allShapeTEs.get(i), Cardinality.STAR, List.of()));
+                combined = EachOf.create(parts, List.of());
+            }
+            mainTripleExprs.put(superType, combined);
+            constraints.put(superType, new ArrayList<>(sa.getShapeExprs()));
+        } else {
+            throw new ShexSchemaStructureException(
+                "Extending shape " + superType + " is neither a Shape nor a ShapeAnd");
+        }
+    }
+
+    /** Steps 2-4: extract the relevant neighbourhood, check closedness, and look for a split
+     *  of the triples among the hierarchy's main triple expressions that also satisfies the
+     *  per-supertype constraints. */
+    private static boolean satisfiesWithExprs(Node dataNode, Shape shape, Set<Triple> triples,
+                                              Map<Node, TripleExpr> mainTripleExprs,
+                                              Map<Node, List<ShapeExpr>> constraints,
+                                              ValidationContext vCxt, Reporter shapeReporter) {
         // 2. Extract the neighbourhood of the node relevant for satisfying that shape
         Set<Triple> matchables = new HashSet<>();
         Set<Triple> nonMatchables = new HashSet<>();
         if (null == triples) {  // Validating the whole neighbourhood
             Util.retrieveRelevantNeighbourhood(vCxt.getGraph(), dataNode,
                     mainTripleExprs.values(), matchables, nonMatchables, vCxt);
-        } else {   // Validating only part of the neighbourhood
-            matchables = triples;
+        } else {   // Validating only part of the neighbourhood -- filter by predicate just like above
+            Set<Node> fwdPredicates = new HashSet<>();
+            Set<Node> invPredicates = new HashSet<>();
+            AccumulationUtil.accumulatePredicates(mainTripleExprs.values(),
+                    vCxt::getTripleExpr, fwdPredicates, invPredicates);
+            Util.filterNeighbourhoodForPredicates(triples, dataNode, fwdPredicates, invPredicates, matchables);
+            triples.forEach(t -> { if (!matchables.contains(t)) nonMatchables.add(t); });
         }
 
         // 3. Check if the closed constraint is satisfied, if any
@@ -136,9 +243,6 @@ public class ShapeExprEval {
         //    that satisfies the constraints.
         Iterator<Map<Node, Set<Triple>>> splitsIt = TripleExprEval.correctSplitsIterator(dataNode, shape, matchables,
                 mainTripleExprs, vCxt, shapeReporter);
-        // TODO specific reporting needed when a split satisfies the main shapes but not the constraints
-        //      Need a test case for that.
-        //      It should have several equivalent shapes, but in which the ordering is different
         while (splitsIt.hasNext()) {
             Map<Node, Set<Triple>> split = splitsIt.next();
             if (splitSatisfiesConstraints(dataNode, shape, split, constraints, vCxt, shapeReporter)) {

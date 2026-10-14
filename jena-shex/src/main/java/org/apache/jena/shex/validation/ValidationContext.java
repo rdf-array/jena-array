@@ -23,6 +23,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shex.ShapeDecl;
 import org.apache.jena.shex.ShexStatus;
+import org.apache.jena.shex.calc.Util;
 import org.apache.jena.shex.expressions.*;
 import org.apache.jena.shex.ShexSchema;
 import org.apache.jena.shex.reporting.*;
@@ -101,9 +102,22 @@ public class ValidationContext {
                 label == SysShex.startNode
                         ? List.of(label)
                         : nonAbstractDescendants(label);
+        // An abstract shape with no non-abstract descendant (nothing extends it, or every
+        // extender is itself abstract) cannot be satisfied by any node.
+        if (nonAbstractDescendants.isEmpty()) {
+            if (isExtendable(label))
+                reporter.informDescendantConformance(false, null);
+            return reporter.setIsConformant(false);
+        }
         boolean isDescendant = nonAbstractDescendants.get(0) != label; /// <errorReporting/>
         for (Node descendant : nonAbstractDescendants) {
             ShapeExpr expr = schema.get(descendant).getShapeExpr();
+            // Validating the node AS `label` via a proper descendant: only the parts of the
+            // descendant that actually extend `label` establish it. If the descendant is a
+            // ShapeOr, drop the disjuncts that don't extend `label` (e.g. <D> @<X> OR EXTENDS
+            // @<A>{...}: satisfying @<X> does not make the node an <A>).
+            if (!descendant.equals(label))
+                expr = restrictToExtending(expr, label);
             Reporter exprReporter = reporter.createChild(focus, expr, null);
 
             ///  <errorReporting> The first element of nonAbstractDescendants is not a descendant
@@ -150,6 +164,47 @@ public class ValidationContext {
     /** Duplicates-free list of the non-abstract subtypes, including the given shape declaration. */
     public List<Node> nonAbstractDescendants(Node shexprLabel) {
         return schemaMem.getTypeHierarchyGraph().getNonAbstractSubtypes(shexprLabel);
+    }
+
+    /** Does this shape expression (dereferenced) extend {@code ancestor} transitively? */
+    public boolean extendsLabel(ShapeExpr expr, Node ancestor) {
+        ShapeExpr d = Util.dereference(expr, this::getDefinition);
+        if (d instanceof Shape sh) {
+            for (ShapeExprRef ext : sh.getExtends())
+                if (getSupertypes(ext.getLabel()).contains(ancestor))
+                    return true;
+            return false;
+        }
+        if (d instanceof ShapeAnd sa) {
+            for (ShapeExpr c : sa.getShapeExprs())
+                if (extendsLabel(c, ancestor))
+                    return true;
+            return false;
+        }
+        if (d instanceof ShapeOr so) {
+            for (ShapeExpr c : so.getShapeExprs())
+                if (extendsLabel(c, ancestor))
+                    return true;
+            return false;
+        }
+        return false;
+    }
+
+    /** When validating a node against {@code ancestor} via a proper descendant whose definition
+     *  is a ShapeOr, only the disjuncts that actually extend {@code ancestor} establish the node
+     *  as an {@code ancestor}.  Returns the definition restricted to those disjuncts (unchanged
+     *  if it is not a ShapeOr, or if every disjunct extends {@code ancestor}, or if none do). */
+    public ShapeExpr restrictToExtending(ShapeExpr expr, Node ancestor) {
+        ShapeExpr d = Util.dereference(expr, this::getDefinition);
+        if (!(d instanceof ShapeOr so))
+            return expr;
+        List<ShapeExpr> keep = new ArrayList<>();
+        for (ShapeExpr disj : so.getShapeExprs())
+            if (extendsLabel(disj, ancestor))
+                keep.add(disj);
+        if (keep.isEmpty() || keep.size() == so.getShapeExprs().size())
+            return expr;
+        return keep.size() == 1 ? keep.get(0) : ShapeOr.create(keep);
     }
 
     private boolean isExtendable(Node label) {
