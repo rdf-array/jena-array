@@ -50,8 +50,14 @@ public class TypeHierarchyGraph {
 
         shapeDeclMap.forEach((label, decl) -> result.graph.addVertex(decl.getLabel()));
         shapeDeclMap.forEach((label, decl) -> {
+            // Only a declaration's OWN shapes contribute extends edges. Following
+            // shape-expression references here (into other declarations' bodies)
+            // made any shape that references a subtype of S a bogus subtype of S --
+            // e.g. a catch-all start shape that references @<canonical> (which
+            // EXTENDS <uri>) became a "subtype" of <uri>, and validating a node
+            // against <uri> would pass via that catch-all, defeating CLOSED.
             List<Shape> accShapes = new ArrayList<>();
-            AccumulationUtil.accumulateShapesFollowShapeExprRefs(decl.getShapeExpr(), shapeDeclMap::get, accShapes);
+            AccumulationUtil.accumulateShapesInShapeExpr(decl.getShapeExpr(), accShapes);
             for (Shape shape : accShapes)
                 for (ShapeExprRef extended : shape.getExtends())
                     result.graph.addEdge(decl.getLabel(), extended.getLabel());

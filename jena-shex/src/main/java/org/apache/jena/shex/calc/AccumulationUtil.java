@@ -175,6 +175,28 @@ public class AccumulationUtil {
         shapeExpr.visit(walker);
     }
 
+    /** Accumulates the shapes that make up a shape expression's own structure
+     * (ShapeAnd / ShapeOr / ShapeNot / Shape), WITHOUT dereferencing shape
+     * expression references into other declarations. A reference to another
+     * shape is not an extension of it, so this is what the type hierarchy needs
+     * to read a declaration's own EXTENDS targets: following references instead
+     * makes any shape that merely references a subtype of S a bogus subtype of S.
+     * @param shapeExpr The shape expression to explore
+     * @param acc The collection to which the shapes are added
+     */
+    public static void accumulateShapesInShapeExpr (ShapeExpr shapeExpr, Collection<Shape> acc) {
+        ShapeExprAccumulationVisitor<Shape> seVisitor = new ShapeExprAccumulationVisitor<>(acc) {
+            @Override
+            public void visit(Shape shape) {
+                accumulate(shape);
+            }
+        };
+        ExpressionWalker walker = ExpressionWalker.builder()
+                .processShapeExprsWith(seVisitor)
+                .build();
+        shapeExpr.visit(walker);
+    }
+
     /** Collects the sub-expressions of a triple expression that have defined semantic actions.
      * Follows triple expression references.
      * @param tripleExpr The triple expression to explore
