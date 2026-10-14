@@ -130,15 +130,20 @@ public class TestChecker
     // Bad tagging.
     public void checker42()     { check("\"<x><y></x></y>\"^^rdf:XMLLiteral") ; }
 
-    @Test(expected=ExWarning.class)
-    // Not exclusive canonicalization
+    @Test
+    // Well-formed but not in exclusive canonical form ("<x/>" vs "<x></x>").
+    // RDF 1.1 does not require canonical form in the lexical space, so this is
+    // a valid rdf:XMLLiteral and the checker must not warn.
     public void checker43()     { check("\"<x/>\"^^rdf:XMLLiteral") ; }
 
     @Test
     public void checker44()     { check("'''<x xmlns=\"http://example/ns#\" attr=\"foo\"></x>'''^^rdf:XMLLiteral" ) ; }
 
-    @Test(expected=ExWarning.class)
-    // Exclusive canonicalization requires namespace declaration before attributes
+    @Test
+    // Well-formed but not in exclusive canonical form (canonicalization would
+    // move the namespace declaration before the attribute).  RDF 1.1 does not
+    // require canonical form in the lexical space, so this is a valid
+    // rdf:XMLLiteral and the checker must not warn.
     public void checker45()     { check("'''<x attr=\"foo\" xmlns=\"http://example/ns#\"></x>'''^^rdf:XMLLiteral") ; }
 
     private static ErrorHandler errorHandler = new ErrorHandlerTestLib.ErrorHandlerEx();

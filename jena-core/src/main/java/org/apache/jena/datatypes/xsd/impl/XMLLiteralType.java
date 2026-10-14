@@ -80,14 +80,22 @@ public class XMLLiteralType extends BaseDatatype implements RDFDatatype {
     @Override
     public boolean isValid(final String lexicalForm) {
         /*
-         * To check the lexical form we construct
-         * a dummy RDF/XML document and parse it with
-         * ARP. ARP performs an exclusive canonicalization,
-         * the dummy document has exactly one triple.
-         * If the lexicalForm is valid then the resulting
-         * literal found by ARP is unchanged.
-         * All other scenarios are either impossible
-         * or occur because the lexical form is invalid.
+         * RDF 1.1 defines the lexical space of rdf:XMLLiteral as the set of
+         * strings that are well-balanced, self-contained XML content (RDF 1.1
+         * Concepts, sec. "The rdf:XMLLiteral Datatype").  Exclusive XML
+         * canonicalization is only the datatype's *canonical mapping* (one
+         * canonical representative per value); it is NOT a lexical-space
+         * requirement.  So a well-formed but non-canonical fragment -- e.g.
+         * "<x/>" (canonical "<x></x>"), or a pretty-printed xhtml <div> with
+         * insignificant whitespace, as FHIR narratives emit -- is a valid
+         * lexical form.  (RDF 1.0 required canonical form here; that is the
+         * behaviour we have relaxed.)
+         *
+         * To check well-formedness we construct a dummy RDF/XML document with
+         * exactly one rdf:parseType="Literal" triple and parse it with ARP.
+         * The lexical form is valid iff ARP reports exactly one XML-literal
+         * triple with no parse error and well-formed XML content.  We do NOT
+         * require ARP's canonicalized result to equal the input.
          */
         final boolean status[] = new boolean[]{false,false,false};
         // status[0] true on error or other reason to know that this is not well-formed
@@ -125,6 +133,9 @@ public class XMLLiteralType extends BaseDatatype implements RDFDatatype {
 			}
 			//throw new BrokenException("plain literal in XMLLiteral code.");
             status[1] = true;
+            // status[2] records whether the input was already in exclusive
+            // canonical form.  RDF 1.1 does not require this of the lexical
+            // space, so it no longer gates validity (kept for reference only).
             status[2] = l.toString().equals(lexicalForm);
         }
 		@Override
@@ -151,7 +162,9 @@ public class XMLLiteralType extends BaseDatatype implements RDFDatatype {
         }
 
 
-        return (!status[0])&&status[1]&&status[2];
+        // RDF 1.1: well-formed, self-contained XML content is a valid lexical
+        // form; exclusive canonical form is not required (was: && status[2]).
+        return (!status[0]) && status[1];
     }
 
 }
