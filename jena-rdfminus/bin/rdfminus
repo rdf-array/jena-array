@@ -1,0 +1,25 @@
+#!/bin/bash
+## Run the RDF- demo server from the build tree (no install needed).
+##   bin/rdfminus -S http://localhost:8099/validate [-d data.ttl] [-x schema.shex] [-s shape] [--serve-n N] [-Q]
+## Compile first:  mvn -o -q -pl jena-rdfminus -am -DskipTests package
+set -e
+HERE="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$HERE/.." && pwd)"
+if [ -z "$JAVA_HOME" ] && [ -d /opt/homebrew/opt/openjdk@21 ]; then
+    JAVA_HOME=/opt/homebrew/opt/openjdk@21
+fi
+JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
+CPFILE="$HERE/target/classpath.txt"
+if [ ! -f "$CPFILE" ]; then
+    MVN="${MVN:-mvn}"
+    if ! command -v "$MVN" >/dev/null 2>&1 && [ -x "/Applications/IntelliJ IDEA.app/Contents/plugins/maven/lib/maven3/bin/mvn" ]; then
+        MVN="/Applications/IntelliJ IDEA.app/Contents/plugins/maven/lib/maven3/bin/mvn"
+    fi
+    (cd "$ROOT" && "$MVN" -o -q -pl jena-rdfminus dependency:build-classpath -Dmdep.outputFile="$CPFILE" >/dev/null)
+fi
+CP="$HERE/target/classes"
+for m in jena-shex jena-arq jena-core jena-base jena-iri; do
+    CP="$CP:$ROOT/$m/target/classes"
+done
+CP="$CP:$(cat "$CPFILE")"
+exec "$JAVA" -cp "$CP" org.apache.jena.rdfminus.RdfMinusServer "$@"

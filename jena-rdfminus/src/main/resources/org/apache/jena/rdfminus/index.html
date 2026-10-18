@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RDF−</title>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6a66; --line: #d9d6cf; --panel: #ffffff;
+    --accent: #b3261e; --accent-ink: #ffffff; --uri: #0b57a4; --lit: #2e6b1f; --seq: #8a3ffc; --bnode: #9a6700;
+    --ok: #1d7a3b; --bad: #b3261e; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #15161a; --fg: #ebe9e3; --muted: #9a9890; --line: #33363d; --panel: #1d1f25;
+            --accent: #ff6b5c; --accent-ink: #15161a; --uri: #7fb4f0; --lit: #9fd48a; --seq: #c89bff; --bnode: #e3b341;
+            --ok: #58c27c; --bad: #ff7b6e; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  header { padding: 28px 24px 8px; max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 44px; letter-spacing: -1px; }
+  h1 .minus { color: var(--accent); }
+  .tag { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+  .tag code, .note code { font-family: var(--mono); font-size: 0.92em; }
+  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 40px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-top: 16px; }
+  .panel h2 { margin: 0 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  textarea, input[type=text], select { width: 100%; font: 13px/1.4 var(--mono); color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+  textarea { min-height: 150px; resize: vertical; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+  .row label { color: var(--muted); font-size: 13px; }
+  .row input[type=text] { flex: 1; min-width: 160px; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 6px; padding: 7px 14px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  nav.tabs { display: flex; gap: 6px; margin-top: 18px; border-bottom: 1px solid var(--line); }
+  nav.tabs button { border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; font-size: 17px; padding: 8px 18px; background: transparent; }
+  nav.tabs button.active { border-color: var(--line); background: var(--panel); color: var(--accent); font-weight: 700; }
+  section.tab { display: none; }
+  section.tab.active { display: block; }
+  .out { margin-top: 10px; }
+  pre { font: 12.5px/1.45 var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow: auto; white-space: pre-wrap; }
+  table.results { border-collapse: collapse; width: 100%; font: 13px/1.45 var(--mono); }
+  table.results th, table.results td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+  table.results th { background: var(--bg); font-weight: 600; }
+  .uri { color: var(--uri); } .lit { color: var(--lit); } .bnode { color: var(--bnode); }
+  .seq { color: var(--seq); } .seq .paren { font-weight: 700; }
+  .status-ok { color: var(--ok); font-weight: 700; } .status-bad { color: var(--bad); font-weight: 700; }
+  .error { color: var(--bad); white-space: pre-wrap; font-family: var(--mono); font-size: 13px; }
+  .note { color: var(--muted); font-size: 13px; margin: 6px 0; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+  .compare pre { margin: 0; }
+  .compare h3 { margin: 0 0 4px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  footer { max-width: 1100px; margin: 0 auto; padding: 0 24px 40px; color: var(--muted); font-size: 13px; }
+  footer pre { font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>RDF<span class="minus">−</span></h1>
+  <p class="tag">RDF minus the ceremony. A sequence is a term: <code>(1 2 3)</code> is one object, not a ladder of blank nodes.
+  No <code>rdf:first</code>, no <code>rdf:rest</code>, no <code>rdf:nil</code>, no list-walking property paths or inference rules.
+  The same data, queries and shapes, each written once in <b>Turtle−</b>, <b>SPARQL−</b> and <b>ShEx−</b>.</p>
+</header>
+<main>
+  <div class="panel">
+    <h2>Data (Turtle−)</h2>
+    <textarea id="data" spellcheck="false">PREFIX : &lt;http://example/&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+
+:alice :name "Alice" ;
+       :phones ("555-1234" "555-9876") ;
+       :path ((0 0) (3 4) (6 0)) ;
+       :tags () .
+
+:bob   :name "Bob" ;
+       :phones ("555-0000") ;
+       :path ((1 1)) ;
+       :tags ("friend") .
+</textarea>
+    <p class="note">Shared by the three tabs. <code>()</code> is the empty sequence; sequences nest; a sequence may also be a subject.</p>
+  </div>
+
+  <nav class="tabs">
+    <button data-tab="turtle" class="active">Turtle−</button>
+    <button data-tab="sparql">SPARQL−</button>
+    <button data-tab="shex">ShEx−</button>
+  </nav>
+
+  <section id="tab-turtle" class="tab active panel">
+    <h2>Parse</h2>
+    <p class="note">The parser returns one triple per statement; a <code>(…)</code> object is a single <span class="seq">seq</span> term holding its elements.</p>
+    <div class="row"><button class="primary" id="parseBtn">Parse</button></div>
+    <div class="out" id="turtleOut"></div>
+    <div class="compare" style="margin-top:12px">
+      <div><h3>Turtle−</h3><pre>:alice :phones ("555-1234" "555-9876") .</pre><pre>1 triple. The object is a term with two elements.</pre></div>
+      <div><h3>RDF 1.1</h3><pre>:alice :phones _:l1 .
+_:l1 rdf:first "555-1234" ; rdf:rest _:l2 .
+_:l2 rdf:first "555-9876" ; rdf:rest rdf:nil .</pre><pre>5 triples, 2 blank nodes, 1 well-known IRI, and an invariant nobody checks.</pre></div>
+    </div>
+  </section>
+
+  <section id="tab-sparql" class="tab panel">
+    <h2>Query</h2>
+    <div class="row">
+      <label for="examples">Examples</label>
+      <select id="examples"></select>
+    </div>
+    <textarea id="query" spellcheck="false"></textarea>
+    <div class="row"><button class="primary" id="runBtn">Run</button><span class="note" id="oldWay"></span></div>
+    <div class="out" id="sparqlOut"></div>
+  </section>
+
+  <section id="tab-shex" class="tab panel">
+    <h2>Validate</h2>
+    <textarea id="schema" spellcheck="false">PREFIX : &lt;http://example/&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+
+:Person {
+  :name xsd:string ;
+  :phones ((xsd:string))[1, 2] ;     # one or two phone strings
+  :path ((@:Point))[1, *] ;          # at least one point
+  :tags ((xsd:string))               # any number of tags, possibly none
+}
+
+# a point is a sequence of exactly two integers
+:Point ((xsd:integer))[2]
+</textarea>
+    <p class="note"><code>((t))[m, n]</code> is a <b>Collection</b> shape expression: a sequence of <i>m</i> to <i>n</i> elements, each satisfying <i>t</i>.
+      <code>[m]</code> means exactly <i>m</i>, <code>[m, *]</code> at least <i>m</i>, no brackets any length.</p>
+    <div class="row">
+      <label for="queryMap">Query map</label>
+      <input type="text" id="queryMap" value="&lt;http://example/alice&gt;@&lt;http://example/Person&gt;, &lt;http://example/bob&gt;@&lt;http://example/Person&gt;">
+    </div>
+    <div class="row">
+      <label>or node</label><input type="text" id="node" placeholder=":alice">
+      <label>shape</label><input type="text" id="shape" placeholder=":Person">
+    </div>
+    <div class="row"><button class="primary" id="validateBtn">Validate</button><span class="note">Node and shape may be <code>&lt;iri&gt;</code>, prefixed with the schema's prefixes, or relative to the server.</span></div>
+    <div class="out" id="shexOut"></div>
+  </section>
+</main>
+<footer>
+  <p>Endpoints, in the manner of the shex.js validation server (GET or POST; query string, form, multipart upload or JSON body):</p>
+  <pre id="curl"></pre>
+</footer>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // ---- tabs
+  document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('nav.tabs button').forEach(x => x.classList.toggle('active', x === b));
+    document.querySelectorAll('section.tab').forEach(s => s.classList.toggle('active', s.id === 'tab-' + b.dataset.tab));
+  }));
+
+  // ---- prefixes from the data textarea (plus the usual ones) for display
+  function prefixes() {
+    const map = { 'http://www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf:', 'http://www.w3.org/2001/XMLSchema#': 'xsd:' };
+    const re = /PREFIX\s+(\w*):\s*<([^>]*)>/gi;
+    for (const txt of [$('data').value, $('query').value, $('schema').value]) {
+      let m; while ((m = re.exec(txt))) map[m[2]] = m[1] + ':';
+    }
+    return map;
+  }
+  function abbreviate(uri, pfx) {
+    for (const ns in pfx) if (uri.startsWith(ns)) return pfx[ns] + uri.slice(ns.length);
+    return '<' + uri + '>';
+  }
+  // ---- render a JSON term (SPARQL results JSON, plus "seq" and "triple")
+  function term(t, pfx) {
+    if (!t) return '<span class="bnode">—</span>';
+    switch (t.type) {
+      case 'uri': return '<span class="uri">' + esc(abbreviate(t.value, pfx)) + '</span>';
+      case 'bnode': return '<span class="bnode">_:' + esc(t.value) + '</span>';
+      case 'literal': case 'typed-literal': {
+        let s = '"' + esc(t.value) + '"';
+        if (t['xml:lang']) s += '@' + esc(t['xml:lang']);
+        else if (t.datatype && t.datatype !== 'http://www.w3.org/2001/XMLSchema#string') {
+          const dt = abbreviate(t.datatype, pfx);
+          if (dt === 'xsd:integer' || dt === 'xsd:decimal' || dt === 'xsd:double' || dt === 'xsd:boolean') s = esc(t.value);
+          else s += '^^' + esc(dt);
+        }
+        return '<span class="lit">' + s + '</span>';
+      }
+      case 'seq': return '<span class="seq"><span class="paren">(</span> ' + t.value.map(e => term(e, pfx)).join(' ') + ' <span class="paren">)</span></span>';
+      case 'triple': return '&lt;&lt; ' + term(t.value.subject, pfx) + ' ' + term(t.value.predicate, pfx) + ' ' + term(t.value.object, pfx) + ' &gt;&gt;';
+      default: return esc(JSON.stringify(t));
+    }
+  }
+  function errorHtml(text) {
+    try { const j = JSON.parse(text); if (j.errors) return '<div class="error">' + esc(j.type + ': ' + j.errors.join('\n')) + '</div>'; } catch (e) {}
+    return '<div class="error">' + esc(text) + '</div>';
+  }
+  async function call(route, fields) {
+    const body = new URLSearchParams(fields);
+    const r = await fetch(route, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+    return { ok: r.ok, type: r.headers.get('Content-Type') || '', text: await r.text() };
+  }
+
+  // ---- Turtle−
+  $('parseBtn').addEventListener('click', async () => {
+    const out = $('turtleOut'); out.innerHTML = '<p class="note">parsing…</p>';
+    const r = await call('turtle', { data: $('data').value });
+    if (!r.ok) { out.innerHTML = errorHtml(r.text); return; }
+    const j = JSON.parse(r.text), pfx = prefixes();
+    let h = '<p class="note">' + j.count + ' triple' + (j.count === 1 ? '' : 's') + '</p><table class="results"><tr><th>subject</th><th>predicate</th><th>object</th></tr>';
+    for (const q of j.quads) h += '<tr><td>' + term(q.subject, pfx) + '</td><td>' + term(q.predicate, pfx) + '</td><td>' + term(q.object, pfx) + '</td></tr>';
+    h += '</table><p class="note">N-Triples− (every triple on its own line, sequences inline):</p><pre>' + esc(j.ntriples) + '</pre>';
+    out.innerHTML = h;
+  });
+
+  // ---- SPARQL−
+  const examples = [
+    { name: 'the second phone number', old: 'RDF 1.1: ?who :phones/rdf:rest/rdf:first ?second',
+      q: 'SELECT ?who ?second WHERE {\n  ?who :phones ((?second))[2]\n}' },
+    { name: 'every point of a path, with its position', old: 'RDF 1.1: a ladder walk with rdf:rest* and no position at all',
+      q: 'SELECT ?who ?i ?x ?y WHERE {\n  ?who :path (( (?x ?y) ))[?i]\n}\nORDER BY ?who ?i' },
+    { name: 'every element, any position', old: 'RDF 1.1: ?who :tags/rdf:rest*/rdf:first ?tag',
+      q: 'SELECT ?who ?tag WHERE {\n  ?who :tags ((?tag))[*]\n}' },
+    { name: 'lengths and first elements as expressions', old: 'RDF 1.1: list:length and list:index property functions, or a COUNT over rdf:rest*',
+      q: 'SELECT ?who (SEQLEN(?phones) AS ?n) (?phones[1] AS ?first) WHERE {\n  ?who :phones ?phones\n}' },
+    { name: 'match a whole sequence', old: 'RDF 1.1: three cells, two rdf:rest links and a terminating rdf:nil',
+      q: 'SELECT ?who WHERE {\n  ?who :path ((0 0) (3 4) (6 0))\n}' },
+    { name: 'the empty sequence', old: 'RDF 1.1: ?who :tags rdf:nil',
+      q: 'SELECT ?who WHERE {\n  ?who :tags ()\n}' },
+    { name: 'build sequences in a CONSTRUCT', old: 'RDF 1.1: minting fresh blank-node cells per solution',
+      q: 'CONSTRUCT {\n  ?who :firstPhone ?f ;\n       :pathLength ?n ;\n       :corners (?a ?z)\n} WHERE {\n  ?who :phones ((?f))[1] ;\n       :path ?p .\n  BIND(SEQLEN(?p) AS ?n)\n  BIND(?p[1] AS ?a)\n  BIND(?p[?n] AS ?z)\n}' },
+    { name: 'ASK with a position pattern', old: 'RDF 1.1: ASK { :alice :phones/rdf:rest/rdf:rest/rdf:first ?x }',
+      q: 'ASK { :alice :phones ((?x))[3] }' },
+  ];
+  const sel = $('examples');
+  examples.forEach((e, i) => { const o = document.createElement('option'); o.value = i; o.textContent = e.name; sel.appendChild(o); });
+  function loadExample() {
+    const e = examples[sel.value];
+    $('query').value = 'PREFIX : <http://example/>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\n' + e.q;
+    $('oldWay').textContent = e.old;
+  }
+  sel.addEventListener('change', loadExample); loadExample();
+
+  $('runBtn').addEventListener('click', async () => {
+    const out = $('sparqlOut'); out.innerHTML = '<p class="note">running…</p>';
+    const r = await call('sparql', { data: $('data').value, query: $('query').value });
+    if (!r.ok) { out.innerHTML = errorHtml(r.text); return; }
+    if (r.type.startsWith('text/turtle')) { out.innerHTML = '<p class="note">CONSTRUCT result (Turtle−):</p><pre>' + esc(r.text) + '</pre>'; return; }
+    const j = JSON.parse(r.text), pfx = prefixes();
+    if ('boolean' in j) { out.innerHTML = '<p class="' + (j.boolean ? 'status-ok' : 'status-bad') + '">' + j.boolean + '</p>'; return; }
+    const vars = j.head.vars, rows = j.results.bindings;
+    let h = '<p class="note">' + rows.length + ' solution' + (rows.length === 1 ? '' : 's') + '</p><table class="results"><tr>' + vars.map(v => '<th>?' + esc(v) + '</th>').join('') + '</tr>';
+    for (const row of rows) h += '<tr>' + vars.map(v => '<td>' + (row[v] ? term(row[v], pfx) : '') + '</td>').join('') + '</tr>';
+    out.innerHTML = h + '</table>';
+  });
+
+  // ---- ShEx−
+  $('validateBtn').addEventListener('click', async () => {
+    const out = $('shexOut'); out.innerHTML = '<p class="note">validating…</p>';
+    const fields = { schema: $('schema').value, data: $('data').value };
+    if ($('node').value.trim() || $('shape').value.trim()) { fields.node = $('node').value.trim(); fields.shape = $('shape').value.trim(); }
+    else fields.queryMap = $('queryMap').value;
+    const r = await call(document.body.dataset.validate || 'validate', fields);
+    if (!r.ok) { out.innerHTML = errorHtml(r.text); return; }
+    const j = JSON.parse(r.text), pfx = prefixes();
+    let h = '<p class="' + (j.conforms ? 'status-ok' : 'status-bad') + '">' + (j.conforms ? 'conformant' : 'nonconformant') + '</p>';
+    h += '<table class="results"><tr><th>node</th><th>shape</th><th>status</th></tr>';
+    for (const e of j.results) h += '<tr><td>' + (e.node ? term(e.node, pfx) : '') + '</td><td>' + (e.shape ? term(e.shape, pfx) : '') + '</td><td class="' + (e.status === 'conformant' ? 'status-ok' : 'status-bad') + '">' + esc(e.status) + '</td></tr>';
+    h += '</table><p class="note">Report:</p><pre>' + esc(j.report) + '</pre>';
+    out.innerHTML = h;
+  });
+
+  // ---- footer
+  const base = location.origin + '/';
+  $('curl').textContent =
+    "curl -i " + base + "turtle -F 'data=PREFIX : <http://example/>  :x :p (1 2) .'\n" +
+    "curl -i " + base + "sparql -F 'data=PREFIX : <http://example/>  :x :p (1 2) .' \\\n" +
+    "     -F 'query=PREFIX : <http://example/>  SELECT ?e { :x :p ((?e))[2] }'\n" +
+    "curl -i " + base + "validate -F 'schema=@schema.shex' -F 'data=@data.ttl' \\\n" +
+    "     -F 'node=http://example/alice' -F 'shape=http://example/Person'\n" +
+    "curl -i " + base + "validate -F 'schema=@schema.shex' -F 'data=@data.ttl' \\\n" +
+    "     -F 'queryMap=<http://example/alice>@<http://example/Person>' -F report=boolean";
+})();
+</script>
+</body>
+</html>

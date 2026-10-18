@@ -27,7 +27,7 @@ pattern.
 | SPARQL | functions `E_IsSeq`, `E_SeqLen`, `E_SeqAt` (`x[i]`), `E_MkSeq` (`SEQ(...)`) over `function/library/seq/SeqFunctions` | `sparql/expr/` |
 | lists  | `G.rdfList`, `G.getOneOrList`, `GraphList.{members,length,get,index,indexes,isListNode,findAllLists}` accept a sequence term as "the list" (legacy ladders still work), so ShExR, manifests, property-function argument lists (`?x apf:strSplit (?s "re")`) and `list:member/index/length` work over sequences | `system/G`, `sparql/util/graph/GraphList` |
 | ShEx  | `Collection` shape expression `((shapeExpr))[min, max]`: ShExC (`[m]` exactly m, `[m, n]`, `[m, *]`/`[m,]`, none = any length), ShExJ `{"type":"Collection","shapeExpr":…,"min":m,"max":n}`, ShExR `sx:Collection` + `sx:shapeExpr`/`sx:min`/`sx:max`; validation: focus node must be a sequence of acceptable length, each element validated (as a focus node of its own) against `shapeExpr`; ShExC writer; reporters | `jena-shex/shexc/shex.jj` (regenerated), `expressions/ShapeCollection`, `parser/{ParserShExC,ParserShExR}`, `jsonld/{JsonGEnum,ShexJsonldDeserializer}`, `validation/ShapeExprEval`, `writer/WriterShExC`, `calc/*Visitor*`, `reporting/*` |
-| tests | `riot/lang/TestLangSequences` (TS_Lang), `sparql/engine/TestSequenceQueries` (TS_Engine), `shex/TestShexCollection` (TS_Shex) | |
+| tests | `riot/lang/TestLangSequences` (TS_Lang), `sparql/engine/TestSequenceQueries` (TS_Engine), `shex/TestShexCollection` (TS_Shex), `rdfminus/TestRdfMinusServer` (TS_RdfMinus) | |
 
 ### SPARQL position patterns — the `(())[i]` notation
 
@@ -54,6 +54,20 @@ pattern requires the `[...]`. Parsed with a syntactic lookahead
 Parsed with a syntactic lookahead for `(( shapeExpression ))`, so
 `((a OR b) AND c)` is still a parenthesised expression. The remaining ambiguity is
 `((x))` with nothing after it: it is a Collection, not doubly-parenthesised `x`.
+
+## RDF− demo: `jena-rdfminus`
+
+A new module with one HTTP server (`org.apache.jena.rdfminus.RdfMinusServer`, JDK
+`HttpServer`, no extra dependencies) and one page, `src/main/resources/.../index.html`:
+a shared Turtle− data panel and three tabs. Turtle− shows the parsed triples with
+`seq` terms; SPARQL− runs SELECT/ASK/CONSTRUCT over the data (results JSON carries
+`"type": "seq"`); ShEx− validates with a query map or node + shape and shows the report.
+The routes copy the shex.js validation server (`-S URL` names the validation route;
+`-x -d -s -n -m` preload; `--serve-n`, `-Q`, `--terse`; multipart uploads, forms, query
+strings and JSON bodies; `{"type": "ParsingError", "errors": [...]}` with 400).
+`jena-rdfminus/bin/rdfminus -S http://localhost:8099/validate` runs it from the build tree;
+`TS_RdfMinus` (23 tests) starts it on an ephemeral port and exercises every route, the
+preload mode and `--serve-n`. See `jena-rdfminus/README.md`.
 
 ## Decisions worth knowing
 
