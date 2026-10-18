@@ -437,6 +437,9 @@ public class G {
     public static List<Node> rdfList(Graph graph, Node node) {
         Objects.requireNonNull(graph, "graph");
         Objects.requireNonNull(node, "node");
+        // RDF sequences: the term holds its elements.
+        if ( node.isNodeSeq() )
+            return node.getSeq();
         GNode gNode = GNode.create(graph, node);
         if ( ! GraphList.isListNode(gNode) )
             return null;
@@ -450,6 +453,9 @@ public class G {
     public static List<Node> getOneOrList(Graph graph, Node node) {
         Objects.requireNonNull(graph, "graph");
         Objects.requireNonNull(node, "node");
+        // RDF sequences: the term holds its elements.
+        if ( node.isNodeSeq() )
+            return node.getSeq();
         GNode gNode = GNode.create(graph, node);
         // An element on its own is a list of one
         if ( ! GraphList.isListNode(gNode) )

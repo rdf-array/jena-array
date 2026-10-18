@@ -131,6 +131,8 @@ public class ExpressionHReport implements Report {
             return "@" + ref.getLabel();
         if (expr instanceof ShapeNot shapeNot)
             return "NOT " + shapeExprToPrettySting(shapeNot.getShapeExpr());
+        if (expr instanceof ShapeCollection shapeCollection)
+            return "(( " + shapeExprToPrettySting(shapeCollection.getShapeExpr()) + " ))" + shapeCollection.boundsString();
         if (expr instanceof ShapeAnd shapeAnd)
             return String.join(" AND ",
                     shapeAnd.getShapeExprs().stream()

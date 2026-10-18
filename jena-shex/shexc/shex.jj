@@ -167,13 +167,18 @@ void shapeNot() : { int idx; boolean negate = false; }
     { finishShapeNot(idx,negate); }
 }
 
-void shapeAtom() : { int idx; }
+void shapeAtom() : { int idx; Cardinality card = null; }
 {
     { idx = startShapeAtom(); }
       // No literals-as-subjects.
     ( nonLitOutlineNodeConstraint() (shapeOrRef())?
     | litOutlineNodeConstraint()
     | shapeOrRef() (nonLitOutlineNodeConstraint())?
+    // RDF sequences: ((shapeExpr))[min, max] - a Collection shape expression.
+    | LOOKAHEAD( <LPAREN> <LPAREN> shapeExpression() <RPAREN> <RPAREN> )
+      <LPAREN> <LPAREN> shapeExpression() <RPAREN> <RPAREN>
+      ( card = collectionBounds() )?
+      { finishShapeCollection(card); }
     | <LPAREN> shapeExpression() <RPAREN>
     | <DOT> { shapeAtomDOT(); }
     )
@@ -221,13 +226,18 @@ void inlineShapeNot() : { int idx; boolean negate = false; }
     { finishInlineShapeNot(idx, negate); }
 }
 
-void inlineShapeAtom() : { int idx; }
+void inlineShapeAtom() : { int idx; Cardinality card = null; }
 {
   { idx = startInlineShapeAtom(); }
     // No literals-as-subjects.
   ( nonLitInlineNodeConstraint() (inlineShapeOrRef())?
   | litInlineNodeConstraint()
   | inlineShapeOrRef() (nonLitInlineNodeConstraint())?
+  // RDF sequences: ((shapeExpr))[min, max] - a Collection shape expression.
+  | LOOKAHEAD( <LPAREN> <LPAREN> shapeExpression() <RPAREN> <RPAREN> )
+    <LPAREN> <LPAREN> shapeExpression() <RPAREN> <RPAREN>
+    ( card = collectionBounds() )?
+    { finishShapeCollection(card); }
   | <LPAREN> shapeExpression() <RPAREN>
   | <DOT> { shapeAtomDOT(); }
   )
@@ -508,6 +518,17 @@ Cardinality cardinality() : {}
 {
    	( <STAR> | <PLUS>| <QMARK> | <REPEAT_RANGE> )
     { return cardinalityRange(token.image, token.beginLine, token.beginColumn); }
+}
+
+// RDF sequences: the bounds of a Collection shape expression.
+// [m] exactly m elements; [m, n] between m and n; [m, *] or [m,] at least m.
+Cardinality collectionBounds() : { Token t1 ; Token t2 = null ; boolean comma = false ; boolean star = false ; }
+{
+    <LBRACKET>
+    t1 = <INTEGER>
+    ( <COMMA> { comma = true ; } ( t2 = <INTEGER> | <STAR> { star = true ; } )? )?
+    <RBRACKET>
+    { return collectionBounds(t1.image, comma, (t2 == null) ? null : t2.image, star, t1.beginLine, t1.beginColumn); }
 }
 
 boolean senseFlags() : {}

@@ -64,6 +64,8 @@ public class LangNQuads extends LangNTuple<Quad> {
         Node s;
         if ( sToken.hasType(TokenType.LT2) )
             s = parseTripleTerm();
+        else if ( sToken.hasType(TokenType.LPAREN) )
+            s = parseSeqTerm();
         else {
             checkIRIOrBNode(sToken);
             s = tokenAsNode(sToken);
@@ -81,6 +83,8 @@ public class LangNQuads extends LangNTuple<Quad> {
         Node o;
         if ( oToken.hasType(TokenType.LT2) )
             o = parseTripleTerm();
+        else if ( oToken.hasType(TokenType.LPAREN) )
+            o = parseSeqTerm();
         else {
             checkRDFTerm(oToken);
             o = tokenAsNode(oToken);

@@ -24,6 +24,7 @@ public interface TypedShapeExprVisitor<R,A> {
     R visit(ShapeAnd shapeAnd, A arg);
     R visit(ShapeOr shapeOr, A arg);
     R visit(ShapeNot shapeNot, A arg);
+    R visit(ShapeCollection shapeCollection, A arg);
     R visit(ShapeExprRef shapeExprRef, A arg);
     R visit(ShapeExternal shapeExternal, A arg);
     R visit(Shape shape, A arg);

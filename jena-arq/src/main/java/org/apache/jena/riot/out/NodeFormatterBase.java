@@ -18,6 +18,8 @@
 
 package org.apache.jena.riot.out;
 
+import java.util.List;
+
 import org.apache.jena.atlas.io.AWriter ;
 import org.apache.jena.datatypes.RDFDatatype ;
 import org.apache.jena.datatypes.xsd.XSDDatatype ;
@@ -48,6 +50,8 @@ public abstract class NodeFormatterBase implements NodeFormatter
             w.print("ANY") ;
         else if ( n instanceof Node_Triple )
             formatNodeTriple(w, n);
+        else if ( n.isNodeSeq() )
+            formatNodeSeq(w, n);
 //        else if ( n instanceof Node_Graph )
 //            formatNodeGraph(w, (Node_Graph)n);
         else
@@ -63,6 +67,23 @@ public abstract class NodeFormatterBase implements NodeFormatter
         w.print(" ");
         format(w, t.getObject());
         w.print(" >>");
+    }
+
+    protected void formatNodeSeq(AWriter w, Node n) {
+        List<Node> elements = n.getSeq();
+        if ( elements.isEmpty() ) {
+            w.print("()");
+            return;
+        }
+        w.print("( ");
+        boolean first = true;
+        for ( Node elt : elements ) {
+            if ( ! first )
+                w.print(" ");
+            first = false;
+            format(w, elt);
+        }
+        w.print(" )");
     }
 
     @Override

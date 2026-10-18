@@ -45,6 +45,7 @@ public class JSONResultsKW
 
     // RDF-star Triple terms
     public static final String kTriple        = "triple" ;
+    public static final String kSeq           = "seq" ;
     // Alternative type for RDF-star triple terms.
     public static final String kStatement     = "statement" ;
     public static final String kSubject       = "subject" ;

@@ -52,6 +52,11 @@ import org.apache.jena.vocabulary.RDFS;
  * Base class to support the pretty forms of Turtle-related languages (Turtle, TriG)
  */
 public abstract class TurtleShell {
+    // RDF sequences: "( ... )" is a sequence term, not an abbreviation of rdf:first/rdf:rest
+    // triples. Legacy ladders are written as plain triples so that a round trip does not
+    // change the data model.
+    private static final boolean ABBREVIATE_LEGACY_LISTS = false;
+
     protected final IndentedWriter out;
     protected final NodeFormatter  nodeFmt;
     protected final PrefixMap      prefixMap;
@@ -911,6 +916,8 @@ public abstract class TurtleShell {
          * (list head -> Elements map), list elements)
          */
         private void findLists() {
+            if ( ! ABBREVIATE_LEGACY_LISTS )
+                return;
             List<Triple> tails = triples(ANY, RDF_Rest, RDF_Nil);
             for ( Triple t : tails ) {
                 // Returns the elements, reversed.
@@ -1199,8 +1206,6 @@ public abstract class TurtleShell {
                 if ( nestedObjects.contains(n) )
                     return true;
             }
-            if ( RDF_Nil.equals(n) )
-                return true;
             return false;
         }
 
@@ -1212,8 +1217,6 @@ public abstract class TurtleShell {
                 writeList(lists.get(obj));
             else if ( nestedObjects.contains(obj) )
                 writeNestedObject(obj);
-            else if ( RDF_Nil.equals(obj) )
-                out.print("()");
             else
                 writeNode(obj);
             if ( nestedObjects.contains(obj) )

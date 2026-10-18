@@ -287,6 +287,15 @@ public class WriterShExC {
         }
 
         @Override
+        public void visit(ShapeCollection shapeCollection) {
+            // RDF sequences: ((shapeExpr))[min, max]
+            out.print("(( ");
+            printShapeExpression(shapeCollection.getShapeExpr());
+            out.print(" ))");
+            out.print(shapeCollection.boundsString());
+        }
+
+        @Override
         public void visit(ShapeExternal shapeExternal) {
             out.println("EXTERNAL");
         }

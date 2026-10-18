@@ -94,6 +94,14 @@ public class FmtExprSPARQL {
 
         @Override
         public void visit(ExprFunction2 expr) {
+            if ( expr instanceof E_SeqAt ) {
+                // RDF sequences: seq[index]
+                expr.getArg1().visit(this);
+                out.print("[");
+                expr.getArg2().visit(this);
+                out.print("]");
+                return;
+            }
             if ( expr.getOpName() == null ) {
                 printInFunctionForm(expr);
                 return;

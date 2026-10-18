@@ -18,6 +18,8 @@
 
 package org.apache.jena.graph.test;
 
+import java.util.List;
+
 
 import junit.framework.TestSuite ;
 
@@ -485,6 +487,8 @@ public class TestNode extends GraphTestBase
             public Object visitTriple(Node_Triple it, Triple triple) { return it; }
             @Override
             public Object visitGraph(Node_Graph it, Graph graph) { return it; }
+            @Override
+            public Object visitSeq(Node_Seq it, List<Node> elements) { return it; }
         };
         testVisitorPatternNode( "sortOfURI", returnNode );
         testVisitorPatternNode( "?variable", returnNode );
@@ -548,6 +552,9 @@ public class TestNode extends GraphTestBase
             @Override
             public Object visitGraph(Node_Graph it, Graph graph)
             { assertEquals( it.getGraph(), graph ); return null; }
+            @Override
+            public Object visitSeq(Node_Seq it, List<Node> elements)
+            { assertEquals( it.getSeq(), elements ); return null; }
         };
         visitExamples( checkValue );
     }
@@ -582,6 +589,9 @@ public class TestNode extends GraphTestBase
             @Override
             public Object visitGraph(Node_Graph it, Graph graph)
             { strings[0] += " termGraph"; return null; }
+            @Override
+            public Object visitSeq(Node_Seq it, List<Node> elements)
+            { strings[0] += " termSeq"; return null; }
 
         };
         String desired = " uri variable blank literal any termTriple termGraph";

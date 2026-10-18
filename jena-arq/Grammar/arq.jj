@@ -24,6 +24,8 @@ options
 }
 PARSER_BEGIN(ARQParser)
 package org.apache.jena.sparql.lang.arq ;
+import java.util.ArrayList ;
+import java.util.List ;
 import org.apache.jena.graph.* ;
 import org.apache.jena.query.* ;
 import org.apache.jena.sparql.core.Var ;
@@ -583,7 +585,8 @@ Element GroupGraphPatternSub() : { Element el = null ; }
     { startTriplesBlock() ; }
     el = TriplesBlock(null)
     { endTriplesBlock() ;
-      elg.addElement(el) ; }
+      if ( ! ((ElementPathBlock)el).isEmpty() )
+        elg.addElement(el) ; }
   )?
   (
     el = GraphPatternNotTriples()
@@ -593,7 +596,8 @@ Element GroupGraphPatternSub() : { Element el = null ; }
       { startTriplesBlock() ; }
       el = TriplesBlock(null)
       { endTriplesBlock() ;
-        elg.addElement(el) ; }
+        if ( ! ((ElementPathBlock)el).isEmpty() )
+          elg.addElement(el) ; }
     )?
   )*
       { endGroup(elg) ; }
@@ -1083,9 +1087,22 @@ long Integer() : {Token t ;}
 }
 Node TriplesNode(TripleCollectorMark acc) : { Node n ; }
 {
+  LOOKAHEAD( <LPAREN> <LPAREN> GraphNode(acc) <RPAREN> <RPAREN> <LBRACKET> )
+  n = SeqIndexPattern(acc) { return n ; }
+ |
   n = Collection(acc) { return n ; }
  |
   n = BlankNodePropertyList(acc) { return n ; }
+}
+Node SeqIndexPattern(TripleCollectorMark acc) : { Node elt ; Node idx = null ; Token t ; }
+{
+  t = <LPAREN> <LPAREN>
+  elt = GraphNode(acc)
+  <RPAREN> <RPAREN>
+  <LBRACKET>
+  ( idx = Var() | idx = NumericLiteral() | <STAR> { idx = Node.ANY ; } )
+  <RBRACKET>
+  { return createSeqIndexNode(elt, idx, t.beginLine, t.beginColumn) ; }
 }
 Node BlankNodePropertyList(TripleCollector acc) : { Token t ; }
 {
@@ -1097,9 +1114,22 @@ Node BlankNodePropertyList(TripleCollector acc) : { Token t ; }
 }
 Node TriplesNodePath(TripleCollectorMark acc) : { Node n ; }
 {
+  LOOKAHEAD( <LPAREN> <LPAREN> GraphNodePath(acc) <RPAREN> <RPAREN> <LBRACKET> )
+  n = SeqIndexPatternPath(acc) { return n ; }
+ |
   n = CollectionPath(acc) { return n ; }
  |
   n = BlankNodePropertyListPath(acc) { return n ; }
+}
+Node SeqIndexPatternPath(TripleCollectorMark acc) : { Node elt ; Node idx = null ; Token t ; }
+{
+  t = <LPAREN> <LPAREN>
+  elt = GraphNodePath(acc)
+  <RPAREN> <RPAREN>
+  <LBRACKET>
+  ( idx = Var() | idx = NumericLiteral() | <STAR> { idx = Node.ANY ; } )
+  <RBRACKET>
+  { return createSeqIndexNode(elt, idx, t.beginLine, t.beginColumn) ; }
 }
 Node BlankNodePropertyListPath(TripleCollector acc) : { Token t ; }
 {
@@ -1110,52 +1140,28 @@ Node BlankNodePropertyListPath(TripleCollector acc) : { Token t ; }
     { return n ; }
 }
 Node Collection(TripleCollectorMark acc) :
-    { Node listHead = nRDFnil ; Node lastCell = null ; int mark ; Node n ; Token t ; }
+    { List<Node> elts = new ArrayList<Node>() ; Node n ; Token t ; }
 {
   t = <LPAREN>
   { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
   (
-    { Node cell = createListNode( beginLine, beginColumn) ;
-      if ( listHead == nRDFnil )
-         listHead = cell ;
-      if ( lastCell != null )
-        insert(acc, lastCell, nRDFrest, cell) ;
-      mark = acc.mark() ;
-    }
     n = GraphNode(acc)
-    {
-      insert(acc, mark, cell, nRDFfirst, n) ;
-      lastCell = cell ;
-    }
+    { elts.add(n) ; }
   ) +
   <RPAREN>
-   { if ( lastCell != null )
-       insert(acc, lastCell, nRDFrest, nRDFnil) ;
-     return listHead ; }
+   { return createSeqNode(elts, beginLine, beginColumn) ; }
 }
 Node CollectionPath(TripleCollectorMark acc) :
-    { Node listHead = nRDFnil ; Node lastCell = null ; int mark ; Node n ; Token t ; }
+    { List<Node> elts = new ArrayList<Node>() ; Node n ; Token t ; }
 {
   t = <LPAREN>
   { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
   (
-    { Node cell = createListNode( beginLine, beginColumn) ;
-      if ( listHead == nRDFnil )
-         listHead = cell ;
-      if ( lastCell != null )
-        insert(acc, lastCell, nRDFrest, cell) ;
-      mark = acc.mark() ;
-    }
     n = GraphNodePath(acc)
-    {
-      insert(acc, mark, cell, nRDFfirst, n) ;
-      lastCell = cell ;
-    }
+    { elts.add(n) ; }
   ) +
   <RPAREN>
-   { if ( lastCell != null )
-       insert(acc, lastCell, nRDFrest, nRDFnil) ;
-     return listHead ; }
+   { return createSeqNode(elts, beginLine, beginColumn) ; }
 }
 void AnnotationPath(TripleCollector acc, Node s, Node p, Path path, Node o) : {}
 {
@@ -1191,7 +1197,7 @@ Node GraphNodePath(TripleCollectorMark acc) : { Node n ; }
  |
   n = TriplesNodePath(acc) { return n ; }
 }
-Node VarOrTerm() : { Node n = null ; String iri ; }
+Node VarOrTerm() : { Node n = null ; String iri ; Token t ; }
 {
   ( n = Var()
   | iri = iri() { return createNode(iri) ; }
@@ -1199,7 +1205,7 @@ Node VarOrTerm() : { Node n = null ; String iri ; }
   | n = NumericLiteral() { return n ; }
   | n = BooleanLiteral() { return n ; }
   | n = BlankNode() { return n ; }
-  | <NIL> { return nRDFnil ; }
+  | t = <NIL> { return createSeqNode(new ArrayList<Node>(), t.beginLine, t.beginColumn) ; }
   | n = QuotedTriple()
 )
   { return n ; }
@@ -1359,17 +1365,19 @@ Expr UnaryExpression() : { Expr expr ; }
   | <MINUS> expr = PrimaryExpression() { return new E_UnaryMinus(expr) ; }
   | expr = PrimaryExpression() { return expr ; }
 }
-Expr PrimaryExpression() : { Expr expr ; Node n ; }
+Expr PrimaryExpression() : { Expr expr ; Node n ; Expr idx ; }
 {
-  ( expr = BrackettedExpression() { return expr ; }
-  | expr = BuiltInCall() { return expr ; }
-  | expr = iriOrFunction() { return expr ; }
-  | n = RDFLiteral() { return asExpr(n) ; }
-  | n = NumericLiteral() { return asExpr(n) ; }
-  | n = BooleanLiteral() { return asExpr(n) ; }
-  | n = Var() { return asExpr(n) ; }
-  | n = ExprQuotedTriple() { return asExpr(n) ; }
+  ( expr = BrackettedExpression()
+  | expr = BuiltInCall()
+  | expr = iriOrFunction()
+  | n = RDFLiteral() { expr = asExpr(n) ; }
+  | n = NumericLiteral() { expr = asExpr(n) ; }
+  | n = BooleanLiteral() { expr = asExpr(n) ; }
+  | n = Var() { expr = asExpr(n) ; }
+  | n = ExprQuotedTriple() { expr = asExpr(n) ; }
   )
+  ( <LBRACKET> idx = Expression() <RBRACKET> { expr = new E_SeqAt(expr, idx) ; } )*
+  { return expr ; }
 }
 Node ExprVarOrTerm() : { Node n; String s;}
 {
@@ -1501,6 +1509,12 @@ Expr BuiltInCall() : { Expr expr ;
   | expr = NotExistsFunc() { return expr ; }
 | <IS_TRIPLE> <LPAREN> expr = Expression() <RPAREN>
     { return new E_IsTriple(expr) ; }
+  | <IS_SEQ> <LPAREN> expr = Expression() <RPAREN>
+    { return new E_IsSeq(expr) ; }
+  | <SEQLEN> <LPAREN> expr = Expression() <RPAREN>
+    { return new E_SeqLen(expr) ; }
+  | <SEQ> a = ExpressionList()
+    { return new E_MkSeq(a) ; }
   | <TRIPLE> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <COMMA> expr3 = Expression() <RPAREN>
     { return new E_TripleFn(expr1, expr2, expr3) ; }
   | <SUBJECT> <LPAREN> expr = Expression() <RPAREN>
@@ -1787,6 +1801,9 @@ TOKEN [IGNORE_CASE] :
 | < LATERAL: "LATERAL" >
 | < TRIPLE: "TRIPLE" >
 | < IS_TRIPLE: "isTRIPLE" >
+| < IS_SEQ: "isSEQ" >
+| < SEQLEN: "SEQLEN" >
+| < SEQ: "SEQ" >
 | < SUBJECT: "SUBJECT" >
 | < PREDICATE: "PREDICATE" >
 | < OBJECT: "OBJECT" >

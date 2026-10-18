@@ -61,6 +61,12 @@ public class VarUtils {
         else if ( n.isNodeTriple() ) {
             Triple t = n.getTriple();
             addVarsFromTriple(acc, t);
+        } else if ( n.isNodeSeq() ) {
+            for ( Node elt : n.getSeq() )
+                addVar(acc, elt);
+        } else if ( n instanceof Node_SeqIndex sx ) {
+            addVar(acc, sx.getElement());
+            addVar(acc, sx.getIndex());
         }
     }
 

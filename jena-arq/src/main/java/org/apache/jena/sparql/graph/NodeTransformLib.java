@@ -25,6 +25,7 @@ import java.util.Objects;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.Table;
@@ -114,6 +115,39 @@ public class NodeTransformLib {
         if ( !change )
             return triple;
         return Triple.create(s, p, o);
+    }
+
+    /**
+     * Do a node{@literal ->}node conversion of the elements of a sequence term -
+     * return the original node for "no change". The transform is applied to each
+     * element; it is responsible for recursing into nested compound terms.
+     */
+    public static Node transformSeq(NodeTransform nodeTransform, Node seqNode) {
+        List<Node> elts = seqNode.getSeq();
+        List<Node> elts2 = null;
+        for ( int i = 0 ; i < elts.size() ; i++ ) {
+            Node n = elts.get(i);
+            Node n1 = nodeTransform.apply(n);
+            if ( n1 != n && elts2 == null )
+                elts2 = new ArrayList<>(elts.subList(0, i));
+            if ( elts2 != null )
+                elts2.add(n1);
+        }
+        return ( elts2 == null ) ? seqNode : NodeFactory.createSeqNode(elts2);
+    }
+
+    /**
+     * Do a node{@literal ->}node conversion of the parts of a sequence position
+     * pattern {@code ((element))[index]} - return the original node for "no change".
+     */
+    public static Node transformSeqIndex(NodeTransform nodeTransform, Node_SeqIndex pattern) {
+        Node e = pattern.getElement();
+        Node i = pattern.getIndex();
+        Node e1 = nodeTransform.apply(e);
+        Node i1 = Node.ANY.equals(i) ? i : nodeTransform.apply(i);
+        if ( e1 == e && i1 == i )
+            return pattern;
+        return Node_SeqIndex.create(e1, i1);
     }
 
     /**

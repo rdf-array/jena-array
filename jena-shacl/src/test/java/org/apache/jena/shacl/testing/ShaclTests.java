@@ -99,20 +99,15 @@ public class ShaclTests {
         if ( r.equals(RDF.nil) )
             return;
 
-        if ( !r.isAnon() ) {
+        if ( !r.isAnon() && !r.asNode().isNodeSeq() ) {
             String uri = r.getURI();
             manifest(uri, manifests, testCases);
             return;
         }
 
         // BNnode => list
-        Resource listItem = r;
-        while (!listItem.equals(RDF.nil)) {
-            r = listItem.getRequiredProperty(RDF.first).getResource();
-            manifest(r.getURI(), manifests, testCases);
-            // Move on
-            listItem = listItem.getRequiredProperty(RDF.rest).getResource();
-        }
+        for ( Resource member : listMembers(r) )
+            manifest(member.getURI(), manifests, testCases);
     }
 
     private static void processEntries(String file, Resource manifest, List<ShaclTestItem> testCases) {
@@ -131,20 +126,33 @@ public class ShaclTests {
         if ( r.equals(RDF.nil) )
             return;
 
-        if ( !r.isAnon() ) {
+        if ( !r.isAnon() && !r.asNode().isNodeSeq() ) {
             ShaclTestItem tc = entry(file, r);
             testCases.add(tc);
             return;
         }
 
         // BNnode => list
-        Resource listItem = r;
-        while (!listItem.equals(RDF.nil)) {
-            r = listItem.getRequiredProperty(RDF.first).getResource();
-            ShaclTestItem tc = entry(file, r);
+        for ( Resource member : listMembers(r) ) {
+            ShaclTestItem tc = entry(file, member);
             testCases.add(tc);
+        }
+    }
+
+    // RDF sequences: a list is either a sequence term or a legacy rdf:first/rdf:rest ladder.
+    private static java.util.List<Resource> listMembers(Resource listHead) {
+        java.util.List<Resource> members = new java.util.ArrayList<>();
+        if ( listHead.asNode().isNodeSeq() ) {
+            for ( org.apache.jena.graph.Node elt : listHead.asNode().getSeq() )
+                members.add(listHead.getModel().asRDFNode(elt).asResource());
+            return members;
+        }
+        Resource listItem = listHead;
+        while ( !listItem.equals(RDF.nil) ) {
+            members.add(listItem.getRequiredProperty(RDF.first).getResource());
             listItem = listItem.getRequiredProperty(RDF.rest).getResource();
         }
+        return members;
     }
 
     private static ShaclTestItem entry(String file, Resource entry) {

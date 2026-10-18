@@ -26,6 +26,7 @@ import org.junit.runners.Suite ;
         TestQueryEngineMultiThreaded.class
       , TestQueryEngineFromContext.class
       , TestJsonEval.class
+      , TestSequenceQueries.class
 })
 
 public class TS_Engine {}

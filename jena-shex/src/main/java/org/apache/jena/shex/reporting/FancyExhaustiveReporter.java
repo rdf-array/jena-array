@@ -103,6 +103,8 @@ public class FancyExhaustiveReporter extends SimpleExhaustiveReporter {
                 addInfo("None of the disjuncts of ShapeOr was satisfied.", null);
             } else if (report.expr instanceof ShapeNot) {
                 addInfo("A negated shape expression was satisfied.", null);
+            } else if (report.expr instanceof ShapeCollection) {
+                addInfo("A collection shape expression was not satisfied.", null);
             }
         }
         return super.setIsConformant(isConformant);

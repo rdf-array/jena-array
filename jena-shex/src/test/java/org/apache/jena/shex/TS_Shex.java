@@ -37,6 +37,7 @@ import org.junit.runners.Suite;
     MatchingSearchProbesTest.class,
     TestParserShExR.class,
     TestShexManifest.class
+    , TestShexCollection.class
 })
 
 public class TS_Shex {

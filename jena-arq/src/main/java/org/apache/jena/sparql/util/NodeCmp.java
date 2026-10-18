@@ -18,6 +18,8 @@
 
 package org.apache.jena.sparql.util;
 
+import java.util.List;
+
 import static org.apache.jena.sparql.util.NodeUtils.*;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.graph.Node;
@@ -118,12 +120,32 @@ public class NodeCmp {
                     return x3;
                 return Expr.CMP_EQUAL;
             }
+            // Triple terms before sequences.
+            return Expr.CMP_LESS;
         }
 
         if ( node2.isNodeTriple() )
             return Expr.CMP_GREATER;
 
-        // No URIs, no blanks, no literals, no triple terms nodes by this point
+        // -- Sequence nodes: element by element, then shorter first.
+        if ( node1.isNodeSeq() ) {
+            if ( node2.isNodeSeq() ) {
+                List<Node> elts1 = node1.getSeq();
+                List<Node> elts2 = node2.getSeq();
+                int n = Math.min(elts1.size(), elts2.size());
+                for ( int i = 0 ; i < n ; i++ ) {
+                    int x = compareRDFTerms(elts1.get(i), elts2.get(i));
+                    if ( x != Expr.CMP_EQUAL )
+                        return x;
+                }
+                return Integer.compare(elts1.size(), elts2.size());
+            }
+        }
+
+        if ( node2.isNodeSeq() )
+            return Expr.CMP_GREATER;
+
+        // No URIs, no blanks, no literals, no triple terms, no sequences by this point
 
         // Should not happen.
         throw new ARQInternalErrorException("Compare: " + node1 + "  " + node2);

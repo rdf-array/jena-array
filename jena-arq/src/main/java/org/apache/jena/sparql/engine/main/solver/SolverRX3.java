@@ -23,20 +23,28 @@ import static org.apache.jena.sparql.engine.main.solver.SolverLib.sameTermAs;
 import static org.apache.jena.sparql.engine.main.solver.SolverLib.tripleHasEmbTripleWithVars;
 
 import java.util.Iterator;
-import java.util.Objects;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.datatypes.DatatypeFormatException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Node_SeqIndex;
 import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
+import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.util.NodeFactoryExtra;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
-/** RDF-star - triple form. Solve patterns when there is an embedded triple with variables. */
+/**
+ * Compound terms - triple form. Solve patterns when there is a triple term
+ * (RDF-star) or a sequence with variables inside, or a sequence position pattern
+ * {@code ((element))[index]}.
+ */
 public class SolverRX3 {
 
     /**
@@ -48,9 +56,9 @@ public class SolverRX3 {
     public static Iterator<Binding> rdfStarTriple(Iterator<Binding> chain, Triple tPattern, ExecutionContext execCxt) {
         // Should all work without this trap for plain RDF.
         if ( DATAPATH ) {
-            // No variables inside <<>>
+            // No variables inside <<>> or (..), no ((..))[..]
             if ( ! tripleHasEmbTripleWithVars(tPattern) )
-                // No RDF-star : direct to data.
+                // Direct to data.
                 return matchData(chain, tPattern, execCxt);
         }
         return rdfStarTripleSub(chain, tPattern, execCxt);
@@ -68,15 +76,14 @@ public class SolverRX3 {
         Node o = nodeTopLevel(tPattern.getObject());
         Graph graph = execCxt.getActiveGraph();
         ExtendedIterator<Triple> graphIter = graph.find(s, p, o);
-        ExtendedIterator<Binding> matched = graphIter.mapWith(tData->matchTriple(input, tData, tPattern)).filterDrop(Objects::isNull);
-        return matched;
+        return Iter.flatMap(graphIter, tData->matchTriple(input, tData, tPattern));
     }
 
     /**
      * Direct.
      * Match the graph with a triple pattern.
      * This is the accessor to the graph.
-     * It assumes any triple terms have been dealt with.
+     * It assumes any compound terms have been dealt with.
      */
     private static Iterator<Binding> matchData(Iterator<Binding> chain, Triple pattern, ExecutionContext execCxt) {
         Graph g = execCxt.getActiveGraph();
@@ -84,64 +91,114 @@ public class SolverRX3 {
         return iter;
     }
 
-    public static Binding matchTriple(Binding input, Triple tData, Triple tPattern) {
-        BindingBuilder bb = Binding.builder(input);
-        boolean r = bindTriple(bb, tData, tPattern);
-        return r ? bb.build() : null;
+    /**
+     * Match a data triple against a triple pattern, extending the input binding.
+     * There may be several results: the sequence position pattern
+     * {@code ((?x))[*]} or {@code ((?x))[?i]} yields one binding per element.
+     */
+    public static Iterator<Binding> matchTriple(Binding input, Triple tData, Triple tPattern) {
+        Iterator<Binding> iter = Iter.singleton(input);
+        iter = Iter.flatMap(iter, b->match(b, tData.getSubject(), tPattern.getSubject()));
+        iter = Iter.flatMap(iter, b->match(b, tData.getPredicate(), tPattern.getPredicate()));
+        iter = Iter.flatMap(iter, b->match(b, tData.getObject(), tPattern.getObject()));
+        return iter;
     }
 
-    // Used in matching a triple in an embedded triple term.
-    /*package*/ static boolean bindTriple(BindingBuilder bb, Triple tData, Triple tPattern) {
-        Node sPattern = tPattern.getSubject();
-        Node pPattern = tPattern.getPredicate();
-        Node oPattern = tPattern.getObject();
-
-        Node sData = tData.getSubject();
-        Node pData = tData.getPredicate();
-        Node oData = tData.getObject();
-
-        if ( ! match(bb, sData, sPattern) )
-            return false;
-        if ( ! match(bb, pData, pPattern) )
-            return false;
-        if ( ! match(bb, oData, oPattern) )
-            return false;
-        return true;
-    }
-    // RDF term matcher - may recurse and call matchTriple is a triple term is in the pattern.
-    private static boolean match(BindingBuilder bb, Node nData, Node nPattern) {
+    /**
+     * RDF term matcher - recurses into triple terms and sequences.
+     * Returns the bindings (zero or more) that extend the input binding so that the
+     * pattern matches the data.
+     */
+    /*package*/ static Iterator<Binding> match(Binding input, Node nData, Node nPattern) {
         if ( nPattern == null )
-            return true;
+            return Iter.singleton(input);
         if ( nData == Node.ANY )
-            return true;
+            return Iter.singleton(input);
 
-        // Deep substitute. This happens anyway as we walk structures.
-        //   nPattern = Substitute.substitute(nPattern, input);
-        // Shallow substitute
-        nPattern = Var.lookup(v->bb.get(v), nPattern);
+        // Shallow substitute - nested variables are seen as the structure is walked.
+        nPattern = Var.lookup(input::get, nPattern);
 
-        // nPattern.isConcrete() : either nPattern is an RDF term or is <<>> with no variables.
+        // nPattern.isConcrete() : either nPattern is an RDF term or is <<>> / (..) with no variables.
         if ( nPattern.isConcrete() ) {
             // No nested variables. Is data equal to pattern?
             // Term comparison.
-            return sameTermAs(nData, nPattern);
+            return sameTermAs(nData, nPattern) ? Iter.singleton(input) : Iter.nullIterator();
         }
 
         // Easy case - nPattern is a variable.
         if ( Var.isVar(nPattern) ) {
             Var var = Var.alloc(nPattern);
-            bb.add(var, nData);
-            return true;
+            return Iter.singleton(BindingFactory.binding(input, var, nData));
         }
 
         // nPattern is <<>> with variables. Is the data a <<>>?
-        if ( !nData.isNodeTriple() )
-            return false;
+        if ( nPattern.isNodeTriple() ) {
+            if ( !nData.isNodeTriple() )
+                return Iter.nullIterator();
+            // Unpack, match components.
+            return matchTriple(input, nData.getTriple(), nPattern.getTriple());
+        }
 
-        // nData is <<>>, nPattern is <<>>
-        // Unpack, match components.
-        Triple tPattern = nPattern.getTriple();
-        Triple tData = nData.getTriple();
-        return bindTriple(bb, tData, tPattern);
+        // nPattern is (..) with variables. Is the data a (..) of the same length?
+        if ( nPattern.isNodeSeq() ) {
+            if ( !nData.isNodeSeq() )
+                return Iter.nullIterator();
+            List<Node> dElts = nData.getSeq();
+            List<Node> pElts = nPattern.getSeq();
+            if ( dElts.size() != pElts.size() )
+                return Iter.nullIterator();
+            Iterator<Binding> iter = Iter.singleton(input);
+            for ( int i = 0 ; i < pElts.size() ; i++ ) {
+                final int idx = i;
+                iter = Iter.flatMap(iter, b->match(b, dElts.get(idx), pElts.get(idx)));
+            }
+            return iter;
+        }
+
+        // nPattern is ((element))[index]. Is the data a (..)?
+        if ( nPattern instanceof Node_SeqIndex seqIndex )
+            return matchSeqIndex(input, nData, seqIndex);
+
+        return Iter.nullIterator();
+    }
+
+    private static Iterator<Binding> matchSeqIndex(Binding input, Node nData, Node_SeqIndex pattern) {
+        if ( !nData.isNodeSeq() )
+            return Iter.nullIterator();
+        List<Node> dElts = nData.getSeq();
+        Node eltPattern = pattern.getElement();
+        Node idx = pattern.getIndex();
+
+        if ( Node.ANY.equals(idx) )
+            // ((element))[*] : any position.
+            return Iter.flatMap(dElts.iterator(), elt->match(input, elt, eltPattern));
+
+        idx = Var.lookup(input::get, idx);
+        if ( Var.isVar(idx) ) {
+            // ((element))[?i] : every position, binding ?i to the 1-based position.
+            Var var = Var.alloc(idx);
+            return Iter.flatMap(IntStream.range(0, dElts.size()).iterator(), i->{
+                Binding b = BindingFactory.binding(input, var, NodeFactoryExtra.intToNode(i+1));
+                return match(b, dElts.get(i), eltPattern);
+            });
+        }
+
+        // ((element))[k] : one position.
+        Integer position = positionValue(idx);
+        if ( position == null || position < 1 || position > dElts.size() )
+            return Iter.nullIterator();
+        return match(input, dElts.get(position-1), eltPattern);
+    }
+
+    /** The value of a 1-based position index: an integer literal, else null. */
+    /*package*/ static Integer positionValue(Node idx) {
+        if ( idx == null || ! idx.isLiteral() )
+            return null;
+        try {
+            Object value = idx.getLiteralValue();
+            if ( value instanceof Number num )
+                return num.intValue();
+        } catch (DatatypeFormatException ex) { /* not a number */ }
+        return null;
     }
 }

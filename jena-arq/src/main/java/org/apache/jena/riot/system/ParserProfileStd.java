@@ -150,9 +150,10 @@ public class ParserProfileStd implements ParserProfile {
     }
 
     protected void checkTriple(Node subject, Node predicate, Node object, long line, long col) {
-        if ( subject == null || (!subject.isURI() && !subject.isBlank()) ) {
+        // RDF sequences: a sequence term may be a subject or an object.
+        if ( subject == null || (!subject.isURI() && !subject.isBlank() && !subject.isNodeSeq()) ) {
             if ( !allowSpecialNode(subject) ) {
-                errorHandler.error("Subject is not a URI or blank node", line, col);
+                errorHandler.error("Subject is not a URI, blank node or sequence", line, col);
                 throw new RiotException("Bad subject: " + subject);
             }
         }
@@ -160,9 +161,9 @@ public class ParserProfileStd implements ParserProfile {
             errorHandler.error("Predicate not a URI", line, col);
             throw new RiotException("Bad predicate: " + predicate);
         }
-        if ( object == null || (!object.isURI() && !object.isBlank() && !object.isLiteral()) ) {
+        if ( object == null || (!object.isURI() && !object.isBlank() && !object.isLiteral() && !object.isNodeSeq()) ) {
             if ( !allowSpecialNode(object) ) {
-                errorHandler.error("Object is not a URI, blank node or literal", line, col);
+                errorHandler.error("Object is not a URI, blank node, literal or sequence", line, col);
                 throw new RiotException("Bad object: " + object);
             }
         }

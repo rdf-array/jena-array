@@ -46,6 +46,9 @@ public class Tags
     public static final String tagTriplePath      = "path";
     // RDF Star quoted triple : Node_Triple
     public static final String tagQTriple         = "qtriple";
+    // RDF sequence term : Node_Seq, and the sequence position pattern ((elt))[idx] : Node_SeqIndex
+    public static final String tagSeqTerm         = "seqterm";
+    public static final String tagSeqPos          = "seqpos";
 
     public static final String tagBase            = "base";
     public static final String tagPrefix          = "prefix";
@@ -232,6 +235,11 @@ public class Tags
     public static final String tagUri2            = "uri2";
 
     public static final String tagIsTriple        = "isTriple";
+    // RDF sequences
+    public static final String tagIsSeq           = "isSeq";
+    public static final String tagSeqLen          = "seqLen";
+    public static final String tagSeqAt           = "seqAt";
+    public static final String tagMkSeq           = "mkseq";
     public static final String tagSubject         = "subject";
     public static final String tagPredicate       = "predicate";
     public static final String tagObject          = "object";

@@ -259,6 +259,12 @@ public class SchemaAnalysis {
             }
 
             @Override
+            public void visit(ShapeCollection shapeCollection) {
+                // RDF sequences: the element shape expression applies to each element.
+                shapeCollection.getShapeExpr().visit(this);
+            }
+
+            @Override
             public void visit(Shape shape) {
                 context.addLast(SHAPE);
                 context.addLast(shape.getExtras());

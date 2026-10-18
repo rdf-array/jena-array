@@ -367,6 +367,44 @@ public class ParserShExC extends LangParserBase {
         push(shapeExprStack, NodeConstraint.create(Collections.emptyList(), null));
     }
 
+    // RDF sequences: ((shapeExpr))[min, max]
+    // The inner shapeExpression() has pushed exactly one shape expression.
+    protected void finishShapeCollection(Cardinality bounds) {
+        if ( shapeExprStack.isEmpty() )
+            throw new InternalErrorException("Collection shape: no element shape expression on the stack");
+        ShapeExpr eltExpr = pop(shapeExprStack);
+        ShapeExpr collection = ( bounds == null )
+                ? ShapeCollection.create(eltExpr)
+                : ShapeCollection.create(eltExpr, bounds.min, bounds.max);
+        push(shapeExprStack, collection);
+    }
+
+    // RDF sequences: the bounds "[m]", "[m, n]", "[m, *]", "[m,]" of a Collection shape expression.
+    protected Cardinality collectionBounds(String minImage, boolean comma, String maxImage, boolean star, int line, int column) {
+        int min = parseBound(minImage, line, column);
+        int max;
+        if ( ! comma )
+            max = min;
+        else if ( star || maxImage == null )
+            max = Cardinality.UNBOUNDED;
+        else
+            max = parseBound(maxImage, line, column);
+        if ( max < min )
+            throw new ShexParseException("Collection bounds: max < min: ["+min+", "+max+"]", line, column);
+        return new Cardinality(min, max);
+    }
+
+    private static int parseBound(String image, int line, int column) {
+        try {
+            int x = Integer.parseInt(image);
+            if ( x < 0 )
+                throw new ShexParseException("Collection bounds: negative bound: "+image, line, column);
+            return x;
+        } catch (NumberFormatException ex) {
+            throw new ShexParseException("Collection bounds: not an integer: "+image, line, column);
+        }
+    }
+
     protected void shapeReference(ShapeExprRef ref) {
         push(shapeExprStack, ref);
     }

@@ -63,6 +63,9 @@ TOKENS
 | <SERVICE: "service">
 | <TRIPLE: "TRIPLE">
 | <IS_TRIPLE: "isTRIPLE">
+| <IS_SEQ: "isSEQ">
+| <SEQLEN: "SEQLEN">
+| <SEQ: "SEQ">
 | <SUBJECT: "SUBJECT">
 | <PREDICATE: "PREDICATE">
 | <OBJECT: "OBJECT">
@@ -355,11 +358,15 @@ NON-TERMINALS
 	PathNegatedPropertySet	:=	( PathOneInPropertySet | <LPAREN> ( PathOneInPropertySet ( <VBAR> PathOneInPropertySet )* )? <RPAREN> )
 	PathOneInPropertySet	:=	( iri | <KW_A> | <CARAT> ( iri | <KW_A> ) )
 	Integer	:=	<INTEGER>
-	TriplesNode	:=	Collection
+	TriplesNode	:=	SeqIndexPattern
+		|	Collection
 		|	BlankNodePropertyList
+	SeqIndexPattern	:=	<LPAREN> <LPAREN> GraphNode <RPAREN> <RPAREN> <LBRACKET> ( Var | NumericLiteral | <STAR> ) <RBRACKET>
 	BlankNodePropertyList	:=	<LBRACKET> PropertyListNotEmpty <RBRACKET>
-	TriplesNodePath	:=	CollectionPath
+	TriplesNodePath	:=	SeqIndexPatternPath
+		|	CollectionPath
 		|	BlankNodePropertyListPath
+	SeqIndexPatternPath	:=	<LPAREN> <LPAREN> GraphNodePath <RPAREN> <RPAREN> <LBRACKET> ( Var | NumericLiteral | <STAR> ) <RBRACKET>
 	BlankNodePropertyListPath	:=	<LBRACKET> PropertyListPathNotEmpty <RBRACKET>
 	Collection	:=	<LPAREN> ( GraphNode )+ <RPAREN>
 	CollectionPath	:=	<LPAREN> ( GraphNodePath )+ <RPAREN>
@@ -391,7 +398,7 @@ NON-TERMINALS
 		|	<PLUS> PrimaryExpression
 		|	<MINUS> PrimaryExpression
 		|	PrimaryExpression
-	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprQuotedTriple )
+	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprQuotedTriple ) ( <LBRACKET> Expression <RBRACKET> )*
 	ExprVarOrTerm	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprQuotedTriple )
 	ExprQuotedTriple	:=	<LT2> ExprVarOrTerm Verb ExprVarOrTerm <GT2>
 	BrackettedExpression	:=	<LPAREN> Expression <RPAREN>
@@ -451,6 +458,9 @@ NON-TERMINALS
 		|	ExistsFunc
 		|	NotExistsFunc
 		|	<IS_TRIPLE> <LPAREN> Expression <RPAREN>
+		|	<IS_SEQ> <LPAREN> Expression <RPAREN>
+		|	<SEQLEN> <LPAREN> Expression <RPAREN>
+		|	<SEQ> ExpressionList
 		|	<TRIPLE> <LPAREN> Expression <COMMA> Expression <COMMA> Expression <RPAREN>
 		|	<SUBJECT> <LPAREN> Expression <RPAREN>
 		|	<PREDICATE> <LPAREN> Expression <RPAREN>

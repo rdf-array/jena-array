@@ -182,7 +182,8 @@ public abstract class AbstractRunnerOfTests extends ParentRunner<Runner> {
                 }
                 return false;
             });
-            if (matched.count() == 0) {
+            // A manifest that only includes other manifests has no entries of its own.
+            if (matched.count() == 0 && ! manifest.entries().isEmpty()) {
                 if (testsEnv == null) {
                     throw new RuntimeException("No manifest entries found");
                 } else {

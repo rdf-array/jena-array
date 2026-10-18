@@ -256,20 +256,33 @@ public class ShexTests {
         StmtIterator listIter = entry.getEntry().listProperties(ShexT.extensionResults);
         while (listIter.hasNext()) {
             //List head
-            Resource listItem = listIter.nextStatement().getResource();
-            while (!listItem.equals(RDF.nil)) {
-                Resource extensionResult = listItem.getRequiredProperty(RDF.first).getResource(); //TODO Eric, please review. Hopefully this does the trick
+            Resource listHead = listIter.nextStatement().getResource();
+            for ( Resource extensionResult : listMembers(listHead) ) {
                 Resource extension = extensionResult.getProperty(ShexT.extension).getResource();
                 Literal prints = extensionResult.getProperty(ShexT.prints).getLiteral();
                 String printStr = prints.getString() ;
                 Pair<Resource, String> pair = new Pair<>(extension, printStr);
                 pairs.add(pair);
-                // Move to next list item
-                listItem = listItem.getRequiredProperty(RDF.rest).getResource();
             }
         }
         listIter.close();
         return pairs;
+    }
+
+    // RDF sequences: a list is either a sequence term or a legacy rdf:first/rdf:rest ladder.
+    private static java.util.List<Resource> listMembers(Resource listHead) {
+        java.util.List<Resource> members = new java.util.ArrayList<>();
+        if ( listHead.asNode().isNodeSeq() ) {
+            for ( org.apache.jena.graph.Node elt : listHead.asNode().getSeq() )
+                members.add(listHead.getModel().asRDFNode(elt).asResource());
+            return members;
+        }
+        Resource listItem = listHead;
+        while ( !listItem.equals(RDF.nil) ) {
+            members.add(listItem.getRequiredProperty(RDF.first).getResource());
+            listItem = listItem.getRequiredProperty(RDF.rest).getResource();
+        }
+        return members;
     }
 
     // [shex] Migrate

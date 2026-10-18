@@ -21,6 +21,7 @@ package org.apache.jena.sparql.util.graph;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +52,23 @@ public class GraphList
 
     public static void listFromMember(GNode gnode, final Collection<Node> acc)
     {
+        // RDF sequences: every sequence term in the data that has the value as an element.
+        // Equal sequences are the same term, however many triples use them: collect once.
+        Set<Node> seqs = new LinkedHashSet<>();
+        Iterator<Triple> iterSeq = gnode.findable.find(Node.ANY, Node.ANY, Node.ANY);
+        try {
+            for (; iterSeq.hasNext(); ) {
+                Triple t = iterSeq.next();
+                Node s = t.getSubject();
+                Node o = t.getObject();
+                if ( s.isNodeSeq() && s.getSeq().contains(gnode.node) )
+                    seqs.add(s);
+                if ( o.isNodeSeq() && o.getSeq().contains(gnode.node) )
+                    seqs.add(o);
+            }
+        } finally { NiceIterator.close(iterSeq); }
+        acc.addAll(seqs);
+
         // Get the list nodes for this value.
         Set<GNode> lists = findCellsWithMember(gnode);
 
@@ -153,6 +171,11 @@ public class GraphList
 
     public static void members(GNode gnode, final Collection<Node> acc)
     {
+        // RDF sequences: the term holds its elements.
+        if ( gnode.node.isNodeSeq() ) {
+            acc.addAll(gnode.node.getSeq());
+            return;
+        }
         if ( ! isListNode(gnode) )
             return;
 
@@ -167,6 +190,9 @@ public class GraphList
 
     public static int length(GNode gnode)
     {
+        // RDF sequences
+        if ( gnode.node.isNodeSeq() )
+            return gnode.node.getSeq().size();
         if ( ! isListNode(gnode) )
             return -1;
 
@@ -187,6 +213,11 @@ public class GraphList
 
     public static Node get(GNode gnode, int idx)
     {
+        // RDF sequences
+        if ( gnode.node.isNodeSeq() ) {
+            List<Node> elts = gnode.node.getSeq();
+            return ( idx >= 0 && idx < elts.size() ) ? elts.get(idx) : null;
+        }
 //        if ( idx == 0 )
 //            return car(gnode);
 //        Node n = next(gnode);
@@ -207,6 +238,9 @@ public class GraphList
 
     public static int index(GNode gnode, Node value)
     {
+        // RDF sequences
+        if ( gnode.node.isNodeSeq() )
+            return gnode.node.getSeq().indexOf(value);
         if ( ! isListNode(gnode) )
             return -1;
 
@@ -224,6 +258,15 @@ public class GraphList
 
     public static List<Integer> indexes(GNode gnode, Node value)
     {
+        // RDF sequences
+        if ( gnode.node.isNodeSeq() ) {
+            List<Integer> x = new ArrayList<>();
+            List<Node> elts = gnode.node.getSeq();
+            for ( int i = 0 ; i < elts.size() ; i++ )
+                if ( elts.get(i).equals(value) )
+                    x.add(i);
+            return x;
+        }
         List<Integer> x = new ArrayList<>();
 
         if ( ! isListNode(gnode) )
@@ -264,6 +307,9 @@ public class GraphList
 
     public static void allTriples(GNode gnode, Collection<Triple> acc)
     {
+        // RDF sequences: a sequence term has no list triples.
+        if ( gnode.node.isNodeSeq() )
+            return;
         if ( ! isListNode(gnode) )
           return;
 
@@ -311,6 +357,18 @@ public class GraphList
         if ( graph.contains(NIL, Node.ANY, Node.ANY) )
             acc.add(NIL);
 
+        // RDF sequences: every sequence term used as a subject or object.
+        Iterator<Triple> iter2 = graph.find(Node.ANY, Node.ANY, Node.ANY);
+        try {
+            for (; iter2.hasNext(); ) {
+                Triple t = iter2.next();
+                if ( t.getSubject().isNodeSeq() )
+                    acc.add(t.getSubject());
+                if ( t.getObject().isNodeSeq() )
+                    acc.add(t.getObject());
+            }
+        } finally { NiceIterator.close(iter2); }
+
         return acc;
     }
 
@@ -348,7 +406,10 @@ public class GraphList
     private static GNode next(GNode gnode) { return new GNode(gnode, cdr(gnode)); }
 
     public static boolean isListNode (GNode gnode)
-    { return gnode.node.equals(NIL) || isCons(gnode); }
+    {
+        // RDF sequences
+        if ( gnode.node.isNodeSeq() )
+            return true; return gnode.node.equals(NIL) || isCons(gnode); }
 
     private static boolean isCons (GNode gnode)
     { return gnode.findable.contains(gnode.node, CDR, null); }

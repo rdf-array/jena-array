@@ -18,6 +18,10 @@
 
 package org.apache.jena.sparql.lang;
 
+import org.apache.jena.sparql.core.Node_SeqIndex;
+
+import java.util.List;
+
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
@@ -422,6 +426,29 @@ public class QueryParserBase
 
     protected Node createQuotedTriple(Node s, Node p, Node o, int line, int column) {
         return NodeFactory.createTripleNode(s, p, o);
+    }
+
+    // RDF sequences: "( e1 e2 )" is a sequence term.
+    protected Node createSeqNode(List<Node> elements, int line, int column) {
+        return NodeFactory.createSeqNode(elements);
+    }
+
+    // RDF sequences: "((element))[index]" matches one position of a sequence.
+    // index: a positive integer (1-based), a variable, or Node.ANY for "*" (any position).
+    protected Node createSeqIndexNode(Node element, Node index, int line, int column) {
+        if ( index == null )
+            index = Node.ANY;
+        if ( ! Node.ANY.equals(index) && ! Var.isVar(index) ) {
+            Integer position = null;
+            if ( index.isLiteral() && XSDDatatype.XSDinteger.equals(index.getLiteralDatatype()) ) {
+                try {
+                    position = Integer.valueOf(index.getLiteralLexicalForm());
+                } catch (NumberFormatException ex) { /* not an int */ }
+            }
+            if ( position == null || position < 1 )
+                throwParseException("Sequence index must be a positive integer, a variable or *: "+index, line, column);
+        }
+        return Node_SeqIndex.create(element, index);
     }
 
     protected Expr createExprExists(Element element) {

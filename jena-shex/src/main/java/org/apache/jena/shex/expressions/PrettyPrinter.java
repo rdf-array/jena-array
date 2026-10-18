@@ -136,6 +136,12 @@ public class PrettyPrinter {
         }
 
         @Override
+        public void visit(ShapeCollection shapeCollection) {
+            out.print("Collection" + shapeCollection.boundsString() + " ");
+            shapeCollection.getShapeExpr().visit(this);
+        }
+
+        @Override
         public void visit(ShapeExprRef shapeExprRef) {
             out.print("ShapeRef: ");
             out.print(ShexLib.displayStr(shapeExprRef.getLabel()));

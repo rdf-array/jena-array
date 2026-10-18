@@ -41,6 +41,7 @@ public class VocabShExR {
     public static final Node ShapeOr            = createURI(NS+"ShapeOr");
     public static final Node ShapeAnd           = createURI(NS+"ShapeAnd");
     public static final Node ShapeNot           = createURI(NS+"ShapeNot");
+    public static final Node Collection         = createURI(NS+"Collection");      // RDF sequences: ((shapeExpr))[min, max]
     public static final Node NodeConstraint     = createURI(NS+"NodeConstraint");
     public static final Node Shape              = createURI(NS+"Shape");
     public static final Node ShapeExternal      = createURI(NS+"ShapeExternal");

@@ -822,6 +822,30 @@ public class BuilderExpr
         return new E_IsTriple(expr);
     };
 
+    private static Build buildIsSeq = (ItemList list) -> {
+        BuilderLib.checkLength(2, list, "isSeq: wanted 1 argument: got: "+numArgs(list));
+        Expr expr = buildExpr(list.get(1));
+        return new E_IsSeq(expr);
+    };
+
+    private static Build buildSeqLen = (ItemList list) -> {
+        BuilderLib.checkLength(2, list, "seqLen: wanted 1 argument: got: "+numArgs(list));
+        Expr expr = buildExpr(list.get(1));
+        return new E_SeqLen(expr);
+    };
+
+    private static Build buildSeqAt = (ItemList list) -> {
+        BuilderLib.checkLength(3, list, "seqAt: wanted 2 arguments: got: "+numArgs(list));
+        Expr expr1 = buildExpr(list.get(1));
+        Expr expr2 = buildExpr(list.get(2));
+        return new E_SeqAt(expr1, expr2);
+    };
+
+    private static Build buildMkSeq = (ItemList list) -> {
+        ExprList args = buildExprListUntagged(list, 1);
+        return new E_MkSeq(args);
+    };
+
     private static Build buildCall = (ItemList list) -> {
         ExprList args = buildExprListUntagged(list, 1);
         // Args
@@ -1080,6 +1104,10 @@ public class BuilderExpr
         dispatch.put(Tags.tagObject, buildObject);
         dispatch.put(Tags.tagFnTriple, buildTripleFn);
         dispatch.put(Tags.tagIsTriple, buildIsTriple);
+        dispatch.put(Tags.tagIsSeq, buildIsSeq);
+        dispatch.put(Tags.tagSeqLen, buildSeqLen);
+        dispatch.put(Tags.tagSeqAt, buildSeqAt);
+        dispatch.put(Tags.tagMkSeq, buildMkSeq);
 
         dispatch.put(Tags.tagCall, buildCall);
 

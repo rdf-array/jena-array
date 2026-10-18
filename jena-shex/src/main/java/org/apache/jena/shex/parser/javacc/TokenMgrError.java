@@ -21,7 +21,6 @@
 package org.apache.jena.shex.parser.javacc;
 
 /** Token Manager Error. */
-
 @SuppressWarnings("all")
 public class TokenMgrError extends Error
 {
@@ -123,11 +122,10 @@ public class TokenMgrError extends Error
    * Note: You can customize the lexical error message by modifying this method.
    */
   protected static String LexicalErr(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, int curChar) {
-    char curChar1 = (char)curChar;
     return("Lexical error at line " + //
           errorLine + ", column " + //
           errorColumn + ".  Encountered: " + //
-          (EOFSeen ? "<EOF>" : ("'" + addEscapes(String.valueOf(curChar)) + "' (" + (int)curChar + "),")) + //
+          (EOFSeen ? "<EOF>" : ("'" + addEscapes(String.valueOf((char) curChar)) + "' (" + curChar + "),")) + //
           (errorAfter == null || errorAfter.length() == 0 ? "" : " after prefix \"" + addEscapes(errorAfter) + "\"")) + //
           (lexState == 0 ? "" : " (in lexical state " + lexState + ")");
   }
@@ -165,4 +163,4 @@ public class TokenMgrError extends Error
     this(LexicalErr(EOFSeen, lexState, errorLine, errorColumn, errorAfter, curChar), reason);
   }
 }
-/* JavaCC - OriginalChecksum=21c287f1eb6de0eb264ee313fccf8645 (do not edit this line) */
+/* JavaCC - OriginalChecksum=11d741b565ea5194fdf0aabcb53cb5ad (do not edit this line) */

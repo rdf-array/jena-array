@@ -18,6 +18,10 @@
 
 package org.apache.jena.sparql.util;
 
+import java.util.List;
+
+import org.apache.jena.sparql.core.Node_SeqIndex;
+
 import static org.apache.jena.atlas.lib.Lib.uppercase;
 
 import java.util.regex.Pattern ;
@@ -348,6 +352,32 @@ public class FmtUtils {
             result.append(" ");
             stringForNode(result, t.getObject(), context);
             result.append(" >>");
+        } else if ( n.isNodeSeq() ) {
+            // RDF sequences
+            List<Node> elts = n.getSeq();
+            if ( elts.isEmpty() ) {
+                result.append("()");
+            } else {
+                result.append("( ");
+                boolean first = true;
+                for ( Node elt : elts ) {
+                    if ( ! first )
+                        result.append(" ");
+                    first = false;
+                    stringForNode(result, elt, context);
+                }
+                result.append(" )");
+            }
+        } else if ( n instanceof Node_SeqIndex sx ) {
+            // RDF sequences: position pattern
+            result.append("((");
+            stringForNode(result, sx.getElement(), context);
+            result.append("))[");
+            if ( sx.isAnyPosition() )
+                result.append("*");
+            else
+                stringForNode(result, sx.getIndex(), context);
+            result.append("]");
         } else if ( n.isNodeGraph() ) {
             Log.warn(FmtUtils.class, "Can not turn a graph term node into a string");
             result.append(" { graph }");

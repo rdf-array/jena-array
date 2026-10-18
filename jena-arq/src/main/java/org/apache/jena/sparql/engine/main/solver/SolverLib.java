@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Node_SeqIndex;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.iterator.Abortable;
@@ -63,32 +64,34 @@ public class SolverLib {
     }
 
     /**
-     * Test whether a triple has a triple term (RDF-star) as one of its components
-     * and that embedded triple term has variables.
+     * Test whether a triple has a compound term with variables as one of its
+     * components: a triple term (RDF-star) or a sequence with variables inside, or
+     * a sequence position pattern {@code ((..))[..]}.
      */
     public static boolean tripleHasEmbTripleWithVars(Triple triple) {
-        return isTripleTermWithVars(triple.getSubject())
-               // || isEmbeddedTripleWithVars(triple.getPredicate())
-               || isTripleTermWithVars(triple.getObject());
+        return isCompoundWithVars(triple.getSubject())
+               // || isCompoundWithVars(triple.getPredicate())
+               || isCompoundWithVars(triple.getObject());
     }
 
     /**
-     * Test whether a quad has a triple term (RDF-star) as one of its components
-     * and that embedded triple term has variables.
+     * Test whether a quad has a compound term with variables as one of its
+     * components: a triple term (RDF-star) or a sequence with variables inside, or
+     * a sequence position pattern {@code ((..))[..]}.
      */
     public static boolean quadHasEmbTripleWithVars(Quad quad) {
-        return isTripleTermWithVars(quad.getSubject())
-               // || isEmbeddedTripleWithVars(triple.getPredicate())
-               // ||isEmbeddedTripleWithVars(triple.getGraph())
-               || isTripleTermWithVars(quad.getObject());
+        return isCompoundWithVars(quad.getSubject())
+               // || isCompoundWithVars(triple.getPredicate())
+               // || isCompoundWithVars(triple.getGraph())
+               || isCompoundWithVars(quad.getObject());
     }
 
-    private static boolean isTripleTermWithVars(Node node) {
-        if ( ! node.isNodeTriple() )
-            return false;
-        if ( node.getTriple().isConcrete() )
-            return false;
-        return true;
+    private static boolean isCompoundWithVars(Node node) {
+        if ( node instanceof Node_SeqIndex )
+            return true;
+        if ( node.isNodeTriple() || node.isNodeSeq() )
+            return ! node.isConcrete();
+        return false;
     }
 
     /** Test equality of two concrete teams. */
@@ -97,16 +100,18 @@ public class SolverLib {
     }
 
     /**
-     * Convert a pattern node into ANY, or leave as a constant term. Any Embedded
-     * triple term with a variable, that is {@code {@literal <<?var>>}} becomes an
-     * ANY.
+     * Convert a pattern node into ANY, or leave as a constant term. Any compound
+     * term with a variable, that is {@code {@literal <<?var>>}} or {@code (?var)},
+     * and any sequence position pattern becomes an ANY.
      */
     public static Node nodeTopLevel(Node node) {
         // Public so TDB code can use it.
         if ( Var.isVar(node) )
             return Node.ANY;
-        if ( node.isNodeTriple() ) { //|| node.isNodeGraph() )
-            if ( ! node.getTriple().isConcrete() )
+        if ( node instanceof Node_SeqIndex )
+            return Node.ANY;
+        if ( node.isNodeTriple() || node.isNodeSeq() ) { //|| node.isNodeGraph() )
+            if ( ! node.isConcrete() )
                 // Nested variables.
                 return Node.ANY;
         }

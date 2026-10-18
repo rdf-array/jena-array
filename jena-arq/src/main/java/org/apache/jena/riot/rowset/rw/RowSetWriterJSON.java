@@ -242,7 +242,7 @@ public class RowSetWriterJSON implements RowSetWriter {
         }
 
         private void writeValue(IndentedWriter out, Node value, boolean multiLine) {
-            if ( multiLine || value.isNodeTriple() )
+            if ( multiLine || value.isNodeTriple() || value.isNodeSeq() )
                 println(out, "{");
             else
                 print(out, "{ ");
@@ -259,11 +259,13 @@ public class RowSetWriterJSON implements RowSetWriter {
                 writeValueBlankNode(out, value, multiLine);
             else if ( value.isNodeTriple() )
                 writeValueNodeTriple(out, value, multiLine);
+            else if ( value.isNodeSeq() )
+                writeValueNodeSeq(out, value, multiLine);
             else if ( value.isNodeGraph() )
                 writeValueNodeGraph(out, value, multiLine);
             else
                 Log.warn(RowSetWriterJSON.class, "Unknown RDFNode type in result set: " + value.getClass());
-            if ( multiLine || value.isNodeTriple()) // OR triple
+            if ( multiLine || value.isNodeTriple() || value.isNodeSeq()) // OR triple, sequence
                 println(out) ;
             else
                 print(out, " ");
@@ -363,6 +365,25 @@ public class RowSetWriterJSON implements RowSetWriter {
             print(out, "}");
             // ----
             return;
+        }
+
+        // RDF sequences: { "type": "seq", "value": [ term, term, ... ] }
+        private void writeValueNodeSeq(IndentedWriter out, Node value, boolean multiLine) {
+            print(out, quoteName(kType), ": ", quote(kSeq), " , ");
+            println(out);
+            print(out, quoteName(kValue), ": [");
+            incIndent(out);
+            boolean first = true;
+            for ( Node elt : value.getSeq() ) {
+                if ( ! first )
+                    print(out, " ,");
+                first = false;
+                println(out);
+                writeValue(out, elt, multiLine);
+            }
+            decIndent(out);
+            println(out);
+            print(out, "]");
         }
 
         private void writeValueNodeGraph(IndentedWriter out, Node value, boolean multiLine) {

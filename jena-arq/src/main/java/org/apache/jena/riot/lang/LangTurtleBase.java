@@ -18,6 +18,9 @@
 
 package org.apache.jena.riot.lang;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.apache.jena.riot.tokens.TokenType.*;
 
 import org.apache.jena.graph.Node;
@@ -510,12 +513,9 @@ public abstract class LangTurtleBase extends LangBase {
     }
 
     protected final Node triplesList() {
-        nextToken();
-        Node lastCell = null;
-        Node listHead = null;
-
+        Token tStart = nextToken();     // The "("
+        List<Node> elements = new ArrayList<>();
         startList();
-
         for (;;) {
             if ( eof() )
                 exception(peekToken(), "Unterminated list");
@@ -530,29 +530,14 @@ public abstract class LangTurtleBase extends LangBase {
             Node n = triplesNode();
             if ( n == null )
                 exception(elementToken, "Malformed list");
-
-            // Node for the list structure.
-            Node nextCell = profile.createBlankNode(currentGraph, elementToken.getLine(), elementToken.getColumn());
-            if ( listHead == null )
-                listHead = nextCell;
-            if ( lastCell != null )
-                emitTriple(lastCell, NodeConst.nodeRest, nextCell);
-            lastCell = nextCell;
-
-            emitTriple(nextCell, NodeConst.nodeFirst, n);
+            elements.add(n);
         }
         // On exit, just after the RPARENS
-
-        if ( lastCell == null ) {
-            // Simple ()
-            finishList();
-            return NodeConst.nodeNil;
-        }
-
-        // Finish list.
-        emitTriple(lastCell, NodeConst.nodeRest, NodeConst.nodeNil);
         finishList();
-        return listHead;
+        // A sequence term: (1 2) is a single RDF term holding its elements.
+        // There are no rdf:first/rdf:rest triples and "()" is the empty sequence,
+        // not rdf:nil.
+        return profile.createSeqNode(elements, tStart.getLine(), tStart.getColumn());
     }
 
     // Signal start of a list

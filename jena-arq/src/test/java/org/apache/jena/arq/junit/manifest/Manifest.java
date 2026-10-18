@@ -122,18 +122,15 @@ public class Manifest
             for (; listIter.hasNext();)
             {
                 //List head
-                Resource listItem = listIter.nextStatement().getResource();
-                for (; !listItem.equals(RDF.nil);)
+                Resource listHead = listIter.nextStatement().getResource();
+                for ( Resource entry : listMembers(listHead) )
                 {
-                    Resource entry = listItem.getRequiredProperty(RDF.first).getResource();
                     String testName = getLiteral(entry, TestManifest.name) ;
                     Resource action = getResource(entry, TestManifest.action) ;
                     Resource result = getResource(entry, TestManifest.result) ;
                     Resource testType = getResource(entry, RDF.type);
                     ManifestEntry manifestEntry = new ManifestEntry(this, entry, testName, testType, action, result);
                     entries.add(manifestEntry);
-                    // Move to next list item
-                    listItem = listItem.getRequiredProperty(RDF.rest).getResource();
                 }
             }
             listIter.close();
@@ -175,7 +172,7 @@ public class Manifest
             return ;
 
 
-        if ( ! r.isAnon() )
+        if ( ! r.isAnon() && !r.asNode().isNodeSeq() )
         {
             String uri = r.getURI() ;
             if ( includedFiles.contains(uri) )
@@ -185,14 +182,24 @@ public class Manifest
         }
 
         // BNnode => list
-        Resource listItem = r ;
-        while(!listItem.equals(RDF.nil))
-        {
-            r = listItem.getRequiredProperty(RDF.first).getResource();
-            parseOneIncludesList(r) ;
-            // Move on
+        for ( Resource member : listMembers(r) )
+            parseOneIncludesList(member) ;
+    }
+
+    // RDF sequences: a list is either a sequence term or a legacy rdf:first/rdf:rest ladder.
+    private static java.util.List<Resource> listMembers(Resource listHead) {
+        java.util.List<Resource> members = new java.util.ArrayList<>();
+        if ( listHead.asNode().isNodeSeq() ) {
+            for ( org.apache.jena.graph.Node elt : listHead.asNode().getSeq() )
+                members.add(listHead.getModel().asRDFNode(elt).asResource());
+            return members;
+        }
+        Resource listItem = listHead;
+        while ( !listItem.equals(RDF.nil) ) {
+            members.add(listItem.getRequiredProperty(RDF.first).getResource());
             listItem = listItem.getRequiredProperty(RDF.rest).getResource();
         }
+        return members;
     }
 
     public static Resource getResource(Resource r, Property p) {

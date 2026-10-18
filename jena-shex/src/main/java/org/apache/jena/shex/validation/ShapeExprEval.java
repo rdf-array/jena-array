@@ -332,6 +332,30 @@ public class ShapeExprEval {
         }
 
         @Override
+        public Boolean visit(ShapeCollection shapeCollection, Reporter reporter) {
+            // RDF sequences: the focus node must be a sequence of an acceptable length,
+            // each element satisfying the element shape expression (as a focus node of its own).
+            if ( ! dataNode.isNodeSeq() ) {
+                reporter.addInfo("Collection: not a sequence: " + ShexLib.displayStr(dataNode), null);
+                return reporter.setIsConformant(false);
+            }
+            List<Node> elements = dataNode.getSeq();
+            if ( ! shapeCollection.acceptsSize(elements.size()) ) {
+                reporter.addInfo("Collection: " + elements.size() + " elements, bounds " + shapeCollection.boundsString(), null);
+                return reporter.setIsConformant(false);
+            }
+            ShapeExpr eltExpr = shapeCollection.getShapeExpr();
+            for ( Node elt : elements ) {
+                Reporter eltReporter = reporter.createChild(elt, eltExpr, null);
+                if ( ! satisfies(elt, eltExpr, vCxt, eltReporter) ) {
+                    reporter.addInfo("Collection: element does not satisfy the element shape expression: " + ShexLib.displayStr(elt), null);
+                    return reporter.setIsConformant(false);
+                }
+            }
+            return reporter.setIsConformant(true);
+        }
+
+        @Override
         public Boolean visit(ShapeExternal shapeExternal, Reporter reporter) {
             // TODO shape external never satisfied
             reporter.informExternalNotSupported();

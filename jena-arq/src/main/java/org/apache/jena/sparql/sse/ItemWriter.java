@@ -18,6 +18,8 @@
 
 package org.apache.jena.sparql.sse;
 
+import org.apache.jena.sparql.core.Node_SeqIndex;
+
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
@@ -106,6 +108,30 @@ public class ItemWriter
             return;
         }
 
+        if ( node.isNodeSeq() ) {
+            // As (seqterm ...)
+            out.print("(");
+            out.print(Tags.tagSeqTerm);
+            for ( Node elt : node.getSeq() ) {
+                out.print(" ");
+                writeNode(out, elt, sCxt);
+            }
+            out.print(")");
+            return;
+        }
+
+        if ( node instanceof Node_SeqIndex sx ) {
+            // As (seqpos element index)
+            out.print("(");
+            out.print(Tags.tagSeqPos);
+            out.print(" ");
+            writeNode(out, sx.getElement(), sCxt);
+            out.print(" ");
+            writeNode(out, sx.getIndex(), sCxt);
+            out.print(")");
+            return;
+        }
+
         if ( Node.ANY.equals(node) ) {
             out.print("ANY");
             return;
@@ -183,7 +209,7 @@ public class ItemWriter
         }
 
         // Tags to leave on one line.
-        private static Set<String> oneLineTags = Set.of(Tags.tagQTriple, Tags.tagTriple);
+        private static Set<String> oneLineTags = Set.of(Tags.tagQTriple, Tags.tagTriple, Tags.tagSeqTerm, Tags.tagSeqPos);
 
         @Override
         public void visit(Item item, ItemList list) {

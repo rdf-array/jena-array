@@ -18,6 +18,12 @@
 
 package org.apache.jena.sparql.sse;
 
+import org.apache.jena.sparql.core.Node_SeqIndex;
+
+import java.util.List;
+
+import java.util.ArrayList;
+
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -64,7 +70,7 @@ public class ItemLift {
 
     /** Reverse lift. */
     public static Item lowerCompound(Node node) {
-        if ( node.isNodeTriple() ) {
+        if ( node.isNodeTriple() || node.isNodeSeq() || node instanceof Node_SeqIndex ) {
             Item newItem = ItemLift.lowerCompound(node, -1, -1);
             return newItem;
         }
@@ -89,6 +95,20 @@ public class ItemLift {
             list.add(nodeToItem(s, -1, -1));
             list.add(nodeToItem(p, -1, -1));
             list.add(nodeToItem(o, -1, -1));
+            return Item.createList(list, line, column);
+        }
+        if ( node.isNodeSeq() ) {
+            ItemList list = new ItemList();
+            list.add(Tags.tagSeqTerm);
+            for ( Node elt : node.getSeq() )
+                list.add(nodeToItem(elt, -1, -1));
+            return Item.createList(list, line, column);
+        }
+        if ( node instanceof Node_SeqIndex sx ) {
+            ItemList list = new ItemList();
+            list.add(Tags.tagSeqPos);
+            list.add(nodeToItem(sx.getElement(), -1, -1));
+            list.add(nodeToItem(sx.getIndex(), -1, -1));
             return Item.createList(list, line, column);
         }
         return Item.createNode(node);
@@ -135,18 +155,49 @@ public class ItemLift {
         return list.isTagged(Tags.tagQTriple) && list.size() == 4;
     }
 
+    // ---- Sequence terms: (seqterm e1 e2 ...) and sequence position patterns (seqpos element index)
+
+    private static boolean isValidSeqTerm(ItemList list) {
+        return list.isTagged(Tags.tagSeqTerm);
+    }
+
+    private static boolean isValidSeqPos(ItemList list) {
+        return list.isTagged(Tags.tagSeqPos) && list.size() == 3;
+    }
+
+    private static boolean isCompound(ItemList list) {
+        return isValidQuotedTriple(list) || isValidSeqTerm(list) || isValidSeqPos(list);
+    }
+
     // Entry to recursion.
     private static Item liftQuotedTriple(ItemList list, int line, int column) {
         Node n = liftQuotedTripleToNode(list);
         return Item.createNode(n, line, column);
     }
 
+    private static Item liftCompound(ItemList list, int line, int column) {
+        Node n = liftCompoundToNode(list);
+        return Item.createNode(n, line, column);
+    }
+
     private static Node liftQuotedTripleToNode(Item item) {
+        return liftCompoundToNode(item);
+    }
+
+    // A node, or a compound (quoted triple, sequence term, sequence position pattern).
+    private static Node liftCompoundToNode(Item item) {
         if ( item.isNode() )
             return item.getNode();
-        if ( ! isValidQuotedTriple(item))
-            throw new SSE_Exception("Not valid for a quoted triple: "+item.toString());
-        return liftQuotedTripleToNode(item.getList());
+        if ( item.isSymbol() ) {
+            Node n = fn_symbolToNode(item.getSymbol());
+            if ( n != null )
+                return n;
+            if ( "ANY".equals(item.getSymbol()) )
+                return Node.ANY;
+        }
+        if ( ! item.isList() || ! isCompound(item.getList()) )
+            throw new SSE_Exception("Not valid for a compound term (quoted triple, sequence): "+item.toString());
+        return liftCompoundToNode(item.getList());
     }
 
     private static Node liftQuotedTripleToNode(ItemList list) {
@@ -157,13 +208,39 @@ public class ItemLift {
         return buildQuotedTriple(list);
     }
 
+    private static Node liftCompoundToNode(ItemList list) {
+        if ( list.isEmpty() )
+            broken(list, "Not a compound term (empty list)");
+        if ( isValidQuotedTriple(list) )
+            return buildQuotedTriple(list);
+        if ( isValidSeqTerm(list) )
+            return buildSeqTerm(list);
+        if ( isValidSeqPos(list) )
+            return buildSeqPos(list);
+        broken(list, "Not valid for a compound term: "+list);
+        return null;
+    }
+
     private static Node buildQuotedTriple(ItemList list) {
         // Recurses
-        Node s = liftQuotedTripleToNode(list.get(1));
-        Node p = liftQuotedTripleToNode(list.get(2));
-        Node o = liftQuotedTripleToNode(list.get(3));
+        Node s = liftCompoundToNode(list.get(1));
+        Node p = liftCompoundToNode(list.get(2));
+        Node o = liftCompoundToNode(list.get(3));
         Triple triple = Triple.create(s, p, o);
         return NodeFactory.createTripleNode(triple);
+    }
+
+    private static Node buildSeqTerm(ItemList list) {
+        List<Node> elts = new ArrayList<>(list.size()-1);
+        for ( int i = 1 ; i < list.size() ; i++ )
+            elts.add(liftCompoundToNode(list.get(i)));
+        return NodeFactory.createSeqNode(elts);
+    }
+
+    private static Node buildSeqPos(ItemList list) {
+        Node elt = liftCompoundToNode(list.get(1));
+        Node idx = liftCompoundToNode(list.get(2));
+        return Node_SeqIndex.create(elt, idx);
     }
 
     // ---- Symbols
@@ -195,8 +272,8 @@ public class ItemLift {
     private static class LiftAll extends ItemTransformBase {
         @Override
         public Item transform(Item item, ItemList list) {
-            if ( isValidQuotedTriple(list) )
-                return ItemLift.liftQuotedTriple(list, item.getLine(),item.getColumn());
+            if ( isCompound(list) )
+                return ItemLift.liftCompound(list, item.getLine(),item.getColumn());
             return super.transform(item, list);
         }
 
@@ -215,7 +292,7 @@ public class ItemLift {
             Item item2 = nodeToItem(node, item.getLine(), item.getColumn());
             if (item2 != null )
                 return item2;
-            if ( node.isNodeTriple() )
+            if ( node.isNodeTriple() || node.isNodeSeq() || node instanceof Node_SeqIndex )
                 return ItemLift.lowerCompound(node, item.getLine(), item.getColumn());
             return super.transform(item, node);
         }
@@ -224,8 +301,8 @@ public class ItemLift {
     private static class LiftCompound extends ItemTransformBase {
         @Override
         public Item transform(Item item, ItemList list) {
-            if ( isValidQuotedTriple(list) )
-                return ItemLift.liftQuotedTriple(list, item.getLine(),item.getColumn());
+            if ( isCompound(list) )
+                return ItemLift.liftCompound(list, item.getLine(),item.getColumn());
             return super.transform(item, list);
         }
     }
@@ -233,7 +310,7 @@ public class ItemLift {
     private static class LowerCompound extends ItemTransformBase {
         @Override
         public Item transform(Item item, Node node) {
-            if ( node.isNodeTriple() ) {
+            if ( node.isNodeTriple() || node.isNodeSeq() || node instanceof Node_SeqIndex ) {
                 Item newItem = ItemLift.nodeToItem(node, item.getLine(),item.getColumn());
                 return newItem;
             }

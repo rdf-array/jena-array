@@ -18,7 +18,9 @@
 
 package org.apache.jena.riot.lang;
 
+import java.util.ArrayList;
 import java.util.Iterator ;
+import java.util.List;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.graph.NodeFactory;
@@ -87,6 +89,8 @@ public abstract class LangNTuple<X> extends LangBase implements Iterator<X>
         Node s;
         if ( sToken.hasType(TokenType.LT2) )
             s = parseTripleTerm();
+        else if ( sToken.hasType(TokenType.LPAREN) )
+            s = parseSeqTerm();
         else {
             checkIRIOrBNode(sToken);
             s = tokenAsNode(sToken);
@@ -104,6 +108,8 @@ public abstract class LangNTuple<X> extends LangBase implements Iterator<X>
         Node o;
         if ( oToken.hasType(TokenType.LT2) )
             o = parseTripleTerm();
+        else if ( oToken.hasType(TokenType.LPAREN) )
+            o = parseSeqTerm();
         else {
             checkRDFTerm(oToken);
             o = tokenAsNode(oToken);
@@ -118,6 +124,28 @@ public abstract class LangNTuple<X> extends LangBase implements Iterator<X>
         if ( x.getType() != TokenType.GT2 )
             exception(x, "Triple term not terminated by >>: %s", x);
         return NodeFactory.createTripleNode(t);
+    }
+
+    // Looking at "(" (LPAREN) : a sequence term "( element* )".
+    final protected Node parseSeqTerm() {
+        List<Node> elements = new ArrayList<>();
+        for (;;) {
+            Token t = nextToken();
+            if ( t.isEOF() )
+                exception(t, "Premature end of file in sequence: %s", t);
+            if ( t.hasType(TokenType.RPAREN) )
+                return profile.createSeqNode(elements, t.getLine(), t.getColumn());
+            elements.add(parseSeqElement(t));
+        }
+    }
+
+    private Node parseSeqElement(Token t) {
+        if ( t.hasType(TokenType.LT2) )
+            return parseTripleTerm();
+        if ( t.hasType(TokenType.LPAREN) )
+            return parseSeqTerm();
+        checkRDFTerm(t);
+        return tokenAsNode(t);
     }
 
     protected final void checkIRIOrBNode(Token token) {

@@ -113,6 +113,13 @@ public class ExpressionWalker implements VoidTripleExprVisitor, VoidShapeExprVis
             shapeNot.getShapeExpr().visit(this);
     }
 
+    @Override
+    public void visit(ShapeCollection shapeCollection) {
+        process(shapeCollection);
+        if (recurse(shapeCollection))
+            shapeCollection.getShapeExpr().visit(this);
+    }
+
     /**
      * @throws UndefinedReferenceException If the visited reference is undefined.
      */
