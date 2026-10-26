@@ -8,3 +8,9 @@ with the following differences:
 
 Changes (see file for details)
 File:  sparql/pre-binding/manifest.ttl
+
+rdf-array: since 2026-10-26 this copy follows data-shapes-array
+(https://github.com/rdf-array/data-shapes-array, branch rdf-sequences), the rdf-array fork whose tests
+are read as SHACL-array; update.sh refreshes it (commit in data-shapes-array.commit), copies SHACL 1.2's
+list-constraint tests into ../std12-lists, and keeps sparql/pre-binding/manifest.ttl as above. Tests the
+fork marks mf:status sht:rejected are skipped by ShaclTest with their rdfs:comment as the reason.

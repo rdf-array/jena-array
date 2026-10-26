@@ -1,0 +1,19 @@
+## rdf-array: SHACL 1.2's list-constraint tests, as data-shapes-array re-records or rejects them
+## (copied by ../std/update.sh from data-shapes-array's shacl12-test-suite/tests/core).
+
+PREFIX mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+<>
+  rdf:type mf:Manifest ;
+  rdfs:label "SHACL 1.2 list constraints (data-shapes-array)" ;
+  mf:include <core/node/memberShape-001.ttl> ;
+  mf:include <core/node/minListLength-001.ttl> ;
+  mf:include <core/node/maxListLength-001.ttl> ;
+  mf:include <core/node/uniqueMembers-001.ttl> ;
+  mf:include <core/property/memberShape-001.ttl> ;
+  mf:include <core/property/minListLength-001.ttl> ;
+  mf:include <core/property/maxListLength-001.ttl> ;
+  mf:include <core/property/uniqueMembers-001.ttl> ;
+.

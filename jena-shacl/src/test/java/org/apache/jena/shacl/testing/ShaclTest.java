@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.jena.graph.Graph;
+import org.junit.Assume;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -34,6 +35,9 @@ import org.apache.jena.shacl.validation.VR;
 public class ShaclTest {
 
     public static void shaclTest(ShaclTestItem test) {
+        // rdf-array: a test the suite marks mf:status sht:rejected is skipped, with its reason
+        String rejected = test.rejectedReason();
+        Assume.assumeTrue(rejected, rejected == null);
         Graph shapesGraph = RDFDataMgr.loadGraph(test.getShapesGraph().getURI());
         try {
             Graph dataGraph;
@@ -44,13 +48,15 @@ public class ShaclTest {
 
             boolean generalFailure = test.isGeneralFailure();
             if ( generalFailure ) {
+                // rdf-array: an sht:Failure test (an ill-formed shapes graph, in data-shapes-contrib)
+                // expects the processor to fail, and has no report to compare.
+                ValidationReport testReport;
                 try {
-                    ValidationReport testReport = validate(ShaclValidator.get(), shapesGraph, dataGraph);
-                    if ( testReport.conforms() )
-                        fail("Expect a test failure: "+test.origin());
+                    testReport = validate(ShaclValidator.get(), shapesGraph, dataGraph);
                 } catch (RuntimeException ex) {
-                    // Ignore.
+                    return;
                 }
+                fail("Expect a test failure, got a report (conforms="+testReport.conforms()+"): "+test.origin());
             }
 
             // Fails on unimplemented.

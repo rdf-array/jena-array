@@ -25,7 +25,10 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses( {
     // The W3C Working Group tests. 
     TestShaclCoreWG.class ,
-    TestShaclSparqlWG.class
+    TestShaclSparqlWG.class ,
+    // rdf-array: SHACL 1.2's list constraints and data-shapes-contrib
+    TestShacl12Lists.class ,
+    TestShaclContrib.class
 } )
 
 public class TS_StdSHACL {

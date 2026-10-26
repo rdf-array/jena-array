@@ -30,6 +30,7 @@ ex:s1 a sh:PropertyShape ;
 .
 
 <path-strange-001>
+  rdfs:comment "rdf-array: the rdf:first/rdf:rest triples on the path node are ordinary triples, not a list (SHACL-array reads a SHACL list as a sequence term only), so the path is the inverse path ^ex:p; the expected result is re-recorded for it (checked with jena-array and rudof-array)" ;
   rdf:type sht:Validate ;
   rdfs:label "Test of strange path 001 two valid paths together" ;
   mf:action [
@@ -40,9 +41,9 @@ ex:s1 a sh:PropertyShape ;
       rdf:type sh:ValidationReport ;
       sh:conforms "false"^^xsd:boolean ;
       sh:result [ a sh:ValidationResult ;
-          sh:focusNode ex:j ;
-          sh:value ex:jpq ;
-          sh:resultPath ( ex:p ex:q ) ;
+          sh:focusNode ex:i ;
+          sh:value ex:pi ;
+          sh:resultPath [ sh:inversePath ex:p ] ;
           sh:resultSeverity sh:Violation ;
           sh:sourceConstraintComponent sh:ClassConstraintComponent ;
           sh:sourceShape ex:s1 ;

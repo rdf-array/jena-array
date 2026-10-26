@@ -10,6 +10,7 @@
     ) .
 
 <shacl-shacl> a sht:Validate ;
+  rdfs:comment "rdf-array: shacl-shacl-data-shapes.ttl is shacl-shacl rewritten for SHACL-array: its list shapes use sh:memberShape and sh:minListLength over sequence terms instead of walking rdf:rest*/rdf:first (tools/rewrite-shacl-shacl.py in rdf-array/rdf-array)" ;
   rdfs:label "frozen eat your own ( eat your own frozen dogfood )" ;
   mf:action [
       sht:dataGraph <shacl-shacl-data-shapes.ttl> ;

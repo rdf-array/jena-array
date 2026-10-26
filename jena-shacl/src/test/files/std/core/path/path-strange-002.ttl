@@ -30,6 +30,7 @@ ex:s1 a sh:PropertyShape ;
 .
 
 <path-strange-002>
+  rdfs:comment "rdf-array: rejected: the test chose the valid list reading of the path node over its invalid inverse path; under SHACL-array the rdf:first/rdf:rest triples are not a list, and what is left, sh:inversePath ( ex:p ), is a one-member sequence path, which SHACL does not allow" ;
   rdf:type sht:Validate ;
   rdfs:label "Test of strange path 002 valid and invalid paths together" ;
   mf:action [
@@ -48,5 +49,5 @@ ex:s1 a sh:PropertyShape ;
           sh:sourceShape ex:s1 ;
         ] ;
     ] ;
-  mf:status sht:approved ;
+  mf:status sht:rejected ;
 .

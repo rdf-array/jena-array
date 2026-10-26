@@ -19,8 +19,10 @@
 package org.apache.jena.shacl.testing;
 
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.shacl.test_vocab.MF;
 import org.apache.jena.shacl.test_vocab.SHT;
+import org.apache.jena.vocabulary.RDFS;
 
 public class ShaclTestItem {
     private final String name;
@@ -69,5 +71,17 @@ public class ShaclTestItem {
 
     public boolean isGeneralFailure() {
         return result.equals(SHT.Failure) ;
+    }
+
+    /**
+     * rdf-array: why the test is not to be run, when its manifest entry says
+     * {@code mf:status sht:rejected} (its rdfs:comment, as data-shapes-array writes it);
+     * null otherwise.
+     */
+    public String rejectedReason() {
+        if ( ! item.hasProperty(MF.status, SHT.rejected) )
+            return null;
+        Statement comment = item.getProperty(RDFS.comment);
+        return comment != null ? comment.getString() : "mf:status sht:rejected";
     }
 }

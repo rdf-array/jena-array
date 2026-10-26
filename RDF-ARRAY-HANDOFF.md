@@ -191,7 +191,7 @@ ladders — *structural*).
 | `sparql/util/TestList` 46 | 1 fail: `testListTriples_2` (structural) |
 | `TS_RiotWriter` 859 (2026-10-25) | 53 errors: the serialisations that cannot hold a sequence; no failures |
 | `TestPackage_core` (jena-core) 12411 (2026-10-25) | pass |
-| `TC_SHACL` 243 (2026-10-25) | pass; 3 skipped: `path-strange-001/002`, `shacl-shacl` (see SHACL-array) |
+| `TC_SHACL` 272 (2026-10-26) | pass; 5 skipped: the tests data-shapes-array marks `sht:rejected` (`path-strange-002`, SHACL 1.2's four node-level list tests) |
 | `TestJsonLDReadWrite` | 4 fail: JSON-LD `@list` |
 | `TS_Shex` 2165 | 7 fail: six `1list*` ladder-shape validations, `TestParserShExR.roundTripAgainstShExC` (`( () )` fixtures) |
 
@@ -212,8 +212,17 @@ defines it; this is its first implementation.
 - **Tests:** `tests/TestShaclSequences` (ladders refused, `()` and `rdf:nil` paths, compact syntax
   builds sequences) and the manifest tests in `src/test/files/local/rdf-array/` (sequence paths,
   `sh:in`/`sh:or`/`sh:not`, the four list constraints, a ladder and `rdf:nil` as values), run by
-  `TS_JenaShacl`. `TestShaclCoreWG` skips `path-strange-001/002` (explicit ladder paths) and
-  `shacl-shacl` (list shapes walk `rdf:rest*/rdf:first`) with the reason.
+  `TS_JenaShacl`.
+- **Suites (2026-10-26):** `src/test/files/std` follows
+  [data-shapes-array](https://github.com/rdf-array/data-shapes-array) (the rdf-array fork of
+  w3c/data-shapes: path-strange-001 and SHACL 1.2's property-level list tests re-recorded, shacl-shacl
+  rewritten with `sh:memberShape`), refreshed by `std/update.sh`, which also copies SHACL 1.2's
+  list-constraint tests into `std12-lists` (`TestShacl12Lists`);
+  [data-shapes-contrib](https://github.com/rdf-array/data-shapes-contrib) is copied into
+  `data-shapes-contrib` (`TestShaclContrib`, 21 tests). `ShaclTest` skips a test marked
+  `mf:status sht:rejected`, with its `rdfs:comment` as the reason, and an `sht:Failure` test now
+  expects validation to throw (it fell through to reading the result as a report before; jena's copy
+  excludes the W3C suite's own `sht:Failure` tests in `sparql/pre-binding/manifest.ttl`).
 - Found on the way, not fixed (upstream): `ShaclPaths.pathToRDF` writes an inverse path as
   `sh:alternativePath`, not `sh:inversePath`.
 

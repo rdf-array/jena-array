@@ -34,6 +34,8 @@ public class SHT {
 	
 	public final static Resource Failure = ResourceFactory.createResource(NS + "Failure");
 	
+	public final static Resource rejected = ResourceFactory.createResource(NS + "rejected");
+	
 	public final static Resource proposed = ResourceFactory.createResource(NS + "proposed");
 	
 	public final static Property shapesGraph = ResourceFactory.createProperty(NS + "shapesGraph");
