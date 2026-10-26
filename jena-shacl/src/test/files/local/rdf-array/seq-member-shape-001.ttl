@@ -1,0 +1,61 @@
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+## rdf-array: a SHACL list is a sequence term, ( ... ); () is the empty list.
+
+PREFIX ex: <http://jena.apache.org/shacl/tests/rdf-array/>
+PREFIX mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+PREFIX sht: <http://www.w3.org/ns/shacl-test#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+ex:IRIShape a sh:NodeShape ; sh:nodeKind sh:IRI .
+
+ex:MemberShape
+  rdf:type sh:NodeShape ;
+  sh:targetNode ex:a, ex:b, ex:c, ex:d, ex:e ;
+  sh:property [ sh:path ex:p ; sh:memberShape ex:IRIShape ] .
+
+ex:a ex:p ( ex:x ex:y ) .
+ex:b ex:p ( ex:x "s" ) .
+ex:c ex:p ex:x .
+ex:d ex:p () .
+# A ladder is triples, not a list
+ex:e ex:p ex:l1 .
+ex:l1 rdf:first ex:x ; rdf:rest rdf:nil .
+
+<>
+  rdf:type mf:Manifest ;
+  mf:entries ( <seq-member-shape-001> )
+.
+
+<seq-member-shape-001>
+  rdf:type sht:Validate ;
+  rdfs:label "rdf-array: sh:memberShape over sequence terms" ;
+  mf:action [
+      sht:dataGraph <> ;
+      sht:shapesGraph <> ;
+    ] ;
+  mf:result <report> .
+
+<report>
+    a            sh:ValidationReport ;
+    sh:conforms  false ;
+    sh:result    [ sh:focusNode                  ex:b ;
+                   sh:resultPath                 ex:p ;
+                   sh:resultSeverity             sh:Violation ;
+                   sh:sourceConstraintComponent  sh:MemberShapeConstraintComponent ;
+                   sh:value                      ( ex:x "s" )
+                 ] ;
+    sh:result    [ sh:focusNode                  ex:c ;
+                   sh:resultPath                 ex:p ;
+                   sh:resultSeverity             sh:Violation ;
+                   sh:sourceConstraintComponent  sh:MemberShapeConstraintComponent ;
+                   sh:value                      ex:x
+                 ] ;
+    sh:result    [ sh:focusNode                  ex:e ;
+                   sh:resultPath                 ex:p ;
+                   sh:resultSeverity             sh:Violation ;
+                   sh:sourceConstraintComponent  sh:MemberShapeConstraintComponent ;
+                   sh:value                      ex:l1
+                 ] .

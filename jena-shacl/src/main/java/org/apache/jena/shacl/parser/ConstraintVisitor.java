@@ -52,6 +52,12 @@ public interface ConstraintVisitor {
     void visit(ConstraintComponentSPARQL constraint);
     void visit(SparqlConstraint constraint);
 
+    // SHACL 1.2 list constraints (rdf-array: over sequence terms)
+    default void visit(ListMemberShape constraint) {}
+    default void visit(ListMinLength constraint) {}
+    default void visit(ListMaxLength constraint) {}
+    default void visit(ListUniqueMembers constraint) {}
+
     // Other Constraints
     void visit(JViolationConstraint constraint);
     void visit(JLogConstraint constraint);

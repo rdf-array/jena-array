@@ -30,6 +30,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.shacl.engine.ValidationContext;
+import org.apache.jena.shacl.lib.ShLib;
 import org.apache.jena.shacl.parser.Constraint;
 import org.apache.jena.shacl.parser.ConstraintVisitor;
 import org.apache.jena.shacl.parser.ShaclParseException;
@@ -39,8 +40,6 @@ import org.apache.jena.shacl.validation.event.ConstraintEvaluatedOnFocusNodeEven
 import org.apache.jena.shacl.vocabulary.SHACL;
 import org.apache.jena.sparql.path.Path;
 import org.apache.jena.sparql.path.PathFactory;
-import org.apache.jena.sparql.util.graph.GNode;
-import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 
 /** sh:closed */
@@ -76,7 +75,11 @@ public class ClosedConstraint implements Constraint {
         if ( G.contains(shapesGraph, shNode, SHACL.ignoredProperties, null) ) {
             Node ignored = G.getOneSP(shapesGraph, shNode, SHACL.ignoredProperties);
             if ( ignored != null ) {
-                ignoredProperties = GraphList.members(GNode.create(shapesGraph, ignored)) ;
+                // rdf-array: a SHACL list is a sequence term.
+                List<Node> members = ShLib.listMembers(ignored);
+                if ( members == null )
+                    throw new ShaclParseException("sh:ignoredProperties is not a list (a sequence term) at "+displayStr(shNode));
+                ignoredProperties = new ArrayList<>(members);
                 ignoredProperties.forEach(p->{
                     if ( ! p.isURI() )
                         throw new ShaclParseException("Only URIs allowed in sh:ignoredProperties at "+displayStr(shNode));

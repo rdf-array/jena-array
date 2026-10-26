@@ -34,7 +34,6 @@ import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.shacl.lib.ShLib;
 import org.apache.jena.shacl.parser.ShaclParseException;
-import org.apache.jena.shacl.sys.C;
 import org.apache.jena.shacl.vocabulary.SHACL;
 import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.path.*;
@@ -96,11 +95,12 @@ public class ShaclPaths {
 
     // XXX Better error checking.
     private static Path path(Graph graph, Node node) {
-        if ( node.isURI() && ! C.NIL.equals(node) )
+        // rdf-array: rdf:nil is an IRI like any other, not the empty list.
+        if ( node.isURI() )
             return PathFactory.pathLink(node);
 
         if ( isList(graph, node) ) {
-            List<Node> nodes = G.rdfList(graph, node);
+            List<Node> nodes = ShLib.listMembers(node);
             if ( nodes.isEmpty() )
                 throw new ShaclParseException("Empty list for path sequence");
             Path path = null;
@@ -156,7 +156,7 @@ public class ShaclPaths {
                 if ( ! isList(graph, x) ) {
                     throw new ShaclParseException("Not a list for path alternativePath");
                 }
-                List<Node> nodes = G.rdfList(graph, x);
+                List<Node> nodes = ShLib.listMembers(x);
                 Path path = null;
                 for ( Node n : nodes ) {
                     Path p = path(graph, n);
@@ -171,8 +171,9 @@ public class ShaclPaths {
         throw new ShaclParseException("Bad list: "+ShLib.displayStr(node));
     }
 
+    // rdf-array: a SHACL list is a sequence term.
     private static boolean isList(Graph graph, Node node) {
-        return C.NIL.equals(node) || G.contains(graph, node, C.FIRST, null);
+        return ShLib.isList(node);
     }
 
     /**
@@ -305,18 +306,9 @@ SHACL Property path: [ sh:alternativePath ( ex:father ex:mother  ) ]
             acc.accept(t);
         }
 
+        // rdf-array: a SHACL list is a sequence term; it adds no triples.
         private static Node list(Consumer<Triple> acc, Node...elts) {
-            Node list = C.NIL;
-            for ( int i = elts.length-1; i >= 0 ; i--) {
-                Node elt = elts[i];
-                Node cell = NodeFactory.createBlankNode();
-                Triple t1 = Triple.create(cell, C.REST, list);
-                Triple t2 = Triple.create(cell, C.FIRST, elt);
-                acc.accept(t1);
-                acc.accept(t2);
-                list = cell;
-            }
-            return list;
+            return NodeFactory.createSeqNode(elts);
         }
 
         @Override

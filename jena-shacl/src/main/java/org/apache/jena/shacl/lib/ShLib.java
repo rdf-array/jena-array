@@ -202,6 +202,19 @@ public class ShLib {
         return displayStr(n.asNode(), nodeFmtAbbrev);
     }
 
+    /**
+     * rdf-array: whether {@code node} is a SHACL list. A SHACL list is a sequence term,
+     * {@code ( ... )}; an rdf:first/rdf:rest ladder is triples, and rdf:nil is an IRI.
+     */
+    public static boolean isList(Node node) {
+        return node != null && node.isNodeSeq();
+    }
+
+    /** rdf-array: the members of a SHACL list (a sequence term), or null if {@code node} is not one. */
+    public static List<Node> listMembers(Node node) {
+        return isList(node) ? node.getSeq() : null;
+    }
+
     public static String displayStr(Node n) {
         return displayStr(n, nodeFmtAbbrev);
     }

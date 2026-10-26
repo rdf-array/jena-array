@@ -97,6 +97,10 @@ public class Constraints {
         //dispatch.put( SHACL.pattern,           (g, p, o) -> notImplemented(p) );
         dispatch.put( SHACL.languageIn,        (g, s, p, o) -> new StrLanguageIn(listString(g, o)) );
         dispatch.put( SHACL.uniqueLang,        (g, s, p, o) -> new UniqueLangConstraint(booleanValueStrict(o)) );
+        // SHACL 1.2 list constraints; rdf-array: a SHACL list is a sequence term
+        dispatch.put( SHACL.minListLength,     (g, s, p, o) -> new ListMinLength(intValue(o)) );
+        dispatch.put( SHACL.maxListLength,     (g, s, p, o) -> new ListMaxLength(intValue(o)) );
+        dispatch.put( SHACL.uniqueMembers,     (g, s, p, o) -> new ListUniqueMembers(booleanValueStrict(o)) );
 
         dispatch.put( SHACL.equals,            (g, s, p, o) -> new EqualsConstraint( checkObjectIRI(g, s, p, o)) );
         dispatch.put( SHACL.disjoint,          (g, s, p, o) -> new DisjointConstraint( checkObjectIRI(g, s, p, o)) );
@@ -134,6 +138,9 @@ public class Constraints {
         immediate.add(SHACL.minLength);
         immediate.add(SHACL.maxLength);
         immediate.add(SHACL.languageIn);
+        immediate.add(SHACL.minListLength);
+        immediate.add(SHACL.maxListLength);
+        immediate.add(SHACL.uniqueMembers);
         //
         immediate.add(SHACL.in);
         immediate.add(SHACL.pattern);
@@ -202,6 +209,13 @@ public class Constraints {
             if ( other instanceof PropertyShape )
                 throw new ShaclParseException("Object of sh:node must be a node shape, not a property shape");
             return new ShNode(other);
+        }
+
+        if ( p.equals(SHACL.memberShape) ) {
+            Shape other = ShapesParser.parseShapeStep(traversed, parsed, g, o);
+            if ( other instanceof PropertyShape )
+                throw new ShaclParseException("Object of sh:memberShape must be a node shape, not a property shape");
+            return new ListMemberShape(other);
         }
 
         // sh:pattern is influenced by an adjacent sh:flags.
@@ -293,9 +307,15 @@ public class Constraints {
         return (Boolean)node.getLiteralValue();
     }
 
-    /** Return the list elements of an RDF list start at {@code node} */
+    /**
+     * Return the members of a SHACL list. rdf-array: a SHACL list is a sequence term;
+     * an rdf:first/rdf:rest ladder is not read as one.
+     */
     private static List<Node> list(Graph g, Node node) {
-        return G.rdfList(g, node);
+        List<Node> elts = ShLib.listMembers(node);
+        if ( elts == null )
+            throw new ShaclParseException("Not a list (a sequence term): "+displayStr(node));
+        return elts;
     }
 
     private static List<String> listString(Graph g, Node node) {

@@ -393,6 +393,12 @@ public class SHACL {
     /** <p>Specifies whether all node values must have a unique (or no) language tag.</p> */
     public static final Node uniqueLang = createProperty( "http://www.w3.org/ns/shacl#uniqueLang" );
 
+    // SHACL 1.2 list constraints; rdf-array: a SHACL list is a sequence term.
+    public static final Node memberShape = createProperty( "http://www.w3.org/ns/shacl#memberShape" );
+    public static final Node minListLength = createProperty( "http://www.w3.org/ns/shacl#minListLength" );
+    public static final Node maxListLength = createProperty( "http://www.w3.org/ns/shacl#maxListLength" );
+    public static final Node uniqueMembers = createProperty( "http://www.w3.org/ns/shacl#uniqueMembers" );
+
     /** <p>The SPARQL UPDATE to execute.</p> */
     public static final Node update = createProperty( "http://www.w3.org/ns/shacl#update" );
 
@@ -806,6 +812,12 @@ public class SHACL {
      *  may use the same language tag.</p>
      */
     public static final Node UniqueLangConstraintComponent = createResource( "http://www.w3.org/ns/shacl#UniqueLangConstraintComponent" );
+
+    // SHACL 1.2 list constraint components
+    public static final Node MemberShapeConstraintComponent = createResource( "http://www.w3.org/ns/shacl#MemberShapeConstraintComponent" );
+    public static final Node MinListLengthConstraintComponent = createResource( "http://www.w3.org/ns/shacl#MinListLengthConstraintComponent" );
+    public static final Node MaxListLengthConstraintComponent = createResource( "http://www.w3.org/ns/shacl#MaxListLengthConstraintComponent" );
+    public static final Node UniqueMembersConstraintComponent = createResource( "http://www.w3.org/ns/shacl#UniqueMembersConstraintComponent" );
 
     public static final Node UniqueLangConstraintComponent_uniqueLang = createResource( "http://www.w3.org/ns/shacl#UniqueLangConstraintComponent-uniqueLang" );
 

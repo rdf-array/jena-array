@@ -37,6 +37,7 @@ import org.junit.runners.Suite;
     , TestImports.class
     , ValidationListenerTests.class
     , JenaShaclTestsByCode.class
+    , org.apache.jena.shacl.tests.TestShaclSequences.class
 } )
 
 public class TC_SHACL { }

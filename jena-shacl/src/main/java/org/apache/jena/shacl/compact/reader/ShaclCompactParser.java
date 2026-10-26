@@ -457,19 +457,9 @@ public class ShaclCompactParser extends LangParserBase {
     // iriOrLiteral.
 
     // With iriOrLiteral
+    // rdf-array: an array is a sequence term, so it adds no triples.
     private Node nodeArrayToTriples(List<Node> x) {
-        Node list = nRDFnil;
-
-        ListIterator<Node> iter = x.listIterator(x.size());
-        while (iter.hasPrevious()) {
-            Node elt = iter.previous();
-            // elt = iriOrLiteral(elt);
-            Node z = newBlankNode("array");
-            triple(currentTripleAcc(), z, nRDFfirst, elt);
-            triple(currentTripleAcc(), z, nRDFrest, list);
-            list = z;
-        }
-        return list;
+        return NodeFactory.createSeqNode(x);
     }
 
     // iriOrLiteral: If there is an iri, return the node derived from iri. Otherwise,
@@ -498,18 +488,9 @@ public class ShaclCompactParser extends LangParserBase {
         }
     }
 
-    // Java List<Node> to RDF list.
+    // Java List<Node> to an RDF list: rdf-array: a sequence term, which adds no triples.
     private Node listToTriples(List<Node> x) {
-        Node list = nRDFnil;
-        ListIterator<Node> iter = x.listIterator(x.size());
-        while (iter.hasPrevious()) {
-            Node elt = iter.previous();
-            Node z = newBlankNode("list");
-            triple(currentTripleAcc(), z, nRDFfirst, elt);
-            triple(currentTripleAcc(), z, nRDFrest, list);
-            list = z;
-        }
-        return list;
+        return NodeFactory.createSeqNode(x);
     }
 
     private Node iri(String iriStr) {

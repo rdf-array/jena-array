@@ -103,23 +103,26 @@ preload mode and `--serve-n`. See `jena-rdfminus/README.md`.
 ## Not done / needs a decision (flagged)
 
 - **Isomorphism with blank nodes inside sequences** — ARQ's `IsoAlg`/`IsoMatcher`
-  handles it; jena-core's `GraphMatcher` (`Model.isIsomorphicWith`) does not
-  descend into compound terms (same as for triple terms).
+  handles it, and so does jena-core's `GraphMatcher` (`Model.isIsomorphicWith`,
+  2026-10-25): it unfolds each sequence that holds a blank node, in both graphs, into
+  a ladder in a private vocabulary (`urn:rdf-array:sequence#first|rest|nil`, as in
+  rdf-test-suite-array) and drops the ladder cells from the mapping. Blank nodes
+  inside triple terms are still not mapped.
 - **Other syntaxes**: RDF/XML (`parseType="Collection"` still produces ladders; the
   writer cannot serialise a `Node_Seq`), JSON-LD (`@list` ↔ sequence not mapped),
   TriX, RDF/JSON, RDF Thrift, RDF Protobuf, TDB1/TDB2 node encoding. Each needs an
   encoding decision.
-- **SPARQL results**: JSON writer emits `{"type":"seq","value":[...]}`; the JSON
-  reader, XML/CSV/TSV writers and readers do not know sequences.
+- **SPARQL results**: JSON `{"type":"seq","value":[...]}` and XML `<seq>` are written
+  and read, TSV reads `( … )`, and `ResultSetCompare` compares sequences (2026-10-25,
+  found by rdf-tests-contrib).
 - **Expressions**: no `(1 2)` sequence constructor syntax inside expressions (use
   `SEQ(1, 2)`); `ExprTripleTerm`-style `ExprSeqTerm` not added.
 - **ShExJ writer**: jena-shex has no shape-expression serialiser to ShExJ, so
   `Collection` is read, not written, in ShExJ.
 - **Property functions**: `?list list:member ?x` with an unbound `?list` finds
   sequences used as subjects/objects (full scan), not nested ones.
-- **jena-shexmap, jena-shacl, jena-cmds, Fuseki** not rebuilt here (they are not
-  in the offline reactor). SHACL reads lists via `G.rdfList`, so `sh:in`,
-  `sh:or`, … over `( )` should work; untested.
+- **jena-shexmap, jena-cmds, Fuseki** not rebuilt here (they are not in the offline
+  reactor). jena-shacl is: see "SHACL-array" below.
 
 ## Tests that query or test for rdf:first / rdf:rest (and what to do with them)
 
@@ -142,7 +145,7 @@ suites pass unchanged. What fails, and why:
 | `rdf-tests-cg/sparql11-query/property-path/pp05` (`?x rdf:rest{0,1} ?y`) | counts ladder cells | *structural*; passes only because its data is written with explicit `rdf:first` triples |
 | `ARQ/Syntax/.../syntax-lists-03/04/05`, `syntax-forms-02`, `Serialization/syntax-lists-05` (`{ ( [] [] ) }`, `{ ( ( ) ) }`) | a bare collection as the only thing in a group | parses; now contributes no triples (the spike drops the empty block so the reparse check and `Query.clone` agree) |
 | `sparql/util/TestList.testListTriples_2` | `GraphList.allTriples` of a list read from Turtle | *structural* — a sequence has no list triples (the other 45 `GraphList` tests pass over sequences) |
-| `riot/writer/TestRiotWriterGraph.writer04/05/06` (`writer-rt-04.ttl`: `(1 2 3)`, `()`, `( :s [ :p :o ] )`) | round trip through every writer | N-Triples/N-Quads/Turtle/TriG round-trip correctly but `Model.isIsomorphicWith` (jena-core `GraphMatcher`) cannot map the blank node inside `( :s [...] )`; RDF/XML, JSON-LD, TriX, RDF/JSON, Thrift, Protobuf cannot serialise a sequence at all |
+| `riot/writer/TestRiotWriterGraph.writer04/05/06`, `TestRiotWriterDataset.writer03` (`writer-rt-04.ttl`: `(1 2 3)`, `()`, `( :s [ :p :o ] )`) | round trip through every writer | N-Triples, N-Quads, Turtle and TriG round-trip (since 2026-10-25: `GraphMatcher` maps blank nodes inside sequences, and the pretty Turtle/TriG writer no longer writes a blank node used only inside a sequence as a free-standing `[ … ]` while labelling it in the sequence, `TurtleShell.findBNodesSyntax1`); RDF/XML, JSON-LD, TriX, RDF/JSON, Thrift, Protobuf cannot serialise a sequence at all (53 errors) |
 | `riot/system/TestJsonLDReadWrite.read_g01/g02/roundtrip_01/02` | JSON-LD `@list` vs Turtle `( )` | JSON-LD not mapped to sequences |
 | `jena-core/.../TestList` (RDFList API), reasoner rule files (`owl*.rules`, `rdfs*.rules`) | Model-level `RDFList` and rule bodies that walk `rdf:first`/`rdf:rest` | untouched: they operate on legacy ladders built by the API or by RDF/XML; the Model API has no sequence view |
 
@@ -186,9 +189,33 @@ ladders — *structural*).
 | `Scripts_TIM` 605 / `Scripts_RefEngine` 487 | the same tests through the TIM / reference engines |
 | `Scripts_LangSuite` 868 / `Scripts_LangSuiteCG` 799 | 20 / 23 fail: the W3C collection evaluation tests (ladders in `.nt`/`.nq` expectations) |
 | `sparql/util/TestList` 46 | 1 fail: `testListTriples_2` (structural) |
-| `TS_RiotWriter` (`TestRiotWriterGraph`) | `writer04/05/06` fail: `GraphMatcher` bnodes-in-sequence; unsupported serialisations |
+| `TS_RiotWriter` 859 (2026-10-25) | 53 errors: the serialisations that cannot hold a sequence; no failures |
+| `TestPackage_core` (jena-core) 12411 (2026-10-25) | pass |
+| `TC_SHACL` 243 (2026-10-25) | pass; 3 skipped: `path-strange-001/002`, `shacl-shacl` (see SHACL-array) |
 | `TestJsonLDReadWrite` | 4 fail: JSON-LD `@list` |
 | `TS_Shex` 2165 | 7 fail: six `1list*` ladder-shape validations, `TestParserShExR.roundTripAgainstShExC` (`( () )` fixtures) |
+
+## SHACL-array (`jena-shacl`, 2026-10-25)
+
+[shacl-array.md](https://rdf-array.github.io/rdf-array/shacl-array.html) in rdf-array/rdf-array
+defines it; this is its first implementation.
+
+- **A SHACL list is a sequence term, and only that** (`ShLib.isList`/`listMembers`): `sh:path`
+  sequence and alternative paths (`ShaclPaths`), `sh:in`, `sh:languageIn`, `sh:and`/`sh:or`/`sh:xone`
+  (`Constraints.list`), `sh:ignoredProperties` (`ClosedConstraint`). A ladder where a list is
+  expected is a `ShaclParseException`; `rdf:nil` is an IRI (a predicate path), `sh:path ()` an
+  error. `ShaclPaths.pathToRDF` and the SHACL compact syntax parser build sequences, not ladders.
+- **SHACL 1.2 list constraints** over sequence values: `sh:memberShape` (`ListMemberShape`),
+  `sh:minListLength`/`sh:maxListLength` (`ListMinLength`/`ListMaxLength`), `sh:uniqueMembers`
+  (`ListUniqueMembers`), with their vocabulary in `SHACL`. A value that is not a sequence violates
+  each. One result per value node; no `sh:detail`. Not in SHACL compact syntax.
+- **Tests:** `tests/TestShaclSequences` (ladders refused, `()` and `rdf:nil` paths, compact syntax
+  builds sequences) and the manifest tests in `src/test/files/local/rdf-array/` (sequence paths,
+  `sh:in`/`sh:or`/`sh:not`, the four list constraints, a ladder and `rdf:nil` as values), run by
+  `TS_JenaShacl`. `TestShaclCoreWG` skips `path-strange-001/002` (explicit ladder paths) and
+  `shacl-shacl` (list shapes walk `rdf:rest*/rdf:first`) with the reason.
+- Found on the way, not fixed (upstream): `ShaclPaths.pathToRDF` writes an inverse path as
+  `sh:alternativePath`, not `sh:inversePath`.
 
 ## The shared contrib suites
 

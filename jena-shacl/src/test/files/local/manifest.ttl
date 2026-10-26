@@ -20,4 +20,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   mf:include <additional/target-sparql-1.ttl> ;
   mf:include <additional/target-sparql-type-1.ttl> ;
   mf:include <additional/target-sparql-type-2.ttl> ;
+  ## rdf-array: SHACL lists are sequence terms
+  mf:include <rdf-array/seq-path-001.ttl> ;
+  mf:include <rdf-array/seq-in-or-001.ttl> ;
+  mf:include <rdf-array/seq-member-shape-001.ttl> ;
+  mf:include <rdf-array/seq-list-length-001.ttl> ;
+  mf:include <rdf-array/seq-unique-members-001.ttl> ;
 .

@@ -1,0 +1,63 @@
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+## rdf-array: a SHACL list is a sequence term, ( ... ); () is the empty list.
+
+PREFIX ex: <http://jena.apache.org/shacl/tests/rdf-array/>
+PREFIX mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+PREFIX sht: <http://www.w3.org/ns/shacl-test#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+ex:LengthShape
+  rdf:type sh:NodeShape ;
+  sh:targetNode ex:a, ex:b, ex:c, ex:d ;
+  sh:property [ sh:path ex:p ; sh:minListLength 1 ; sh:maxListLength 2 ] .
+
+ex:a ex:p ( 1 ) .
+ex:b ex:p () .
+ex:c ex:p ( 1 2 3 ) .
+# rdf:nil is an IRI, not the empty list
+ex:d ex:p rdf:nil .
+
+<>
+  rdf:type mf:Manifest ;
+  mf:entries ( <seq-list-length-001> )
+.
+
+<seq-list-length-001>
+  rdf:type sht:Validate ;
+  rdfs:label "rdf-array: sh:minListLength and sh:maxListLength over sequence terms" ;
+  mf:action [
+      sht:dataGraph <> ;
+      sht:shapesGraph <> ;
+    ] ;
+  mf:result <report> .
+
+<report>
+    a            sh:ValidationReport ;
+    sh:conforms  false ;
+    sh:result    [ sh:focusNode                  ex:b ;
+                   sh:resultPath                 ex:p ;
+                   sh:resultSeverity             sh:Violation ;
+                   sh:sourceConstraintComponent  sh:MinListLengthConstraintComponent ;
+                   sh:value                      ()
+                 ] ;
+    sh:result    [ sh:focusNode                  ex:c ;
+                   sh:resultPath                 ex:p ;
+                   sh:resultSeverity             sh:Violation ;
+                   sh:sourceConstraintComponent  sh:MaxListLengthConstraintComponent ;
+                   sh:value                      ( 1 2 3 )
+                 ] ;
+    sh:result    [ sh:focusNode                  ex:d ;
+                   sh:resultPath                 ex:p ;
+                   sh:resultSeverity             sh:Violation ;
+                   sh:sourceConstraintComponent  sh:MinListLengthConstraintComponent ;
+                   sh:value                      rdf:nil
+                 ] ;
+    sh:result    [ sh:focusNode                  ex:d ;
+                   sh:resultPath                 ex:p ;
+                   sh:resultSeverity             sh:Violation ;
+                   sh:sourceConstraintComponent  sh:MaxListLengthConstraintComponent ;
+                   sh:value                      rdf:nil
+                 ] .

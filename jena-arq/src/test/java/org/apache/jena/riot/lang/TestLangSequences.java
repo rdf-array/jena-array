@@ -164,4 +164,25 @@ public class TestLangSequences {
         assertTrue(s1.isConcrete());
         assertFalse(NodeFactory.createSeqNode(intLit("1"), NodeFactory.createVariable("x")).isConcrete());
     }
+    // jena-core's GraphMatcher (Graph.isIsomorphicWith) maps the blank nodes inside sequences.
+    @Test public void isomorphism_maps_blank_nodes_in_sequences() {
+        String prefix = "PREFIX : <http://example/>\n";
+        Graph g1 = parse(prefix+":a :p ( :s [ :q 1 ] ) .", Lang.TURTLE);
+        Graph g2 = parse(prefix+":a :p ( :s _:x ) . _:x :q 1 .", Lang.TURTLE);
+        Graph g3 = parse(prefix+":a :p ( :s _:x ) . _:y :q 1 .", Lang.TURTLE);
+        assertTrue(g1.isIsomorphicWith(g2));
+        assertFalse(g1.isIsomorphicWith(g3));
+        Graph same = parse(prefix+":a :p ( _:x _:x ) .", Lang.TURTLE);
+        Graph different = parse(prefix+":a :p ( _:x _:y ) .", Lang.TURTLE);
+        assertFalse(same.isIsomorphicWith(different));
+        assertTrue(same.isIsomorphicWith(parse(prefix+":a :p ( _:z _:z ) .", Lang.TURTLE)));
+    }
+
+    // The pretty Turtle writer must not write a blank node used only inside a sequence as a
+    // free-standing [ ... ] while referring to it by label in the sequence.
+    @Test public void turtle_round_trip_blank_node_in_sequence() {
+        Graph g1 = parse("PREFIX : <http://example/>\n:a :q4 ( :s [ :p :o ] ) .", Lang.TURTLE);
+        String ttl = write(g1, Lang.TURTLE);
+        assertTrue(ttl, g1.isIsomorphicWith(parse(ttl, Lang.TURTLE)));
+    }
 }

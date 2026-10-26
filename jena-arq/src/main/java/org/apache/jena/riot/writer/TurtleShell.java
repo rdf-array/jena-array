@@ -862,11 +862,13 @@ public abstract class TurtleShell {
                         if ( sConn == 0 && containedInOneGraph(subj) )
                             // Not used as an object in this graph.
                             freeBnodes.add(subj);
-                    } else if ( subj.isNodeTriple() ) {
+                    } else if ( subj.isNodeTriple() || subj.isNodeSeq() ) {
                         extractBlankNodesInTripleTerms(blankNodesInTripleTerms, subj);
                     }
 
-                    if ( obj.isNodeTriple() ) {
+                    // RDF sequences: like a triple term, a sequence holds its blank nodes by
+                    // label, so they are not written nested or as free-standing [ ... ].
+                    if ( obj.isNodeTriple() || obj.isNodeSeq() ) {
                         extractBlankNodesInTripleTerms(blankNodesInTripleTerms, obj);
                         continue;
                     }
@@ -893,21 +895,18 @@ public abstract class TurtleShell {
         }
 
         // Helper for findBNodeSyntax1
+        // RDF sequences: also the blank nodes of a sequence term, at any depth.
         private void extractBlankNodesInTripleTerms(Set<Node> blankNodesInTripleTerms, Node nodeTriple) {
             // Needs to recurse.
-            Triple triple = nodeTriple.getTriple();
-            Node tSubj = triple.getSubject();
-            Node tObj = triple.getObject();
-
-            if ( tSubj.isBlank() )
-                blankNodesInTripleTerms.add(tSubj);
-            else if ( tSubj.isNodeTriple() )
-                extractBlankNodesInTripleTerms(blankNodesInTripleTerms, tSubj);
-
-            if ( tObj.isBlank() )
-                blankNodesInTripleTerms.add(tObj);
-            else if ( tObj.isNodeTriple() )
-                extractBlankNodesInTripleTerms(blankNodesInTripleTerms, tObj);
+            List<Node> parts = nodeTriple.isNodeSeq()
+                    ? nodeTriple.getSeq()
+                    : List.of(nodeTriple.getTriple().getSubject(), nodeTriple.getTriple().getObject());
+            for ( Node part : parts ) {
+                if ( part.isBlank() )
+                    blankNodesInTripleTerms.add(part);
+                else if ( part.isNodeTriple() || part.isNodeSeq() )
+                    extractBlankNodesInTripleTerms(blankNodesInTripleTerms, part);
+            }
         }
 
         // --- Lists setup
