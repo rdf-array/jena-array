@@ -3,6 +3,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix sht: <http://www.w3.org/ns/shacl-test#> .
+@prefix ra: <https://rdf-array.github.io/rdf-array/vocab#> .
 
 <> a mf:Manifest ;
   mf:entries (
@@ -11,6 +12,7 @@
 
 <shacl-shacl> a sht:Validate ;
   rdfs:comment "rdf-array: shacl-shacl-data-shapes.ttl is shacl-shacl rewritten for SHACL-array: its list shapes use sh:memberShape and sh:minListLength over sequence terms instead of walking rdf:rest*/rdf:first (tools/rewrite-shacl-shacl.py in rdf-array/rdf-array)" ;
+  mf:requires ra:ShaclListConstraints ;
   rdfs:label "frozen eat your own ( eat your own frozen dogfood )" ;
   mf:action [
       sht:dataGraph <shacl-shacl-data-shapes.ttl> ;
