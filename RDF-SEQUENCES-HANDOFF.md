@@ -178,6 +178,7 @@ ladders — *structural*).
 | suite | result |
 |-------|--------|
 | new: `TestLangSequences` 12, `TestSequenceQueries` 23, `TestShexCollection` 14 | all pass |
+| rdf-array contrib (2026-10-25): `Scripts_RdfArrayContrib` 31, `Scripts_RdfArrayContribSPARQL` 63 (in `ARQTestSuite`); `TestShexContribSyntax` 13, `TestShexContribSyntaxBad` 6, `TestShexContribValidation` 38 (in `TS_Shex`) | all pass |
 | jena-core (TestPackage, 245), jena-base, jena-iri | pass |
 | `TS_Lang` 2200, `TS_Query` 975, `TS_Engine` 40, `TestPathPF`, `TestStrSplit` | pass |
 | `Scripts_DAWG` 496, `Scripts_SPARQL11` 466, `Scripts_RDFStar` 102 | pass |
@@ -188,6 +189,28 @@ ladders — *structural*).
 | `TS_RiotWriter` (`TestRiotWriterGraph`) | `writer04/05/06` fail: `GraphMatcher` bnodes-in-sequence; unsupported serialisations |
 | `TestJsonLDReadWrite` | 4 fail: JSON-LD `@list` |
 | `TS_Shex` 2165 | 7 fail: six `1list*` ladder-shape validations, `TestParserShExR.roundTripAgainstShExC` (`( () )` fixtures) |
+
+## The shared contrib suites
+
+Copies of the rdf-array organisation's shared tests, each refreshed by the `update.sh` beside it,
+with the commit in a `*.commit` file:
+
+- `jena-arq/testing/rdf-array/rdf-tests-contrib/` ([rdf-tests-contrib](https://github.com/rdf-array/rdf-tests-contrib)
+  `rdf/`, `sparql/`): run by `org.apache.jena.external.Scripts_RdfArrayContrib` (Turtle, TriG,
+  N-Triples, N-Quads; `RunnerRIOT`) and `Scripts_RdfArrayContribSPARQL` (eval, update, syntax,
+  results; `RunnerSPARQL`). `SparqlTests.makeSPARQLTest` parses these with ARQ syntax: position
+  patterns and the sequence functions are ARQ extensions here, not SPARQL 1.1.
+- `jena-shex/src/test/files/shexTest-contrib/` ([shexTest-contrib](https://github.com/rdf-array/shexTest-contrib)):
+  run by `TestShexContribSyntax`, `TestShexContribSyntaxBad` and `TestShexContribValidation`. The
+  copy comments out the manifests' `@base`, as `../shexTest` does, so the entries resolve to the
+  files beside them.
+- json-ld-api-contrib does not apply: JSON-LD is not mapped to sequences here.
+
+Running them found and fixed: the JSON results readers (`RowSetReaderJSON_V1`,
+`RowSetJSONStreaming`) did not read `{"type":"seq"}`; the XML results neither wrote nor read
+`<seq>` (`RowSetWriterXML`, `RowSetReaderXML`, `XMLResults.dfSeq`); the TSV reader
+(`NodeFactoryExtra.parseNode`) did not read `( … )`; and `ResultSetCompare.BNodeIso` never found
+two sequence terms equal, so every expected result holding one failed.
 
 ## Running it
 

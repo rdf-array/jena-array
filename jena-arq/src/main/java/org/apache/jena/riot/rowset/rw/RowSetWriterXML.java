@@ -295,6 +295,10 @@ public class RowSetWriterXML implements RowSetWriter {
                 printTripleTerm(node);
                 return;
             }
+            if ( node.isNodeSeq() ) {
+                printSeqTerm(node);
+                return;
+            }
 
             if ( node.isNodeGraph() )
                 throw new UnsupportedOperationException("Graph terms");
@@ -352,6 +356,14 @@ public class RowSetWriterXML implements RowSetWriter {
             out.print("</");
             out.print(dfLiteral);
             out.println(">");
+        }
+
+        // RDF sequences: <seq> term term ... </seq>
+        private void printSeqTerm(Node node) {
+            openTag(dfSeq);
+            for ( Node elt : node.getSeq() )
+                printBindingValue(elt);
+            closeTag(dfSeq);
         }
 
         private void printTripleTerm(Node node) {

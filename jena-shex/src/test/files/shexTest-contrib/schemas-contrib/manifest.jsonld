@@ -1,0 +1,135 @@
+{
+  "@context": [
+    {
+      "@base": "https://raw.githubusercontent.com/shexSpec/shexTest/master/schemas-contrib/manifest"
+    },
+    "../context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "",
+      "@type": "mf:Manifest",
+      "rdfs:comment": "ShEx-array representation tests: the Collection shape expression in ShExC, ShExJ and ShExR",
+      "entries": [
+        {
+          "@id": "#collRef1to2",
+          "@type": "sht:RepresentationTest",
+          "name": "collRef1to2",
+          "status": "mf:Proposed",
+          "shex": "collRef1to2.shex",
+          "json": "collRef1to2.json",
+          "ttl": "collRef1to2.ttl"
+        },
+        {
+          "@id": "#collInt",
+          "@type": "sht:RepresentationTest",
+          "name": "collInt",
+          "status": "mf:Proposed",
+          "shex": "collInt.shex",
+          "json": "collInt.json",
+          "ttl": "collInt.ttl"
+        },
+        {
+          "@id": "#collInt2",
+          "@type": "sht:RepresentationTest",
+          "name": "collInt2",
+          "status": "mf:Proposed",
+          "shex": "collInt2.shex",
+          "json": "collInt2.json",
+          "ttl": "collInt2.ttl"
+        },
+        {
+          "@id": "#collInt1Plus",
+          "@type": "sht:RepresentationTest",
+          "name": "collInt1Plus",
+          "status": "mf:Proposed",
+          "shex": "collInt1Plus.shex",
+          "json": "collInt1Plus.json",
+          "ttl": "collInt1Plus.ttl"
+        },
+        {
+          "@id": "#collNested",
+          "@type": "sht:RepresentationTest",
+          "name": "collNested",
+          "status": "mf:Proposed",
+          "shex": "collNested.shex",
+          "json": "collNested.json",
+          "ttl": "collNested.ttl"
+        },
+        {
+          "@id": "#collDot",
+          "@type": "sht:RepresentationTest",
+          "name": "collDot",
+          "status": "mf:Proposed",
+          "shex": "collDot.shex",
+          "json": "collDot.json",
+          "ttl": "collDot.ttl"
+        },
+        {
+          "@id": "#collIriOrInt",
+          "@type": "sht:RepresentationTest",
+          "name": "collIriOrInt",
+          "status": "mf:Proposed",
+          "shex": "collIriOrInt.shex",
+          "json": "collIriOrInt.json",
+          "ttl": "collIriOrInt.ttl"
+        },
+        {
+          "@id": "#collNotInt",
+          "@type": "sht:RepresentationTest",
+          "name": "collNotInt",
+          "status": "mf:Proposed",
+          "shex": "collNotInt.shex",
+          "json": "collNotInt.json",
+          "ttl": "collNotInt.ttl"
+        },
+        {
+          "@id": "#collValueIri",
+          "@type": "sht:RepresentationTest",
+          "name": "collValueIri",
+          "status": "mf:Proposed",
+          "shex": "collValueIri.shex",
+          "json": "collValueIri.json",
+          "ttl": "collValueIri.ttl"
+        },
+        {
+          "@id": "#collColour",
+          "@type": "sht:RepresentationTest",
+          "name": "collColour",
+          "status": "mf:Proposed",
+          "shex": "collColour.shex",
+          "json": "collColour.json",
+          "ttl": "collColour.ttl"
+        },
+        {
+          "@id": "#collPolygon",
+          "@type": "sht:RepresentationTest",
+          "name": "collPolygon",
+          "status": "mf:Proposed",
+          "shex": "collPolygon.shex",
+          "json": "collPolygon.json",
+          "ttl": "collPolygon.ttl"
+        },
+        {
+          "@id": "#collPlaylist",
+          "@type": "sht:RepresentationTest",
+          "name": "collPlaylist",
+          "status": "mf:Proposed",
+          "shex": "collPlaylist.shex",
+          "json": "collPlaylist.json",
+          "ttl": "collPlaylist.ttl"
+        },
+        {
+          "@id": "#collDecl",
+          "@type": "sht:RepresentationTest",
+          "name": "collDecl",
+          "status": "mf:Proposed",
+          "shex": "collDecl.shex",
+          "json": "collDecl.json",
+          "ttl": "collDecl.ttl"
+        }
+      ]
+    }
+  ]
+}
+

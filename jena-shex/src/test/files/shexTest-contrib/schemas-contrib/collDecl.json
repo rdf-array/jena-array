@@ -1,0 +1,31 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/L",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Collection",
+        "shapeExpr": {
+          "type": "NodeConstraint",
+          "nodeKind": "iri"
+        },
+        "min": 1,
+        "max": -1
+      }
+    },
+    {
+      "id": "http://a.example/S1",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/p1",
+          "valueExpr": "http://a.example/L"
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

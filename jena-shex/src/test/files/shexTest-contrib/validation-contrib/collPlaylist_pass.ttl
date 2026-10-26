@@ -1,0 +1,5 @@
+PREFIX : <http://a.example/>
+
+<http://a.example/mix> :title "Monday" ; :tracks (<http://a.example/t1> <http://a.example/t2>) .
+<http://a.example/t1> :title "Intro" ; :seconds 95 .
+<http://a.example/t2> :title "Outro" ; :seconds 210 .

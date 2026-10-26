@@ -1,0 +1,60 @@
+{
+  "@context": [
+    {
+      "@base": "https://raw.githubusercontent.com/shexSpec/shexTest/master/negativeSyntax-contrib/manifest"
+    },
+    "../context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "",
+      "@type": "mf:Manifest",
+      "rdfs:comment": "ShEx-array negative syntax tests: malformed Collection bounds",
+      "entries": [
+        {
+          "@id": "#collBoundsStar",
+          "@type": "sht:NegativeSyntax",
+          "name": "collBoundsStar",
+          "status": "mf:Proposed",
+          "shex": "collBoundsStar.shex"
+        },
+        {
+          "@id": "#collBoundsNoComma",
+          "@type": "sht:NegativeSyntax",
+          "name": "collBoundsNoComma",
+          "status": "mf:Proposed",
+          "shex": "collBoundsNoComma.shex"
+        },
+        {
+          "@id": "#collBoundsNoMin",
+          "@type": "sht:NegativeSyntax",
+          "name": "collBoundsNoMin",
+          "status": "mf:Proposed",
+          "shex": "collBoundsNoMin.shex"
+        },
+        {
+          "@id": "#collBoundsThree",
+          "@type": "sht:NegativeSyntax",
+          "name": "collBoundsThree",
+          "status": "mf:Proposed",
+          "shex": "collBoundsThree.shex"
+        },
+        {
+          "@id": "#collBoundsEmpty",
+          "@type": "sht:NegativeSyntax",
+          "name": "collBoundsEmpty",
+          "status": "mf:Proposed",
+          "shex": "collBoundsEmpty.shex"
+        },
+        {
+          "@id": "#collBoundsUnclosed",
+          "@type": "sht:NegativeSyntax",
+          "name": "collBoundsUnclosed",
+          "status": "mf:Proposed",
+          "shex": "collBoundsUnclosed.shex"
+        }
+      ]
+    }
+  ]
+}
+

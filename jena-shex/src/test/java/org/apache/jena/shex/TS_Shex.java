@@ -38,6 +38,9 @@ import org.junit.runners.Suite;
     TestParserShExR.class,
     TestShexManifest.class
     , TestShexCollection.class
+    , TestShexContribSyntax.class
+    , TestShexContribSyntaxBad.class
+    , TestShexContribValidation.class
 })
 
 public class TS_Shex {

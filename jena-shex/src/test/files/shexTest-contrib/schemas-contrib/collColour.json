@@ -1,0 +1,28 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/Colour",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/rgb",
+          "valueExpr": {
+            "type": "Collection",
+            "shapeExpr": {
+              "type": "NodeConstraint",
+              "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+              "mininclusive": 0,
+              "maxinclusive": 255
+            },
+            "min": 3,
+            "max": 3
+          }
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

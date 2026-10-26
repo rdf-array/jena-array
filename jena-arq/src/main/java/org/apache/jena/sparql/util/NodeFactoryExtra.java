@@ -18,7 +18,9 @@
 
 package org.apache.jena.sparql.util ;
 
+import java.util.ArrayList ;
 import java.util.Calendar ;
+import java.util.List ;
 
 import org.apache.jena.atlas.lib.DateTimeUtils ;
 import org.apache.jena.datatypes.RDFDatatype ;
@@ -31,6 +33,7 @@ import org.apache.jena.riot.RiotException ;
 import org.apache.jena.riot.system.PrefixMap ;
 import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.riot.tokens.Token ;
+import org.apache.jena.riot.tokens.TokenType ;
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.apache.jena.riot.tokens.TokenizerText;
 import org.apache.jena.sparql.sse.SSE ;
@@ -70,9 +73,7 @@ public class NodeFactoryExtra {
         if ( !tokenizer.hasNext() )
             throw new RiotException("Empty RDF term") ;
         Token token = tokenizer.next() ;
-        Node node = token.asNode(pmap) ;
-        if ( node == null )
-            throw new RiotException("Bad RDF Term: " + nodeString) ;
+        Node node = parseTerm(tokenizer, token, pmap, nodeString) ;
 
         if ( tokenizer.hasNext() )
             throw new RiotException("Trailing characters in string: " + nodeString) ;
@@ -82,6 +83,25 @@ public class NodeFactoryExtra {
             if ( x.indexOf(' ') >= 0 )
                 throw new RiotException("Space(s) in  IRI: " + nodeString) ;
         }
+        return node ;
+    }
+
+    private static Node parseTerm(Tokenizer tokenizer, Token token, PrefixMap pmap, String nodeString) {
+        if ( token.getType() == TokenType.LPAREN ) {
+            // RDF sequences: ( term term ... )
+            List<Node> elements = new ArrayList<>() ;
+            while ( true ) {
+                if ( !tokenizer.hasNext() )
+                    throw new RiotException("Unclosed sequence: " + nodeString) ;
+                Token t = tokenizer.next() ;
+                if ( t.getType() == TokenType.RPAREN )
+                    return NodeFactory.createSeqNode(elements) ;
+                elements.add(parseTerm(tokenizer, t, pmap, nodeString)) ;
+            }
+        }
+        Node node = token.asNode(pmap) ;
+        if ( node == null )
+            throw new RiotException("Bad RDF Term: " + nodeString) ;
         return node ;
     }
 

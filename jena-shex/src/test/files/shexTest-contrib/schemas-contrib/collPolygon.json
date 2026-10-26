@@ -1,0 +1,31 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/Polygon",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/points",
+          "valueExpr": {
+            "type": "Collection",
+            "shapeExpr": {
+              "type": "Collection",
+              "shapeExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+              },
+              "min": 2,
+              "max": 2
+            },
+            "min": 3,
+            "max": -1
+          }
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

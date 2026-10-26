@@ -1,0 +1,17 @@
+PREFIX sx: <http://www.w3.org/ns/shex#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+[] a sx:Schema ;
+    sx:shapes ( <http://a.example/Colour> ) .
+
+<http://a.example/Colour> a sx:ShapeDecl ; sx:shapeExpr [ a sx:Shape ;
+    sx:expression [ a sx:TripleConstraint ;
+      sx:predicate <http://a.example/rgb> ;
+      sx:valueExpr [ a sx:Collection ;
+        sx:shapeExpr [ a sx:NodeConstraint ;
+          sx:datatype <http://www.w3.org/2001/XMLSchema#integer> ;
+          sx:mininclusive 0 ;
+          sx:maxinclusive 255 ] ;
+        sx:min 3 ;
+        sx:max 3 ] ] ] .
+

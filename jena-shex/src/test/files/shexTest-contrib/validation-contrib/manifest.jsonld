@@ -1,0 +1,536 @@
+{
+  "@context": [
+    {
+      "@base": "https://raw.githubusercontent.com/shexSpec/shexTest/master/validation-contrib/manifest"
+    },
+    "../context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "",
+      "@type": "mf:Manifest",
+      "rdfs:comment": "ShEx-array validation tests: sequences against Collection shape expressions",
+      "entries": [
+        {
+          "@id": "#collRef1to2_two_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collRef1to2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collRef1to2_two_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collRef1to2_two_pass",
+          "comment": "each element satisfies the element shape",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collRef1to2_one_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collRef1to2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collRef1to2_one_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collRef1to2_one_pass",
+          "comment": "one element is within [1, 2]",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collRef1to2_three_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collRef1to2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collRef1to2_three_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collRef1to2_three_fail",
+          "comment": "three elements exceed [1, 2]",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collRef1to2_empty_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collRef1to2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collRef1to2_empty_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collRef1to2_empty_fail",
+          "comment": "the empty sequence is below [1, 2]",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collRef1to2_badElement_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collRef1to2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collRef1to2_badElement_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collRef1to2_badElement_fail",
+          "comment": "the second element fails the element shape",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collRef1to2_notSeq_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collRef1to2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collRef1to2_notSeq_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collRef1to2_notSeq_fail",
+          "comment": "an IRI is not a sequence",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt_literal_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt_literal_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt_literal_fail",
+          "comment": "a literal is not a sequence",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt_empty_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt_empty_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt_empty_pass",
+          "comment": "no bounds: the empty sequence",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt_three_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt_three_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt_three_pass",
+          "comment": "no bounds: three integers",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt_mixed_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt_mixed_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt_mixed_fail",
+          "comment": "a string element fails xsd:integer",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt2_two_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collInt2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt2_two_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt2_two_pass",
+          "comment": "[2]: exactly two",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt2_one_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collInt2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt2_one_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt2_one_fail",
+          "comment": "[2]: one is too few",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt2_three_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collInt2.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt2_three_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt2_three_fail",
+          "comment": "[2]: three is too many",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt1Plus_empty_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collInt1Plus.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt1Plus_empty_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt1Plus_empty_fail",
+          "comment": "[1, *]: empty is too few",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt1Plus_one_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collInt1Plus.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt1Plus_one_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt1Plus_one_pass",
+          "comment": "[1, *]: one",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collInt1Plus_four_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collInt1Plus.shex",
+            "shape": "http://a.example/S1",
+            "data": "collInt1Plus_four_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collInt1Plus_four_pass",
+          "comment": "[1, *]: four",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collNested_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collNested.shex",
+            "shape": "http://a.example/S1",
+            "data": "collNested_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collNested_pass",
+          "comment": "a sequence of one-element sequences",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collNested_pairInside_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collNested.shex",
+            "shape": "http://a.example/S1",
+            "data": "collNested_pairInside_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collNested_pairInside_fail",
+          "comment": "the inner sequence has two elements, not one",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collNested_flat_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collNested.shex",
+            "shape": "http://a.example/S1",
+            "data": "collNested_flat_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collNested_flat_fail",
+          "comment": "the elements are not sequences",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collDot_empty_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collDot.shex",
+            "shape": "http://a.example/S1",
+            "data": "collDot_empty_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collDot_empty_pass",
+          "comment": "((.)) matches the empty sequence",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collDot_mixed_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collDot.shex",
+            "shape": "http://a.example/S1",
+            "data": "collDot_mixed_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collDot_mixed_pass",
+          "comment": "((.)) matches any elements, sequences included",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collDot_notSeq_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collDot.shex",
+            "shape": "http://a.example/S1",
+            "data": "collDot_notSeq_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collDot_notSeq_fail",
+          "comment": "((.)) wants a sequence",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collIriOrInt_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collIriOrInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "collIriOrInt_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collIriOrInt_pass",
+          "comment": "IRI OR xsd:integer inside a Collection",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collIriOrInt_string_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collIriOrInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "collIriOrInt_string_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collIriOrInt_string_fail",
+          "comment": "a string is neither an IRI nor an integer",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collNotInt_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collNotInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "collNotInt_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collNotInt_pass",
+          "comment": "NOT xsd:integer inside a Collection",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collNotInt_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collNotInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "collNotInt_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collNotInt_fail",
+          "comment": "an integer element fails NOT xsd:integer",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collValueIri_seq_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collValueIri.shex",
+            "shape": "http://a.example/S1",
+            "data": "collValueIri_seq_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collValueIri_seq_fail",
+          "comment": "a sequence is not an IRI (a sequence is none of the node kinds)",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collColour_red_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collColour.shex",
+            "shape": "http://a.example/Colour",
+            "data": "collColour_red_pass.ttl",
+            "focus": "http://a.example/red"
+          },
+          "extensionResults": [],
+          "name": "collColour_red_pass",
+          "comment": "three bytes",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collColour_pink_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collColour.shex",
+            "shape": "http://a.example/Colour",
+            "data": "collColour_pink_fail.ttl",
+            "focus": "http://a.example/pink"
+          },
+          "extensionResults": [],
+          "name": "collColour_pink_fail",
+          "comment": "only two components",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collColour_overflow_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collColour.shex",
+            "shape": "http://a.example/Colour",
+            "data": "collColour_overflow_fail.ttl",
+            "focus": "http://a.example/hot"
+          },
+          "extensionResults": [],
+          "name": "collColour_overflow_fail",
+          "comment": "256 is not a byte",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collPolygon_triangle_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collPolygon.shex",
+            "shape": "http://a.example/Polygon",
+            "data": "collPolygon_triangle_pass.ttl",
+            "focus": "http://a.example/triangle"
+          },
+          "extensionResults": [],
+          "name": "collPolygon_triangle_pass",
+          "comment": "three points of two decimals",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collPolygon_line_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collPolygon.shex",
+            "shape": "http://a.example/Polygon",
+            "data": "collPolygon_line_fail.ttl",
+            "focus": "http://a.example/line"
+          },
+          "extensionResults": [],
+          "name": "collPolygon_line_fail",
+          "comment": "two points are too few",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collPolygon_badPoint_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collPolygon.shex",
+            "shape": "http://a.example/Polygon",
+            "data": "collPolygon_badPoint_fail.ttl",
+            "focus": "http://a.example/bent"
+          },
+          "extensionResults": [],
+          "name": "collPolygon_badPoint_fail",
+          "comment": "a point with one coordinate",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collPlaylist_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collPlaylist.shex",
+            "shape": "http://a.example/Playlist",
+            "data": "collPlaylist_pass.ttl",
+            "focus": "http://a.example/mix"
+          },
+          "extensionResults": [],
+          "name": "collPlaylist_pass",
+          "comment": "two tracks",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collPlaylist_badTrack_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collPlaylist.shex",
+            "shape": "http://a.example/Playlist",
+            "data": "collPlaylist_badTrack_fail.ttl",
+            "focus": "http://a.example/mix"
+          },
+          "extensionResults": [],
+          "name": "collPlaylist_badTrack_fail",
+          "comment": "the second track has no :seconds",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collDecl_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/collDecl.shex",
+            "shape": "http://a.example/S1",
+            "data": "collDecl_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collDecl_pass",
+          "comment": "a declared Collection referenced from a triple constraint",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#collDecl_empty_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/collDecl.shex",
+            "shape": "http://a.example/S1",
+            "data": "collDecl_empty_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "collDecl_empty_fail",
+          "comment": "the declared Collection needs one or more",
+          "status": "mf:Proposed"
+        }
+      ]
+    }
+  ]
+}
+

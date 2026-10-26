@@ -1,0 +1,64 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/Playlist",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "EachOf",
+          "expressions": [
+            {
+              "type": "TripleConstraint",
+              "predicate": "http://a.example/title",
+              "valueExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#string"
+              }
+            },
+            {
+              "type": "TripleConstraint",
+              "predicate": "http://a.example/tracks",
+              "valueExpr": {
+                "type": "Collection",
+                "shapeExpr": "http://a.example/Track",
+                "min": 1,
+                "max": -1
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "http://a.example/Track",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "EachOf",
+          "expressions": [
+            {
+              "type": "TripleConstraint",
+              "predicate": "http://a.example/title",
+              "valueExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#string"
+              }
+            },
+            {
+              "type": "TripleConstraint",
+              "predicate": "http://a.example/seconds",
+              "valueExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

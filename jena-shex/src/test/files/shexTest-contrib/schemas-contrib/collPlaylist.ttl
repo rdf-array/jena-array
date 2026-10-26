@@ -1,0 +1,28 @@
+PREFIX sx: <http://www.w3.org/ns/shex#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+[] a sx:Schema ;
+    sx:shapes ( <http://a.example/Playlist> <http://a.example/Track> ) .
+
+<http://a.example/Playlist> a sx:ShapeDecl ; sx:shapeExpr [ a sx:Shape ;
+    sx:expression [ a sx:EachOf ;
+      sx:expressions ( [ a sx:TripleConstraint ;
+        sx:predicate <http://a.example/title> ;
+        sx:valueExpr [ a sx:NodeConstraint ;
+          sx:datatype <http://www.w3.org/2001/XMLSchema#string> ] ] [ a sx:TripleConstraint ;
+        sx:predicate <http://a.example/tracks> ;
+        sx:valueExpr [ a sx:Collection ;
+          sx:shapeExpr <http://a.example/Track> ;
+          sx:min 1 ;
+          sx:max -1 ] ] ) ] ] .
+
+<http://a.example/Track> a sx:ShapeDecl ; sx:shapeExpr [ a sx:Shape ;
+    sx:expression [ a sx:EachOf ;
+      sx:expressions ( [ a sx:TripleConstraint ;
+        sx:predicate <http://a.example/title> ;
+        sx:valueExpr [ a sx:NodeConstraint ;
+          sx:datatype <http://www.w3.org/2001/XMLSchema#string> ] ] [ a sx:TripleConstraint ;
+        sx:predicate <http://a.example/seconds> ;
+        sx:valueExpr [ a sx:NodeConstraint ;
+          sx:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ] ) ] ] .
+

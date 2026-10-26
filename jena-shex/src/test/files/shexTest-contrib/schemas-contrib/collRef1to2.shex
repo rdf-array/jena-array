@@ -1,0 +1,6 @@
+PREFIX : <http://a.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:T { :q xsd:integer }
+
+:S1 { :p1 ((@:T))[1, 2] }

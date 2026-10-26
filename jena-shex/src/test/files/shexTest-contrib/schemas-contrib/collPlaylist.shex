@@ -1,0 +1,6 @@
+PREFIX : <http://a.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:Playlist { :title xsd:string ; :tracks ((@:Track))[1, *] }
+
+:Track { :title xsd:string ; :seconds xsd:integer }

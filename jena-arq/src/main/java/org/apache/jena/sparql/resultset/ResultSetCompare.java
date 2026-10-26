@@ -355,6 +355,19 @@ public class ResultSetCompare
                 return  Iso.tripleIso(t1, t2, mapping);
             }
 
+            if ( n1.isNodeSeq() && n2.isNodeSeq() ) {
+                // RDF sequences: element by element, blank nodes mapped as at the top level
+                List<Node> s1 = n1.getSeq();
+                List<Node> s2 = n2.getSeq();
+                if ( s1.size() != s2.size() )
+                    return false;
+                for ( int i = 0 ; i < s1.size() ; i++ ) {
+                    if ( ! equal(s1.get(i), s2.get(i)) )
+                        return false;
+                }
+                return true;
+            }
+
             return false;
         }
     }
