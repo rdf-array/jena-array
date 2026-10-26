@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.jena.rdfminus;
+package org.apache.jena.rdfarray;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-    TestRdfMinusServer.class
+    TestRdfArrayServer.class
 })
-public class TS_RdfMinus {}
+public class TS_RdfArray {}

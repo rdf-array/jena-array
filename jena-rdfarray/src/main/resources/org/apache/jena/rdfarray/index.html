@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RDF−</title>
+<title>rdf[]</title>
 <style>
   :root {
     --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6a66; --line: #d9d6cf; --panel: #ffffff;
@@ -19,7 +19,7 @@
   body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
   header { padding: 28px 24px 8px; max-width: 1100px; margin: 0 auto; }
   h1 { margin: 0; font-size: 44px; letter-spacing: -1px; }
-  h1 .minus { color: var(--accent); }
+  h1 .brackets { color: var(--accent); }
   .tag { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
   .tag code, .note code { font-family: var(--mono); font-size: 0.92em; }
   main { max-width: 1100px; margin: 0 auto; padding: 0 24px 40px; }
@@ -58,14 +58,14 @@
 </head>
 <body>
 <header>
-  <h1>RDF<span class="minus">−</span></h1>
-  <p class="tag">RDF minus the ceremony. A sequence is a term: <code>(1 2 3)</code> is one object, not a ladder of blank nodes.
+  <h1>rdf<span class="brackets">[]</span></h1>
+  <p class="tag">RDF without the ceremony. A sequence is a term: <code>(1 2 3)</code> is one object, not a ladder of blank nodes.
   No <code>rdf:first</code>, no <code>rdf:rest</code>, no <code>rdf:nil</code>, no list-walking property paths or inference rules.
-  The same data, queries and shapes, each written once in <b>Turtle−</b>, <b>SPARQL−</b> and <b>ShEx−</b>.</p>
+  The same data, queries and shapes, each written once in <b>Turtle-array</b>, <b>SPARQL-array</b> and <b>ShEx-array</b>.</p>
 </header>
 <main>
   <div class="panel">
-    <h2>Data (Turtle−)</h2>
+    <h2>Data (Turtle-array)</h2>
     <textarea id="data" spellcheck="false">PREFIX : &lt;http://example/&gt;
 PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
 
@@ -83,9 +83,9 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
   </div>
 
   <nav class="tabs">
-    <button data-tab="turtle" class="active">Turtle−</button>
-    <button data-tab="sparql">SPARQL−</button>
-    <button data-tab="shex">ShEx−</button>
+    <button data-tab="turtle" class="active">Turtle-array</button>
+    <button data-tab="sparql">SPARQL-array</button>
+    <button data-tab="shex">ShEx-array</button>
   </nav>
 
   <section id="tab-turtle" class="tab active panel">
@@ -94,7 +94,7 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
     <div class="row"><button class="primary" id="parseBtn">Parse</button></div>
     <div class="out" id="turtleOut"></div>
     <div class="compare" style="margin-top:12px">
-      <div><h3>Turtle−</h3><pre>:alice :phones ("555-1234" "555-9876") .</pre><pre>1 triple. The object is a term with two elements.</pre></div>
+      <div><h3>Turtle-array</h3><pre>:alice :phones ("555-1234" "555-9876") .</pre><pre>1 triple. The object is a term with two elements.</pre></div>
       <div><h3>RDF 1.1</h3><pre>:alice :phones _:l1 .
 _:l1 rdf:first "555-1234" ; rdf:rest _:l2 .
 _:l2 rdf:first "555-9876" ; rdf:rest rdf:nil .</pre><pre>5 triples, 2 blank nodes, 1 well-known IRI, and an invariant nobody checks.</pre></div>
@@ -200,7 +200,7 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
     return { ok: r.ok, type: r.headers.get('Content-Type') || '', text: await r.text() };
   }
 
-  // ---- Turtle−
+  // ---- Turtle-array
   $('parseBtn').addEventListener('click', async () => {
     const out = $('turtleOut'); out.innerHTML = '<p class="note">parsing…</p>';
     const r = await call('turtle', { data: $('data').value });
@@ -208,11 +208,11 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
     const j = JSON.parse(r.text), pfx = prefixes();
     let h = '<p class="note">' + j.count + ' triple' + (j.count === 1 ? '' : 's') + '</p><table class="results"><tr><th>subject</th><th>predicate</th><th>object</th></tr>';
     for (const q of j.quads) h += '<tr><td>' + term(q.subject, pfx) + '</td><td>' + term(q.predicate, pfx) + '</td><td>' + term(q.object, pfx) + '</td></tr>';
-    h += '</table><p class="note">N-Triples− (every triple on its own line, sequences inline):</p><pre>' + esc(j.ntriples) + '</pre>';
+    h += '</table><p class="note">N-Triples-array (every triple on its own line, sequences inline):</p><pre>' + esc(j.ntriples) + '</pre>';
     out.innerHTML = h;
   });
 
-  // ---- SPARQL−
+  // ---- SPARQL-array
   const examples = [
     { name: 'the second phone number', old: 'RDF 1.1: ?who :phones/rdf:rest/rdf:first ?second',
       q: 'SELECT ?who ?second WHERE {\n  ?who :phones ((?second))[2]\n}' },
@@ -244,7 +244,7 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
     const out = $('sparqlOut'); out.innerHTML = '<p class="note">running…</p>';
     const r = await call('sparql', { data: $('data').value, query: $('query').value });
     if (!r.ok) { out.innerHTML = errorHtml(r.text); return; }
-    if (r.type.startsWith('text/turtle')) { out.innerHTML = '<p class="note">CONSTRUCT result (Turtle−):</p><pre>' + esc(r.text) + '</pre>'; return; }
+    if (r.type.startsWith('text/turtle')) { out.innerHTML = '<p class="note">CONSTRUCT result (Turtle-array):</p><pre>' + esc(r.text) + '</pre>'; return; }
     const j = JSON.parse(r.text), pfx = prefixes();
     if ('boolean' in j) { out.innerHTML = '<p class="' + (j.boolean ? 'status-ok' : 'status-bad') + '">' + j.boolean + '</p>'; return; }
     const vars = j.head.vars, rows = j.results.bindings;
@@ -253,7 +253,7 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
     out.innerHTML = h + '</table>';
   });
 
-  // ---- ShEx−
+  // ---- ShEx-array
   $('validateBtn').addEventListener('click', async () => {
     const out = $('shexOut'); out.innerHTML = '<p class="note">validating…</p>';
     const fields = { schema: $('schema').value, data: $('data').value };

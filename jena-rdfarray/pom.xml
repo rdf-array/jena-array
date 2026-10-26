@@ -18,18 +18,18 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>jena-rdfminus</artifactId>
+  <artifactId>jena-rdfarray</artifactId>
   <packaging>jar</packaging>
-  <name>Apache Jena - RDF- (sequences demo server)</name>
+  <name>Apache Jena - rdf-array (sequences demo server)</name>
   <parent>
     <groupId>org.apache.jena</groupId>
     <artifactId>jena</artifactId>
     <version>5.0.0-SNAPSHOT</version>
   </parent>
-  <description>RDF- : a small HTTP server and page showing the RDF Sequences data model through Turtle-, SPARQL- and ShEx-</description>
+  <description>rdf-array : a small HTTP server and page showing the RDF Sequences data model through Turtle-array, SPARQL-array and ShEx-array</description>
 
   <properties>
-    <automatic.module.name>org.apache.jena.rdfminus</automatic.module.name>
+    <automatic.module.name>org.apache.jena.rdfarray</automatic.module.name>
   </properties>
 
   <dependencies>
@@ -74,9 +74,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
-          <windowtitle>Apache Jena RDF-</windowtitle>
-          <doctitle>Apache Jena - RDF- ${project.version}</doctitle>
-          <includePackageNames>org.apache.jena.rdfminus</includePackageNames>
+          <windowtitle>Apache Jena rdf-array</windowtitle>
+          <doctitle>Apache Jena - rdf-array ${project.version}</doctitle>
+          <includePackageNames>org.apache.jena.rdfarray</includePackageNames>
         </configuration>
       </plugin>
     </plugins>

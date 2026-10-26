@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.jena.rdfminus;
+package org.apache.jena.rdfarray;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,22 +39,22 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-/** The RDF- server: Turtle-, SPARQL- and ShEx- over HTTP, in the manner of the shex.js validation server. */
-public class TestRdfMinusServer {
+/** The rdf-array server: Turtle-array, SPARQL-array and ShEx-array over HTTP, in the manner of the shex.js validation server. */
+public class TestRdfArrayServer {
 
     private static final String PREFIXES = "PREFIX : <http://example/>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n";
     private static final String DATA   = PREFIXES + ":x :p (1 2 3) ; :q (:a (:b :c)) .\n:y :p (1 2) .\n";
     private static final String SCHEMA = PREFIXES + ":S { :p ((xsd:integer))[2] }\n";
 
-    private static RdfMinusServer server;
+    private static RdfArrayServer server;
     private static String root;
     private static final HttpClient client = HttpClient.newHttpClient();
 
     @BeforeClass public static void start() throws IOException {
-        RdfMinusServer.Config c = new RdfMinusServer.Config();
+        RdfArrayServer.Config c = new RdfArrayServer.Config();
         c.serveUrl = "http://localhost:0/validate";   // ephemeral port
         c.quiet = true;
-        server = new RdfMinusServer(c);
+        server = new RdfArrayServer(c);
         server.start();
         root = server.rootUrl();
     }
@@ -90,10 +90,10 @@ public class TestRdfMinusServer {
         HttpResponse<String> r = get("");
         assertEquals(200, r.statusCode());
         assertTrue(r.headers().firstValue("Content-Type").orElse("").startsWith("text/html"));
-        // The page writes the names with a minus sign.
-        assertTrue(r.body().contains("Turtle\u2212"));
-        assertTrue(r.body().contains("SPARQL\u2212"));
-        assertTrue(r.body().contains("ShEx\u2212"));
+        // The page names the syntaxes Turtle-array, SPARQL-array and ShEx-array.
+        assertTrue(r.body().contains("Turtle-array"));
+        assertTrue(r.body().contains("SPARQL-array"));
+        assertTrue(r.body().contains("ShEx-array"));
         assertTrue(r.body().contains("data-tab=\"sparql\""));
     }
 
@@ -101,7 +101,7 @@ public class TestRdfMinusServer {
         assertEquals(404, get("nothing-here").statusCode());
     }
 
-    // ---- Turtle-
+    // ---- Turtle-array
 
     @Test public void turtle_returns_sequence_terms() throws Exception {
         HttpResponse<String> r = post("turtle", Map.of("data", PREFIXES + ":x :p (1 (2 3) ()) ."));
@@ -129,7 +129,7 @@ public class TestRdfMinusServer {
         assertTrue(r.body().contains("No data specified."));
     }
 
-    // ---- SPARQL-
+    // ---- SPARQL-array
 
     @Test public void sparql_select_position_pattern() throws Exception {
         HttpResponse<String> r = post("sparql", Map.of("data", DATA, "query", PREFIXES + "SELECT ?e { :x :p ((?e))[2] }"));
@@ -182,7 +182,7 @@ public class TestRdfMinusServer {
         assertTrue(r.body().contains("No data specified."));
     }
 
-    // ---- ShEx-
+    // ---- ShEx-array
 
     @Test public void validate_conformant_with_node_and_shape() throws Exception {
         HttpResponse<String> r = post("validate", Map.of("schema", SCHEMA, "data", DATA, "node", "http://example/y", "shape", "http://example/S"));
@@ -242,7 +242,7 @@ public class TestRdfMinusServer {
     }
 
     @Test public void multipart_form_with_uploaded_files() throws Exception {
-        String boundary = "----rdfminus" + System.nanoTime();
+        String boundary = "----rdfarray" + System.nanoTime();
         String body = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"schema\"; filename=\"s.shex\"\r\nContent-Type: text/shex\r\n\r\n" + SCHEMA + "\r\n"
                     + "--" + boundary + "\r\nContent-Disposition: form-data; name=\"data\"; filename=\"d.ttl\"\r\nContent-Type: text/turtle\r\n\r\n" + DATA + "\r\n"
                     + "--" + boundary + "\r\nContent-Disposition: form-data; name=\"node\"\r\n\r\n:y\r\n"
@@ -269,19 +269,19 @@ public class TestRdfMinusServer {
     // ---- preloaded mode and --serve-n
 
     @Test public void preloaded_schema_shape_and_data_need_only_a_node() throws Exception {
-        Path dir = Files.createTempDirectory("rdfminus");
+        Path dir = Files.createTempDirectory("rdfarray");
         Path schemaFile = dir.resolve("s.shex");
         Path dataFile = dir.resolve("d.ttl");
         Files.writeString(schemaFile, SCHEMA);
         Files.writeString(dataFile, DATA);
-        RdfMinusServer.Config c = new RdfMinusServer.Config();
+        RdfArrayServer.Config c = new RdfArrayServer.Config();
         c.serveUrl = "http://localhost:0/check";
         c.quiet = true;
         c.schemaFile = schemaFile.toString();
         c.dataFile = dataFile.toString();
         c.shape = "http://example/S";
         c.serveN = 2;
-        RdfMinusServer s2 = new RdfMinusServer(c);
+        RdfArrayServer s2 = new RdfArrayServer(c);
         s2.start();
         try {
             String url = s2.rootUrl() + "check?node=" + enc("http://example/y");
@@ -303,7 +303,7 @@ public class TestRdfMinusServer {
     }
 
     @Test public void args_parse_like_the_shexjs_server() {
-        RdfMinusServer.Config c = RdfMinusServer.parseArgs(new String[] {"-S", "http://localhost:8088/validate", "-x", "a.shex", "-s", "http://a.example/S1", "-d", "d.ttl", "-n", "x", "--serve-n", "3", "-Q", "--terse"});
+        RdfArrayServer.Config c = RdfArrayServer.parseArgs(new String[] {"-S", "http://localhost:8088/validate", "-x", "a.shex", "-s", "http://a.example/S1", "-d", "d.ttl", "-n", "x", "--serve-n", "3", "-Q", "--terse"});
         assertEquals("http://localhost:8088/validate", c.serveUrl);
         assertEquals("a.shex", c.schemaFile);
         assertEquals("http://a.example/S1", c.shape);

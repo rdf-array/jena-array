@@ -183,7 +183,7 @@
         <module>jena-arq</module>
         <module>jena-shacl</module>
         <module>jena-shex</module>
-        <module>jena-rdfminus</module>
+        <module>jena-rdfarray</module>
         <module>jena-shexmap</module>
         <module>jena-rdfpatch</module>
         <module>jena-rdfconnection</module>
@@ -247,7 +247,7 @@
         <module>jena-arq</module>
         <module>jena-shacl</module>
         <module>jena-shex</module>
-        <module>jena-rdfminus</module>
+        <module>jena-rdfarray</module>
         <module>jena-shexmap</module>
         <module>jena-rdfpatch</module>
         <module>jena-rdfconnection</module>

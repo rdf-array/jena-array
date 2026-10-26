@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.jena.rdfminus;
+package org.apache.jena.rdfarray;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -77,12 +77,12 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 /**
- * RDF- : a small HTTP server that shows the RDF Sequences data model.
+ * rdf-array : a small HTTP server that shows the RDF Sequences data model.
  * <p>
  * Routes (GET or POST; parameters from the query string, a form body - URL-encoded or
  * multipart with file uploads - or a JSON object body):
  * <ul>
- * <li>{@code /} - the demo page (Turtle-, SPARQL-, ShEx- tabs).</li>
+ * <li>{@code /} - the demo page (Turtle-array, SPARQL-array, ShEx-array tabs).</li>
  * <li>{@code /turtle} - {@code data} (Turtle/TriG): the parsed triples as JSON terms,
  *     and as N-Triples/N-Quads and Turtle/TriG text.</li>
  * <li>{@code /sparql} - {@code query} over {@code data} (or the preloaded data): SPARQL
@@ -94,7 +94,7 @@ import com.sun.net.httpserver.HttpServer;
  * </ul>
  * Errors are {@code {"type": ..., "errors": [...]}} with status 400 (bad input) or 500.
  */
-public class RdfMinusServer {
+public class RdfArrayServer {
 
     /** Command-line and preload settings. */
     public static class Config {
@@ -110,7 +110,7 @@ public class RdfMinusServer {
     }
 
     public static final String USAGE = String.join("\n",
-        "rdfminus -S http://host:port/validate [-x schema.shex] [-d data.ttl] [-s shape] [-n node] [-m shapeMap]",
+        "rdfarray -S http://host:port/validate [-x schema.shex] [-d data.ttl] [-s shape] [-n node] [-m shapeMap]",
         "         [--serve-n N] [--terse] [-Q|--quiet]",
         "",
         "Routes: /  /turtle  /sparql  and the validation route of -S (default /validate).",
@@ -121,7 +121,7 @@ public class RdfMinusServer {
         "  curl -i http://localhost:8099/validate -F 'schema=@schema.shex' -F 'shape=http://example/S' \\",
         "       -F 'data=@data.ttl' -F 'node=http://example/x'",
         "Preload the schema and shape, then send only the data:",
-        "  rdfminus -x schema.shex -s http://example/S -S http://localhost:8099/validate",
+        "  rdfarray -x schema.shex -s http://example/S -S http://localhost:8099/validate",
         "  curl -i http://localhost:8099/validate -F 'data=@data.ttl' -F 'node=http://example/x'");
 
     private final Config config;
@@ -135,7 +135,7 @@ public class RdfMinusServer {
     private final String preloadedSchema;
     private final DatasetGraph preloadedData;
 
-    public RdfMinusServer(Config config) {
+    public RdfArrayServer(Config config) {
         this.config = config;
         this.serveUri = URI.create(config.serveUrl);
         String path = serveUri.getPath();
@@ -502,7 +502,7 @@ public class RdfMinusServer {
     }
 
     private static byte[] readResource(String name) throws IOException {
-        try ( InputStream in = RdfMinusServer.class.getResourceAsStream(name) ) {
+        try ( InputStream in = RdfArrayServer.class.getResourceAsStream(name) ) {
             if ( in == null )
                 throw new IOException("Resource not found: " + name);
             return in.readAllBytes();
@@ -665,15 +665,15 @@ public class RdfMinusServer {
             System.exit(2);
             return;
         }
-        RdfMinusServer server = new RdfMinusServer(config);
+        RdfArrayServer server = new RdfArrayServer(config);
         server.start();
         if ( config.terse ) {
             server.log("host: %s port: %d", server.serveUri.getHost(), server.port());
         } else {
-            server.log("RDF- : <%s>", server.rootUrl());
-            server.log("  Turtle-  : %sturtle", server.rootUrl());
-            server.log("  SPARQL-  : %ssparql", server.rootUrl());
-            server.log("  ShEx-    : %s", server.baseUrl());
+            server.log("rdf-array : <%s>", server.rootUrl());
+            server.log("  Turtle-array : %sturtle", server.rootUrl());
+            server.log("  SPARQL-array : %ssparql", server.rootUrl());
+            server.log("  ShEx-array   : %s", server.baseUrl());
             if ( server.preloadedSchema != null )
                 server.log("  preloaded schema: %s", config.schemaFile);
             if ( server.preloadedData != null )
