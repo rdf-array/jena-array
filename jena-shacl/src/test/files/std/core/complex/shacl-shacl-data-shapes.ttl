@@ -22,7 +22,7 @@ shsh:
 shsh:ListShape
 	a sh:NodeShape ;
 	rdfs:label "List shape"@en ;
-	rdfs:comment "rdf-array: a SHACL list is a sequence term, ( ... ), and an rdf:first/rdf:rest ladder is triples, not a list (https://rdf-array.github.io/rdf-array/shacl-array.html). shsh:ListNodeShape, which described the cells of a ladder, is gone."@en ;
+	rdfs:comment "rdf-array: a SHACL list is a sequence term, ( ... ), and an rdf:first/rdf:rest ladder is triples, not a list (https://rdf-array.github.io/rdf-array/docs/shacl-array.html). shsh:ListNodeShape, which described the cells of a ladder, is gone."@en ;
 	rdfs:seeAlso <https://www.w3.org/TR/shacl/#syntax-rule-SHACL-list> ;
 	sh:minListLength 0 .
 

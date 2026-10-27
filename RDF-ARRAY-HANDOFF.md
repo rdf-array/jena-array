@@ -197,7 +197,7 @@ ladders — *structural*).
 
 ## SHACL-array (`jena-shacl`, 2026-10-25)
 
-[shacl-array.md](https://rdf-array.github.io/rdf-array/shacl-array.html) in rdf-array/rdf-array
+[shacl-array.md](https://rdf-array.github.io/rdf-array/docs/shacl-array.html) in rdf-array/rdf-array
 defines it; this is its first implementation.
 
 - **A SHACL list is a sequence term, and only that** (`ShLib.isList`/`listMembers`): `sh:path`
