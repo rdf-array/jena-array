@@ -841,6 +841,31 @@ public class BuilderExpr
         return new E_SeqAt(expr1, expr2);
     };
 
+    private static Build buildSeqSlice = (ItemList list) -> {
+        BuilderLib.checkLength(4, list, "seqSlice: wanted 3 arguments: got: "+numArgs(list));
+        return new E_SeqSlice(buildExpr(list.get(1)), buildExpr(list.get(2)), buildExpr(list.get(3)));
+    };
+
+    private static Build buildSeqSliceFrom = (ItemList list) -> {
+        BuilderLib.checkLength(3, list, "seqSliceFrom: wanted 2 arguments: got: "+numArgs(list));
+        return new E_SeqSliceFrom(buildExpr(list.get(1)), buildExpr(list.get(2)));
+    };
+
+    private static Build buildSeqSliceTo = (ItemList list) -> {
+        BuilderLib.checkLength(3, list, "seqSliceTo: wanted 2 arguments: got: "+numArgs(list));
+        return new E_SeqSliceTo(buildExpr(list.get(1)), buildExpr(list.get(2)));
+    };
+
+    private static Build buildInSeq = (ItemList list) -> {
+        BuilderLib.checkLength(3, list, "inSeq: wanted 2 arguments: got: "+numArgs(list));
+        return new E_InSeq(buildExpr(list.get(1)), buildExpr(list.get(2)));
+    };
+
+    private static Build buildNotInSeq = (ItemList list) -> {
+        BuilderLib.checkLength(3, list, "notInSeq: wanted 2 arguments: got: "+numArgs(list));
+        return new E_NotInSeq(buildExpr(list.get(1)), buildExpr(list.get(2)));
+    };
+
     private static Build buildMkSeq = (ItemList list) -> {
         ExprList args = buildExprListUntagged(list, 1);
         return new E_MkSeq(args);
@@ -1107,6 +1132,11 @@ public class BuilderExpr
         dispatch.put(Tags.tagIsSeq, buildIsSeq);
         dispatch.put(Tags.tagSeqLen, buildSeqLen);
         dispatch.put(Tags.tagSeqAt, buildSeqAt);
+        dispatch.put(Tags.tagSeqSlice, buildSeqSlice);
+        dispatch.put(Tags.tagSeqSliceFrom, buildSeqSliceFrom);
+        dispatch.put(Tags.tagSeqSliceTo, buildSeqSliceTo);
+        dispatch.put(Tags.tagInSeq, buildInSeq);
+        dispatch.put(Tags.tagNotInSeq, buildNotInSeq);
         dispatch.put(Tags.tagMkSeq, buildMkSeq);
 
         dispatch.put(Tags.tagCall, buildCall);

@@ -327,6 +327,15 @@ public class VarFinder
             processAssignVarExprList(opExtend.getVarExprList());
         }
 
+        @Override
+        public void visit(OpUnnest opUnnest) {
+            opUnnest.getSubOp().visit(this);
+            defines.add(opUnnest.getVar());
+            if ( opUnnest.hasPosVar() )
+                defines.add(opUnnest.getPosVar());
+            ExprVars.nonOpVarsMentioned(assignMentions, opUnnest.getExpr());
+        }
+
         private void processAssignVarExprList(VarExprList varExprList) {
             varExprList.forEachVarExpr((v,e)-> {
                 defines.add(v) ; // Expression may eval to error -> unset?

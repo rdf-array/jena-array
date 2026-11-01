@@ -9,124 +9,205 @@
     {
       "@id": "",
       "@type": "mf:Manifest",
-      "rdfs:comment": "ShEx-array representation tests: the Collection shape expression in ShExC, ShExJ and ShExR",
+      "rdfs:comment": "ShEx-array representation tests: the LIST shape expression in ShExC, ShExJ and ShExR",
       "entries": [
         {
-          "@id": "#collRef1to2",
+          "@id": "#listRef1to2",
           "@type": "sht:RepresentationTest",
-          "name": "collRef1to2",
+          "name": "listRef1to2",
           "status": "mf:Proposed",
-          "shex": "collRef1to2.shex",
-          "json": "collRef1to2.json",
-          "ttl": "collRef1to2.ttl"
+          "shex": "listRef1to2.shex",
+          "json": "listRef1to2.json",
+          "ttl": "listRef1to2.ttl"
         },
         {
-          "@id": "#collInt",
+          "@id": "#listInt",
           "@type": "sht:RepresentationTest",
-          "name": "collInt",
+          "name": "listInt",
           "status": "mf:Proposed",
-          "shex": "collInt.shex",
-          "json": "collInt.json",
-          "ttl": "collInt.ttl"
+          "shex": "listInt.shex",
+          "json": "listInt.json",
+          "ttl": "listInt.ttl"
         },
         {
-          "@id": "#collInt2",
+          "@id": "#listInt2",
           "@type": "sht:RepresentationTest",
-          "name": "collInt2",
+          "name": "listInt2",
           "status": "mf:Proposed",
-          "shex": "collInt2.shex",
-          "json": "collInt2.json",
-          "ttl": "collInt2.ttl"
+          "shex": "listInt2.shex",
+          "json": "listInt2.json",
+          "ttl": "listInt2.ttl"
         },
         {
-          "@id": "#collInt1Plus",
+          "@id": "#listInt1Plus",
           "@type": "sht:RepresentationTest",
-          "name": "collInt1Plus",
+          "name": "listInt1Plus",
           "status": "mf:Proposed",
-          "shex": "collInt1Plus.shex",
-          "json": "collInt1Plus.json",
-          "ttl": "collInt1Plus.ttl"
+          "shex": "listInt1Plus.shex",
+          "json": "listInt1Plus.json",
+          "ttl": "listInt1Plus.ttl"
         },
         {
-          "@id": "#collNested",
+          "@id": "#listNested",
           "@type": "sht:RepresentationTest",
-          "name": "collNested",
+          "name": "listNested",
           "status": "mf:Proposed",
-          "shex": "collNested.shex",
-          "json": "collNested.json",
-          "ttl": "collNested.ttl"
+          "shex": "listNested.shex",
+          "json": "listNested.json",
+          "ttl": "listNested.ttl"
         },
         {
-          "@id": "#collDot",
+          "@id": "#listDot",
           "@type": "sht:RepresentationTest",
-          "name": "collDot",
+          "name": "listDot",
           "status": "mf:Proposed",
-          "shex": "collDot.shex",
-          "json": "collDot.json",
-          "ttl": "collDot.ttl"
+          "shex": "listDot.shex",
+          "json": "listDot.json",
+          "ttl": "listDot.ttl"
         },
         {
-          "@id": "#collIriOrInt",
+          "@id": "#listIriOrInt",
           "@type": "sht:RepresentationTest",
-          "name": "collIriOrInt",
+          "name": "listIriOrInt",
           "status": "mf:Proposed",
-          "shex": "collIriOrInt.shex",
-          "json": "collIriOrInt.json",
-          "ttl": "collIriOrInt.ttl"
+          "shex": "listIriOrInt.shex",
+          "json": "listIriOrInt.json",
+          "ttl": "listIriOrInt.ttl"
         },
         {
-          "@id": "#collNotInt",
+          "@id": "#listNotInt",
           "@type": "sht:RepresentationTest",
-          "name": "collNotInt",
+          "name": "listNotInt",
           "status": "mf:Proposed",
-          "shex": "collNotInt.shex",
-          "json": "collNotInt.json",
-          "ttl": "collNotInt.ttl"
+          "shex": "listNotInt.shex",
+          "json": "listNotInt.json",
+          "ttl": "listNotInt.ttl"
         },
         {
-          "@id": "#collValueIri",
+          "@id": "#seqValueIri",
           "@type": "sht:RepresentationTest",
-          "name": "collValueIri",
+          "name": "seqValueIri",
           "status": "mf:Proposed",
-          "shex": "collValueIri.shex",
-          "json": "collValueIri.json",
-          "ttl": "collValueIri.ttl"
+          "shex": "seqValueIri.shex",
+          "json": "seqValueIri.json",
+          "ttl": "seqValueIri.ttl"
         },
         {
-          "@id": "#collColour",
+          "@id": "#listColour",
           "@type": "sht:RepresentationTest",
-          "name": "collColour",
+          "name": "listColour",
           "status": "mf:Proposed",
-          "shex": "collColour.shex",
-          "json": "collColour.json",
-          "ttl": "collColour.ttl"
+          "shex": "listColour.shex",
+          "json": "listColour.json",
+          "ttl": "listColour.ttl"
         },
         {
-          "@id": "#collPolygon",
+          "@id": "#listPolygon",
           "@type": "sht:RepresentationTest",
-          "name": "collPolygon",
+          "name": "listPolygon",
           "status": "mf:Proposed",
-          "shex": "collPolygon.shex",
-          "json": "collPolygon.json",
-          "ttl": "collPolygon.ttl"
+          "shex": "listPolygon.shex",
+          "json": "listPolygon.json",
+          "ttl": "listPolygon.ttl"
         },
         {
-          "@id": "#collPlaylist",
+          "@id": "#listPlaylist",
           "@type": "sht:RepresentationTest",
-          "name": "collPlaylist",
+          "name": "listPlaylist",
           "status": "mf:Proposed",
-          "shex": "collPlaylist.shex",
-          "json": "collPlaylist.json",
-          "ttl": "collPlaylist.ttl"
+          "shex": "listPlaylist.shex",
+          "json": "listPlaylist.json",
+          "ttl": "listPlaylist.ttl"
         },
         {
-          "@id": "#collDecl",
+          "@id": "#listDecl",
           "@type": "sht:RepresentationTest",
-          "name": "collDecl",
+          "name": "listDecl",
           "status": "mf:Proposed",
-          "shex": "collDecl.shex",
-          "json": "collDecl.json",
-          "ttl": "collDecl.ttl"
+          "shex": "listDecl.shex",
+          "json": "listDecl.json",
+          "ttl": "listDecl.ttl"
+        },
+        {
+          "@id": "#listBP",
+          "@type": "sht:RepresentationTest",
+          "name": "listBP",
+          "status": "mf:Proposed",
+          "shex": "listBP.shex",
+          "json": "listBP.json",
+          "ttl": "listBP.ttl"
+        },
+        {
+          "@id": "#listMatrix2x3",
+          "@type": "sht:RepresentationTest",
+          "name": "listMatrix2x3",
+          "status": "mf:Proposed",
+          "shex": "listMatrix2x3.shex",
+          "json": "listMatrix2x3.json",
+          "ttl": "listMatrix2x3.ttl"
+        },
+        {
+          "@id": "#listMatrix2x3Short",
+          "@type": "sht:RepresentationTest",
+          "name": "listMatrix2x3Short",
+          "status": "mf:Proposed",
+          "shex": "listMatrix2x3Short.shex",
+          "json": "listMatrix2x3Short.json",
+          "ttl": "listMatrix2x3Short.ttl"
+        },
+        {
+          "@id": "#listRagged",
+          "@type": "sht:RepresentationTest",
+          "name": "listRagged",
+          "status": "mf:Proposed",
+          "shex": "listRagged.shex",
+          "json": "listRagged.json",
+          "ttl": "listRagged.ttl"
+        },
+        {
+          "@id": "#listRaggedShort",
+          "@type": "sht:RepresentationTest",
+          "name": "listRaggedShort",
+          "status": "mf:Proposed",
+          "shex": "listRaggedShort.shex",
+          "json": "listRaggedShort.json",
+          "ttl": "listRaggedShort.ttl"
+        },
+        {
+          "@id": "#listPolyline",
+          "@type": "sht:RepresentationTest",
+          "name": "listPolyline",
+          "status": "mf:Proposed",
+          "shex": "listPolyline.shex",
+          "json": "listPolyline.json",
+          "ttl": "listPolyline.ttl"
+        },
+        {
+          "@id": "#listPairs",
+          "@type": "sht:RepresentationTest",
+          "name": "listPairs",
+          "status": "mf:Proposed",
+          "shex": "listPairs.shex",
+          "json": "listPairs.json",
+          "ttl": "listPairs.ttl"
+        },
+        {
+          "@id": "#listIntsOrPairs",
+          "@type": "sht:RepresentationTest",
+          "name": "listIntsOrPairs",
+          "status": "mf:Proposed",
+          "shex": "listIntsOrPairs.shex",
+          "json": "listIntsOrPairs.json",
+          "ttl": "listIntsOrPairs.ttl"
+        },
+        {
+          "@id": "#listTree",
+          "@type": "sht:RepresentationTest",
+          "name": "listTree",
+          "status": "mf:Proposed",
+          "shex": "listTree.shex",
+          "json": "listTree.json",
+          "ttl": "listTree.ttl"
         }
       ]
     }

@@ -51,6 +51,7 @@ public class JoinClassifier
 
         // Modifiers.
         if ( right instanceof OpExtend )    return false ;
+        if ( right instanceof OpUnnest )    return false ;
         if ( right instanceof OpAssign )    return false ;
         if ( right instanceof OpGroup )     return false ;
 //        if ( right instanceof OpDiff )      return false ;

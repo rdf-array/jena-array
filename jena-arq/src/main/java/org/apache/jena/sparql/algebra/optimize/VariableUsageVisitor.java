@@ -29,6 +29,7 @@ import org.apache.jena.sparql.algebra.op.OpAssign;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpDatasetNames;
 import org.apache.jena.sparql.algebra.op.OpExtend;
+import org.apache.jena.sparql.algebra.op.OpUnnest;
 import org.apache.jena.sparql.algebra.op.OpFilter;
 import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.apache.jena.sparql.algebra.op.OpGroup;
@@ -166,6 +167,16 @@ public abstract class VariableUsageVisitor extends OpVisitorBase {
             vars.add(var);
             ExprVars.varsMentioned(vars, opExtend.getVarExprList().getExpr(var));
         }
+        action(vars);
+    }
+
+    @Override
+    public void visit(OpUnnest opUnnest) {
+        Collection<Var> vars = new ArrayList<>();
+        vars.add(opUnnest.getVar());
+        if ( opUnnest.hasPosVar() )
+            vars.add(opUnnest.getPosVar());
+        ExprVars.varsMentioned(vars, opUnnest.getExpr());
         action(vars);
     }
 

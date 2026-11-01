@@ -35,8 +35,7 @@ import org.apache.jena.sparql.engine.binding.Binding;
 
 /**
  * Compound terms - quad form. Solve patterns when there is a triple term
- * (RDF-star) or a sequence with variables inside, or a sequence position pattern
- * {@code ((element))[index]}.
+ * (RDF-star) or a sequence with variables or gaps ({@code ...}) inside.
  */
 public class SolverRX4 {
 
@@ -55,7 +54,7 @@ public class SolverRX4 {
         if ( DATAPATH ) {
             if ( ! tripleHasEmbTripleWithVars(pattern) &&
                     (graphName == null || ! graphName.isNodeTriple() ) )
-                // No variables inside <<>> or (..), no ((..))[..]
+                // No variables or gaps inside <<>> or (..)
                 return matchDataQuad(chain, graphName, pattern, execCxt);
         }
         return rdfStarQuadSub(chain, graphName, pattern, execCxt);

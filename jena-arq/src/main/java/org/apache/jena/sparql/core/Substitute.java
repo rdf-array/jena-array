@@ -186,11 +186,21 @@ public class Substitute {
         if ( n.isNodeSeq() ) {
             if ( n.isConcrete() )
                 return n;
-            // Sequence with variables.
+            // Sequence with variables (and gaps).
             List<Node> elts = n.getSeq();
             List<Node> elts2 = null;
             for ( int i = 0 ; i < elts.size() ; i++ ) {
                 Node e = elts.get(i);
+                if ( e instanceof Node_SeqGap gap && gap.isNamed() ) {
+                    // A named gap whose variable is bound to a sequence is that run of members.
+                    Node run = binding.get(gap.getVar());
+                    if ( run != null && run.isNodeSeq() ) {
+                        if ( elts2 == null )
+                            elts2 = new ArrayList<>(elts.subList(0, i));
+                        elts2.addAll(run.getSeq());
+                        continue;
+                    }
+                }
                 Node e1 = subCompoundPart(e, binding);
                 if ( e1 != e && elts2 == null )
                     elts2 = new ArrayList<>(elts.subList(0, i));
@@ -199,21 +209,12 @@ public class Substitute {
             }
             return ( elts2 == null ) ? n : NodeFactory.createSeqNode(elts2);
         }
-        if ( n instanceof Node_SeqIndex sx ) {
-            Node elt = sx.getElement();
-            Node idx = sx.getIndex();
-            Node elt1 = subCompoundPart(elt, binding);
-            Node idx1 = Var.isVar(idx) ? Var.lookup(binding::get, idx) : idx;
-            if ( elt1 == elt && idx1 == idx )
-                return n;
-            return Node_SeqIndex.create(elt1, idx1);
-        }
         return Var.lookup(binding::get, n);
     }
 
     /** Substitute for a node that is part of a compound term (triple term, sequence). Recursively. */
     private static Node subCompoundPart(Node n, Binding binding) {
-        if ( n.isNodeTriple() || n.isNodeSeq() || n instanceof Node_SeqIndex ) {
+        if ( n.isNodeTriple() || n.isNodeSeq() ) {
             if ( ! n.isConcrete() )
                 n = substitute(n, binding);
         } else if ( Var.isVar(n) ) {
@@ -345,6 +346,14 @@ public class Substitute {
                 return subOp;
 
             return OpExtend.create(subOp, varExprList2);
+        }
+
+        @Override
+        public Op transform(OpUnnest opUnnest, Op subOp) {
+            Expr expr2 = opUnnest.getExpr().copySubstitute(binding);
+            if ( expr2 == opUnnest.getExpr() && subOp == opUnnest.getSubOp() )
+                return opUnnest;
+            return opUnnest.copy(subOp, expr2);
         }
 
         private VarExprList transformVarExprList(VarExprList varExprList) {

@@ -1,0 +1,82 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/Observation",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/component",
+          "valueExpr": "http://a.example/BP"
+        }
+      }
+    },
+    {
+      "id": "http://a.example/BP",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "ListShape",
+        "expression": {
+          "type": "Member",
+          "shapeExpr": "http://a.example/Component",
+          "min": 1,
+          "max": -1
+        }
+      }
+    },
+    {
+      "id": "http://a.example/Component",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "ListShape",
+        "expression": {
+          "type": "ListEachOf",
+          "expressions": [
+            {
+              "type": "Member",
+              "shapeExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#string"
+              }
+            },
+            {
+              "type": "Member",
+              "shapeExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#string"
+              }
+            },
+            {
+              "type": "Member",
+              "shapeExpr": {
+                "type": "ListShape",
+                "expression": {
+                  "type": "ListEachOf",
+                  "expressions": [
+                    {
+                      "type": "Member",
+                      "shapeExpr": {
+                        "type": "NodeConstraint",
+                        "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+                      }
+                    },
+                    {
+                      "type": "Member",
+                      "shapeExpr": {
+                        "type": "NodeConstraint",
+                        "datatype": "http://www.w3.org/2001/XMLSchema#string"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

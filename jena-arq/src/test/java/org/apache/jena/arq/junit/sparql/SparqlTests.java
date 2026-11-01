@@ -60,7 +60,7 @@ public class SparqlTests {
                 throw new QueryTestException("Unknown syntax: "+querySyntax);
         }
 
-        // rdf-array: the SPARQL-array of rdf-tests-contrib -- position patterns ((e))[i] and the
+        // rdf-array: the SPARQL-array of rdf-tests-contrib -- gap patterns, UNNEST and the
         // sequence functions -- is ARQ syntax here, as other ARQ extensions are.
         if ( entry.getAction().getURI() != null && entry.getAction().getURI().contains("/rdf-tests-contrib/") ) {
             querySyntax = Syntax.syntaxARQ;

@@ -1,0 +1,26 @@
+PREFIX sx: <http://www.w3.org/ns/shex#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+[] a sx:Schema ;
+    sx:shapes ( <http://a.example/KeyValues> <http://a.example/Points> <http://a.example/Pairs> ) .
+
+<http://a.example/KeyValues> a sx:ShapeDecl ; sx:shapeExpr [ a sx:Shape ;
+    sx:expression [ a sx:TripleConstraint ;
+      sx:predicate <http://a.example/pairs> ;
+      sx:valueExpr <http://a.example/Pairs> ] ] .
+
+<http://a.example/Points> a sx:ShapeDecl ; sx:shapeExpr [ a sx:Shape ;
+    sx:expression [ a sx:TripleConstraint ;
+      sx:predicate <http://a.example/points> ;
+      sx:valueExpr <http://a.example/Pairs> ] ] .
+
+<http://a.example/Pairs> a sx:ShapeDecl ; sx:shapeExpr [ a sx:ListShape ;
+    sx:expression [ a sx:ListEachOf ;
+      sx:expressions ( [ a sx:Member ;
+        sx:shapeExpr [ a sx:NodeConstraint ;
+          sx:datatype <http://www.w3.org/2001/XMLSchema#string> ] ] [ a sx:Member ;
+        sx:shapeExpr [ a sx:NodeConstraint ;
+          sx:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ] ) ;
+      sx:min 0 ;
+      sx:max -1 ] ] .
+

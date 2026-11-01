@@ -119,16 +119,18 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
 
 :Person {
   :name xsd:string ;
-  :phones ((xsd:string))[1, 2] ;     # one or two phone strings
-  :path ((@:Point))[1, *] ;          # at least one point
-  :tags ((xsd:string))               # any number of tags, possibly none
+  :phones LIST {1,2} xsd:string ;    # one or two phone strings
+  :path LIST + @:Point ;             # at least one point
+  :tags LIST * xsd:string            # any number of tags, possibly none
 }
 
-# a point is a sequence of exactly two integers
-:Point ((xsd:integer))[2]
+# a point is a pair of integers: a regular expression over the members
+:Point LIST ( xsd:integer ; xsd:integer )
 </textarea>
-    <p class="note"><code>((t))[m, n]</code> is a <b>Collection</b> shape expression: a sequence of <i>m</i> to <i>n</i> elements, each satisfying <i>t</i>.
-      <code>[m]</code> means exactly <i>m</i>, <code>[m, *]</code> at least <i>m</i>, no brackets any length.</p>
+    <p class="note"><code>LIST ( regex )</code> is a <b>LIST</b> shape expression: a sequence whose members, in order, match a regular
+      expression of shape expressions, with <code>;</code>, <code>|</code>, groups and cardinalities as in a triple expression
+      (<code>LIST ( xsd:string ; xsd:integer )</code> is a pair, <code>LIST ( ( xsd:string ; xsd:integer ) * )</code> a flat list of pairs).
+      <code>LIST * x</code>, <code>LIST + x</code>, <code>LIST {m,n} x</code> are short for <code>LIST ( x * )</code> and so on.</p>
     <div class="row">
       <label for="queryMap">Query map</label>
       <input type="text" id="queryMap" value="&lt;http://example/alice&gt;@&lt;http://example/Person&gt;, &lt;http://example/bob&gt;@&lt;http://example/Person&gt;">
@@ -214,22 +216,28 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
 
   // ---- SPARQL-array
   const examples = [
-    { name: 'the second phone number', old: 'RDF 1.1: ?who :phones/rdf:rest/rdf:first ?second',
-      q: 'SELECT ?who ?second WHERE {\n  ?who :phones ((?second))[2]\n}' },
-    { name: 'every point of a path, with its position', old: 'RDF 1.1: a ladder walk with rdf:rest* and no position at all',
-      q: 'SELECT ?who ?i ?x ?y WHERE {\n  ?who :path (( (?x ?y) ))[?i]\n}\nORDER BY ?who ?i' },
-    { name: 'every element, any position', old: 'RDF 1.1: ?who :tags/rdf:rest*/rdf:first ?tag',
-      q: 'SELECT ?who ?tag WHERE {\n  ?who :tags ((?tag))[*]\n}' },
+    { name: 'the second phone number: a gap takes the rest', old: 'RDF 1.1: ?who :phones/rdf:rest/rdf:first ?second',
+      q: 'SELECT ?who ?second WHERE {\n  ?who :phones ( ?first ?second ... )\n}' },
+    { name: 'every point of a path, with its position: UNNEST', old: 'RDF 1.1: a ladder walk with rdf:rest* and no position at all',
+      q: 'SELECT ?who ?i ?x ?y WHERE {\n  ?who :path ?path\n  UNNEST(?path AS ?pt AT ?i)\n  BIND(?pt[1] AS ?x)\n  BIND(?pt[2] AS ?y)\n}\nORDER BY ?who ?i' },
+    { name: 'every element, any position: gaps on both sides', old: 'RDF 1.1: ?who :tags/rdf:rest*/rdf:first ?tag',
+      q: 'SELECT ?who ?tag WHERE {\n  ?who :tags ( ... ?tag ... )\n}' },
+    { name: 'head and tail: a named gap binds the rest, as a slice does', old: 'RDF 1.1: rdf:first and the rdf:rest cell, which is not a list of its own',
+      q: 'SELECT ?who ?first ?rest ?rest2 WHERE {\n  ?who :path ( ?first ...?rest ) ;\n       :path ?p\n  BIND(?p[2...] AS ?rest2)\n}' },
+    { name: 'a point anywhere in a path: a nested gap pattern', old: 'RDF 1.1: rdf:rest*/rdf:first, then rdf:first and rdf:rest/rdf:first of each cell',
+      q: 'SELECT ?who ?y WHERE {\n  ?who :path ( ... ( 3 ?y ) ... )\n}' },
     { name: 'lengths and first elements as expressions', old: 'RDF 1.1: list:length and list:index property functions, or a COUNT over rdf:rest*',
       q: 'SELECT ?who (SEQLEN(?phones) AS ?n) (?phones[1] AS ?first) WHERE {\n  ?who :phones ?phones\n}' },
+    { name: 'membership: IN a sequence', old: 'RDF 1.1: ?who :tags/rdf:rest*/rdf:first "friend"',
+      q: 'SELECT ?who WHERE {\n  ?who :tags ?tags\n  FILTER("friend" IN ?tags)\n}' },
     { name: 'match a whole sequence', old: 'RDF 1.1: three cells, two rdf:rest links and a terminating rdf:nil',
       q: 'SELECT ?who WHERE {\n  ?who :path ((0 0) (3 4) (6 0))\n}' },
     { name: 'the empty sequence', old: 'RDF 1.1: ?who :tags rdf:nil',
       q: 'SELECT ?who WHERE {\n  ?who :tags ()\n}' },
     { name: 'build sequences in a CONSTRUCT', old: 'RDF 1.1: minting fresh blank-node cells per solution',
-      q: 'CONSTRUCT {\n  ?who :firstPhone ?f ;\n       :pathLength ?n ;\n       :corners (?a ?z)\n} WHERE {\n  ?who :phones ((?f))[1] ;\n       :path ?p .\n  BIND(SEQLEN(?p) AS ?n)\n  BIND(?p[1] AS ?a)\n  BIND(?p[?n] AS ?z)\n}' },
-    { name: 'ASK with a position pattern', old: 'RDF 1.1: ASK { :alice :phones/rdf:rest/rdf:rest/rdf:first ?x }',
-      q: 'ASK { :alice :phones ((?x))[3] }' },
+      q: 'CONSTRUCT {\n  ?who :firstPhone ?f ;\n       :pathLength ?n ;\n       :corners (?a ?z)\n} WHERE {\n  ?who :phones ( ?f ... ) ;\n       :path ?p .\n  BIND(SEQLEN(?p) AS ?n)\n  BIND(?p[1] AS ?a)\n  BIND(?p[?n] AS ?z)\n}' },
+    { name: 'ASK with a gap pattern', old: 'RDF 1.1: ASK { :alice :phones/rdf:rest/rdf:rest/rdf:first ?x }',
+      q: 'ASK { :alice :phones ( ?a ?b ?x ... ) }' },
   ];
   const sel = $('examples');
   examples.forEach((e, i) => { const o = document.createElement('option'); o.value = i; o.textContent = e.name; sel.appendChild(o); });
@@ -274,7 +282,7 @@ PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
   $('curl').textContent =
     "curl -i " + base + "turtle -F 'data=PREFIX : <http://example/>  :x :p (1 2) .'\n" +
     "curl -i " + base + "sparql -F 'data=PREFIX : <http://example/>  :x :p (1 2) .' \\\n" +
-    "     -F 'query=PREFIX : <http://example/>  SELECT ?e { :x :p ((?e))[2] }'\n" +
+    "     -F 'query=PREFIX : <http://example/>  SELECT ?e { :x :p ( ?a ?e ... ) }'\n" +
     "curl -i " + base + "validate -F 'schema=@schema.shex' -F 'data=@data.ttl' \\\n" +
     "     -F 'node=http://example/alice' -F 'shape=http://example/Person'\n" +
     "curl -i " + base + "validate -F 'schema=@schema.shex' -F 'data=@data.ttl' \\\n" +

@@ -31,445 +31,453 @@ public interface ARQParserConstants {
   /** RegularExpression Id. */
   int VAR2 = 15;
   /** RegularExpression Id. */
-  int LANGTAG = 16;
+  int GAPVAR = 16;
   /** RegularExpression Id. */
-  int A2Z = 17;
+  int LANGTAG = 17;
   /** RegularExpression Id. */
-  int A2ZN = 18;
+  int A2Z = 18;
   /** RegularExpression Id. */
-  int KW_A = 19;
+  int A2ZN = 19;
   /** RegularExpression Id. */
-  int BASE = 20;
+  int KW_A = 20;
   /** RegularExpression Id. */
-  int PREFIX = 21;
+  int BASE = 21;
   /** RegularExpression Id. */
-  int SELECT = 22;
+  int PREFIX = 22;
   /** RegularExpression Id. */
-  int DISTINCT = 23;
+  int SELECT = 23;
   /** RegularExpression Id. */
-  int REDUCED = 24;
+  int DISTINCT = 24;
   /** RegularExpression Id. */
-  int JSON = 25;
+  int REDUCED = 25;
   /** RegularExpression Id. */
-  int DESCRIBE = 26;
+  int JSON = 26;
   /** RegularExpression Id. */
-  int CONSTRUCT = 27;
+  int DESCRIBE = 27;
   /** RegularExpression Id. */
-  int ASK = 28;
+  int CONSTRUCT = 28;
   /** RegularExpression Id. */
-  int LIMIT = 29;
+  int ASK = 29;
   /** RegularExpression Id. */
-  int OFFSET = 30;
+  int LIMIT = 30;
   /** RegularExpression Id. */
-  int ORDER = 31;
+  int OFFSET = 31;
   /** RegularExpression Id. */
-  int BY = 32;
+  int ORDER = 32;
   /** RegularExpression Id. */
-  int VALUES = 33;
+  int BY = 33;
   /** RegularExpression Id. */
-  int UNDEF = 34;
+  int VALUES = 34;
   /** RegularExpression Id. */
-  int ASC = 35;
+  int UNDEF = 35;
   /** RegularExpression Id. */
-  int DESC = 36;
+  int ASC = 36;
   /** RegularExpression Id. */
-  int NAMED = 37;
+  int DESC = 37;
   /** RegularExpression Id. */
-  int FROM = 38;
+  int NAMED = 38;
   /** RegularExpression Id. */
-  int WHERE = 39;
+  int FROM = 39;
   /** RegularExpression Id. */
-  int AND = 40;
+  int WHERE = 40;
   /** RegularExpression Id. */
-  int GRAPH = 41;
+  int AND = 41;
   /** RegularExpression Id. */
-  int OPTIONAL = 42;
+  int GRAPH = 42;
   /** RegularExpression Id. */
-  int UNION = 43;
+  int OPTIONAL = 43;
   /** RegularExpression Id. */
-  int MINUS_P = 44;
+  int UNION = 44;
   /** RegularExpression Id. */
-  int BIND = 45;
+  int MINUS_P = 45;
   /** RegularExpression Id. */
-  int SERVICE = 46;
+  int BIND = 46;
   /** RegularExpression Id. */
-  int LET = 47;
+  int UNNEST = 47;
   /** RegularExpression Id. */
-  int LATERAL = 48;
+  int AT_KW = 48;
   /** RegularExpression Id. */
-  int TRIPLE = 49;
+  int SERVICE = 49;
   /** RegularExpression Id. */
-  int IS_TRIPLE = 50;
+  int LET = 50;
   /** RegularExpression Id. */
-  int IS_SEQ = 51;
+  int LATERAL = 51;
   /** RegularExpression Id. */
-  int SEQLEN = 52;
+  int TRIPLE = 52;
   /** RegularExpression Id. */
-  int SEQ = 53;
+  int IS_TRIPLE = 53;
   /** RegularExpression Id. */
-  int SUBJECT = 54;
+  int IS_SEQ = 54;
   /** RegularExpression Id. */
-  int PREDICATE = 55;
+  int SEQLEN = 55;
   /** RegularExpression Id. */
-  int OBJECT = 56;
+  int SEQ = 56;
   /** RegularExpression Id. */
-  int EXISTS = 57;
+  int SUBJECT = 57;
   /** RegularExpression Id. */
-  int NOT = 58;
+  int PREDICATE = 58;
   /** RegularExpression Id. */
-  int AS = 59;
+  int OBJECT = 59;
   /** RegularExpression Id. */
-  int GROUP = 60;
+  int EXISTS = 60;
   /** RegularExpression Id. */
-  int HAVING = 61;
+  int NOT = 61;
   /** RegularExpression Id. */
-  int SEPARATOR = 62;
+  int AS = 62;
   /** RegularExpression Id. */
-  int AGG = 63;
+  int GROUP = 63;
   /** RegularExpression Id. */
-  int COUNT = 64;
+  int HAVING = 64;
   /** RegularExpression Id. */
-  int MIN = 65;
+  int SEPARATOR = 65;
   /** RegularExpression Id. */
-  int MAX = 66;
+  int AGG = 66;
   /** RegularExpression Id. */
-  int SUM = 67;
+  int COUNT = 67;
   /** RegularExpression Id. */
-  int AVG = 68;
+  int MIN = 68;
   /** RegularExpression Id. */
-  int MEDIAN = 69;
+  int MAX = 69;
   /** RegularExpression Id. */
-  int MODE = 70;
+  int SUM = 70;
   /** RegularExpression Id. */
-  int STDEV = 71;
+  int AVG = 71;
   /** RegularExpression Id. */
-  int STDEV_SAMP = 72;
+  int MEDIAN = 72;
   /** RegularExpression Id. */
-  int STDEV_POP = 73;
+  int MODE = 73;
   /** RegularExpression Id. */
-  int VARIANCE = 74;
+  int STDEV = 74;
   /** RegularExpression Id. */
-  int VAR_SAMP = 75;
+  int STDEV_SAMP = 75;
   /** RegularExpression Id. */
-  int VAR_POP = 76;
+  int STDEV_POP = 76;
   /** RegularExpression Id. */
-  int SAMPLE = 77;
+  int VARIANCE = 77;
   /** RegularExpression Id. */
-  int GROUP_CONCAT = 78;
+  int VAR_SAMP = 78;
   /** RegularExpression Id. */
-  int FILTER = 79;
+  int VAR_POP = 79;
   /** RegularExpression Id. */
-  int BOUND = 80;
+  int SAMPLE = 80;
   /** RegularExpression Id. */
-  int COALESCE = 81;
+  int GROUP_CONCAT = 81;
   /** RegularExpression Id. */
-  int IN = 82;
+  int FILTER = 82;
   /** RegularExpression Id. */
-  int IF = 83;
+  int BOUND = 83;
   /** RegularExpression Id. */
-  int BNODE = 84;
+  int COALESCE = 84;
   /** RegularExpression Id. */
-  int IRI = 85;
+  int IN = 85;
   /** RegularExpression Id. */
-  int URI = 86;
+  int IF = 86;
   /** RegularExpression Id. */
-  int CAST = 87;
+  int BNODE = 87;
   /** RegularExpression Id. */
-  int CALL = 88;
+  int IRI = 88;
   /** RegularExpression Id. */
-  int MULTI = 89;
+  int URI = 89;
   /** RegularExpression Id. */
-  int SHORTEST = 90;
+  int CAST = 90;
   /** RegularExpression Id. */
-  int STR = 91;
+  int CALL = 91;
   /** RegularExpression Id. */
-  int STRLANG = 92;
+  int MULTI = 92;
   /** RegularExpression Id. */
-  int STRDT = 93;
+  int SHORTEST = 93;
   /** RegularExpression Id. */
-  int DTYPE = 94;
+  int STR = 94;
   /** RegularExpression Id. */
-  int LANG = 95;
+  int STRLANG = 95;
   /** RegularExpression Id. */
-  int LANGMATCHES = 96;
+  int STRDT = 96;
   /** RegularExpression Id. */
-  int IS_URI = 97;
+  int DTYPE = 97;
   /** RegularExpression Id. */
-  int IS_IRI = 98;
+  int LANG = 98;
   /** RegularExpression Id. */
-  int IS_BLANK = 99;
+  int LANGMATCHES = 99;
   /** RegularExpression Id. */
-  int IS_LITERAL = 100;
+  int IS_URI = 100;
   /** RegularExpression Id. */
-  int IS_NUMERIC = 101;
+  int IS_IRI = 101;
   /** RegularExpression Id. */
-  int REGEX = 102;
+  int IS_BLANK = 102;
   /** RegularExpression Id. */
-  int SAME_TERM = 103;
+  int IS_LITERAL = 103;
   /** RegularExpression Id. */
-  int RAND = 104;
+  int IS_NUMERIC = 104;
   /** RegularExpression Id. */
-  int ABS = 105;
+  int REGEX = 105;
   /** RegularExpression Id. */
-  int CEIL = 106;
+  int SAME_TERM = 106;
   /** RegularExpression Id. */
-  int FLOOR = 107;
+  int RAND = 107;
   /** RegularExpression Id. */
-  int ROUND = 108;
+  int ABS = 108;
   /** RegularExpression Id. */
-  int MOD = 109;
+  int CEIL = 109;
   /** RegularExpression Id. */
-  int IDIV = 110;
+  int FLOOR = 110;
   /** RegularExpression Id. */
-  int CONCAT = 111;
+  int ROUND = 111;
   /** RegularExpression Id. */
-  int SUBSTR = 112;
+  int MOD = 112;
   /** RegularExpression Id. */
-  int STRLEN = 113;
+  int IDIV = 113;
   /** RegularExpression Id. */
-  int REPLACE = 114;
+  int CONCAT = 114;
   /** RegularExpression Id. */
-  int UCASE = 115;
+  int SUBSTR = 115;
   /** RegularExpression Id. */
-  int LCASE = 116;
+  int STRLEN = 116;
   /** RegularExpression Id. */
-  int ENCODE_FOR_URI = 117;
+  int REPLACE = 117;
   /** RegularExpression Id. */
-  int CONTAINS = 118;
+  int UCASE = 118;
   /** RegularExpression Id. */
-  int STRSTARTS = 119;
+  int LCASE = 119;
   /** RegularExpression Id. */
-  int STRENDS = 120;
+  int ENCODE_FOR_URI = 120;
   /** RegularExpression Id. */
-  int STRBEFORE = 121;
+  int CONTAINS = 121;
   /** RegularExpression Id. */
-  int STRAFTER = 122;
+  int STRSTARTS = 122;
   /** RegularExpression Id. */
-  int YEAR = 123;
+  int STRENDS = 123;
   /** RegularExpression Id. */
-  int MONTH = 124;
+  int STRBEFORE = 124;
   /** RegularExpression Id. */
-  int DAY = 125;
+  int STRAFTER = 125;
   /** RegularExpression Id. */
-  int HOURS = 126;
+  int YEAR = 126;
   /** RegularExpression Id. */
-  int MINUTES = 127;
+  int MONTH = 127;
   /** RegularExpression Id. */
-  int SECONDS = 128;
+  int DAY = 128;
   /** RegularExpression Id. */
-  int TIMEZONE = 129;
+  int HOURS = 129;
   /** RegularExpression Id. */
-  int TZ = 130;
+  int MINUTES = 130;
   /** RegularExpression Id. */
-  int ADJUST = 131;
+  int SECONDS = 131;
   /** RegularExpression Id. */
-  int NOW = 132;
+  int TIMEZONE = 132;
   /** RegularExpression Id. */
-  int UUID = 133;
+  int TZ = 133;
   /** RegularExpression Id. */
-  int STRUUID = 134;
+  int ADJUST = 134;
   /** RegularExpression Id. */
-  int VERSION = 135;
+  int NOW = 135;
   /** RegularExpression Id. */
-  int MD5 = 136;
+  int UUID = 136;
   /** RegularExpression Id. */
-  int SHA1 = 137;
+  int STRUUID = 137;
   /** RegularExpression Id. */
-  int SHA224 = 138;
+  int VERSION = 138;
   /** RegularExpression Id. */
-  int SHA256 = 139;
+  int MD5 = 139;
   /** RegularExpression Id. */
-  int SHA384 = 140;
+  int SHA1 = 140;
   /** RegularExpression Id. */
-  int SHA512 = 141;
+  int SHA224 = 141;
   /** RegularExpression Id. */
-  int TRUE = 142;
+  int SHA256 = 142;
   /** RegularExpression Id. */
-  int FALSE = 143;
+  int SHA384 = 143;
   /** RegularExpression Id. */
-  int DATA = 144;
+  int SHA512 = 144;
   /** RegularExpression Id. */
-  int INSERT = 145;
+  int TRUE = 145;
   /** RegularExpression Id. */
-  int DELETE = 146;
+  int FALSE = 146;
   /** RegularExpression Id. */
-  int INSERT_DATA = 147;
+  int DATA = 147;
   /** RegularExpression Id. */
-  int DELETE_DATA = 148;
+  int INSERT = 148;
   /** RegularExpression Id. */
-  int DELETE_WHERE = 149;
+  int DELETE = 149;
   /** RegularExpression Id. */
-  int LOAD = 150;
+  int INSERT_DATA = 150;
   /** RegularExpression Id. */
-  int CLEAR = 151;
+  int DELETE_DATA = 151;
   /** RegularExpression Id. */
-  int CREATE = 152;
+  int DELETE_WHERE = 152;
   /** RegularExpression Id. */
-  int ADD = 153;
+  int LOAD = 153;
   /** RegularExpression Id. */
-  int MOVE = 154;
+  int CLEAR = 154;
   /** RegularExpression Id. */
-  int COPY = 155;
+  int CREATE = 155;
   /** RegularExpression Id. */
-  int META = 156;
+  int ADD = 156;
   /** RegularExpression Id. */
-  int SILENT = 157;
+  int MOVE = 157;
   /** RegularExpression Id. */
-  int DROP = 158;
+  int COPY = 158;
   /** RegularExpression Id. */
-  int INTO = 159;
+  int META = 159;
   /** RegularExpression Id. */
-  int TO = 160;
+  int SILENT = 160;
   /** RegularExpression Id. */
-  int DFT = 161;
+  int DROP = 161;
   /** RegularExpression Id. */
-  int ALL = 162;
+  int INTO = 162;
   /** RegularExpression Id. */
-  int WITH = 163;
+  int TO = 163;
   /** RegularExpression Id. */
-  int USING = 164;
+  int DFT = 164;
   /** RegularExpression Id. */
-  int DIGITS = 165;
+  int ALL = 165;
   /** RegularExpression Id. */
-  int INTEGER = 166;
+  int WITH = 166;
   /** RegularExpression Id. */
-  int DECIMAL = 167;
+  int USING = 167;
   /** RegularExpression Id. */
-  int DOUBLE = 168;
+  int DIGITS = 168;
   /** RegularExpression Id. */
-  int INTEGER_POSITIVE = 169;
+  int INTEGER = 169;
   /** RegularExpression Id. */
-  int DECIMAL_POSITIVE = 170;
+  int DECIMAL = 170;
   /** RegularExpression Id. */
-  int DOUBLE_POSITIVE = 171;
+  int DOUBLE = 171;
   /** RegularExpression Id. */
-  int INTEGER_NEGATIVE = 172;
+  int INTEGER_POSITIVE = 172;
   /** RegularExpression Id. */
-  int DECIMAL_NEGATIVE = 173;
+  int DECIMAL_POSITIVE = 173;
   /** RegularExpression Id. */
-  int DOUBLE_NEGATIVE = 174;
+  int DOUBLE_POSITIVE = 174;
   /** RegularExpression Id. */
-  int EXPONENT = 175;
+  int INTEGER_NEGATIVE = 175;
   /** RegularExpression Id. */
-  int QUOTE_3D = 176;
+  int DECIMAL_NEGATIVE = 176;
   /** RegularExpression Id. */
-  int QUOTE_3S = 177;
+  int DOUBLE_NEGATIVE = 177;
   /** RegularExpression Id. */
-  int ECHAR = 178;
+  int EXPONENT = 178;
   /** RegularExpression Id. */
-  int UCHAR = 179;
+  int QUOTE_3D = 179;
   /** RegularExpression Id. */
-  int UCHAR4 = 180;
+  int QUOTE_3S = 180;
   /** RegularExpression Id. */
-  int UCHAR8 = 181;
+  int ECHAR = 181;
   /** RegularExpression Id. */
-  int STRING_LITERAL1 = 182;
+  int UCHAR = 182;
   /** RegularExpression Id. */
-  int STRING_LITERAL2 = 183;
+  int UCHAR4 = 183;
   /** RegularExpression Id. */
-  int STRING_LITERAL_LONG1 = 184;
+  int UCHAR8 = 184;
   /** RegularExpression Id. */
-  int STRING_LITERAL_LONG2 = 185;
+  int STRING_LITERAL1 = 185;
   /** RegularExpression Id. */
-  int LPAREN = 186;
+  int STRING_LITERAL2 = 186;
   /** RegularExpression Id. */
-  int RPAREN = 187;
+  int STRING_LITERAL_LONG1 = 187;
   /** RegularExpression Id. */
-  int NIL = 188;
+  int STRING_LITERAL_LONG2 = 188;
   /** RegularExpression Id. */
-  int LBRACE = 189;
+  int LPAREN = 189;
   /** RegularExpression Id. */
-  int RBRACE = 190;
+  int RPAREN = 190;
   /** RegularExpression Id. */
-  int LBRACKET = 191;
+  int NIL = 191;
   /** RegularExpression Id. */
-  int RBRACKET = 192;
+  int LBRACE = 192;
   /** RegularExpression Id. */
-  int ANON = 193;
+  int RBRACE = 193;
   /** RegularExpression Id. */
-  int SEMICOLON = 194;
+  int LBRACKET = 194;
   /** RegularExpression Id. */
-  int COMMA = 195;
+  int RBRACKET = 195;
   /** RegularExpression Id. */
-  int DOT = 196;
+  int ANON = 196;
   /** RegularExpression Id. */
-  int EQ = 197;
+  int SEMICOLON = 197;
   /** RegularExpression Id. */
-  int NE = 198;
+  int COMMA = 198;
   /** RegularExpression Id. */
-  int GT = 199;
+  int DOT = 199;
   /** RegularExpression Id. */
-  int LT = 200;
+  int ELLIPSIS = 200;
   /** RegularExpression Id. */
-  int LE = 201;
+  int EQ = 201;
   /** RegularExpression Id. */
-  int GE = 202;
+  int NE = 202;
   /** RegularExpression Id. */
-  int GT2 = 203;
+  int GT = 203;
   /** RegularExpression Id. */
-  int LT2 = 204;
+  int LT = 204;
   /** RegularExpression Id. */
-  int L_ANN = 205;
+  int LE = 205;
   /** RegularExpression Id. */
-  int R_ANN = 206;
+  int GE = 206;
   /** RegularExpression Id. */
-  int BANG = 207;
+  int GT2 = 207;
   /** RegularExpression Id. */
-  int TILDE = 208;
+  int LT2 = 208;
   /** RegularExpression Id. */
-  int COLON = 209;
+  int L_ANN = 209;
   /** RegularExpression Id. */
-  int SC_OR = 210;
+  int R_ANN = 210;
   /** RegularExpression Id. */
-  int SC_AND = 211;
+  int BANG = 211;
   /** RegularExpression Id. */
-  int PLUS = 212;
+  int TILDE = 212;
   /** RegularExpression Id. */
-  int MINUS = 213;
+  int COLON = 213;
   /** RegularExpression Id. */
-  int STAR = 214;
+  int SC_OR = 214;
   /** RegularExpression Id. */
-  int SLASH = 215;
+  int SC_AND = 215;
   /** RegularExpression Id. */
-  int DATATYPE = 216;
+  int PLUS = 216;
   /** RegularExpression Id. */
-  int AT = 217;
+  int MINUS = 217;
   /** RegularExpression Id. */
-  int ASSIGN = 218;
+  int STAR = 218;
   /** RegularExpression Id. */
-  int VBAR = 219;
+  int SLASH = 219;
   /** RegularExpression Id. */
-  int CARAT = 220;
+  int DATATYPE = 220;
   /** RegularExpression Id. */
-  int FPATH = 221;
+  int AT = 221;
   /** RegularExpression Id. */
-  int RPATH = 222;
+  int ASSIGN = 222;
   /** RegularExpression Id. */
-  int QMARK = 223;
+  int VBAR = 223;
   /** RegularExpression Id. */
-  int SURROGATE_PAIR = 224;
+  int CARAT = 224;
   /** RegularExpression Id. */
-  int PN_CHARS_BASE = 225;
+  int FPATH = 225;
   /** RegularExpression Id. */
-  int PN_CHARS_U = 226;
+  int RPATH = 226;
   /** RegularExpression Id. */
-  int PN_CHARS = 227;
+  int QMARK = 227;
   /** RegularExpression Id. */
-  int PN_PREFIX = 228;
+  int SURROGATE_PAIR = 228;
   /** RegularExpression Id. */
-  int PN_LOCAL = 229;
+  int PN_CHARS_BASE = 229;
   /** RegularExpression Id. */
-  int VARNAME = 230;
+  int PN_CHARS_U = 230;
   /** RegularExpression Id. */
-  int PN_LOCAL_ESC = 231;
+  int PN_CHARS = 231;
   /** RegularExpression Id. */
-  int PLX = 232;
+  int PN_PREFIX = 232;
   /** RegularExpression Id. */
-  int HEX = 233;
+  int PN_LOCAL = 233;
   /** RegularExpression Id. */
-  int PERCENT = 234;
+  int VARNAME = 234;
   /** RegularExpression Id. */
-  int UNKNOWN = 235;
+  int PN_LOCAL_ESC = 235;
+  /** RegularExpression Id. */
+  int PLX = 236;
+  /** RegularExpression Id. */
+  int HEX = 237;
+  /** RegularExpression Id. */
+  int PERCENT = 238;
+  /** RegularExpression Id. */
+  int UNKNOWN = 239;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -492,6 +500,7 @@ public interface ARQParserConstants {
     "<BLANK_NODE_LABEL>",
     "<VAR1>",
     "<VAR2>",
+    "<GAPVAR>",
     "<LANGTAG>",
     "<A2Z>",
     "<A2ZN>",
@@ -522,6 +531,8 @@ public interface ARQParserConstants {
     "\"union\"",
     "\"minus\"",
     "\"bind\"",
+    "\"unnest\"",
+    "\"at\"",
     "\"service\"",
     "\"LET\"",
     "\"LATERAL\"",
@@ -673,6 +684,7 @@ public interface ARQParserConstants {
     "\";\"",
     "\",\"",
     "\".\"",
+    "\"...\"",
     "\"=\"",
     "\"!=\"",
     "\">\"",

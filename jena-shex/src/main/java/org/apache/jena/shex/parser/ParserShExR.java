@@ -185,7 +185,7 @@ public class ParserShExR {
         if ( hasType(st.graph, n, VocabShExR.ShapeOr) )        return handleShapeOr(st, n);
         if ( hasType(st.graph, n, VocabShExR.ShapeAnd) )       return handleShapeAnd(st, n);
         if ( hasType(st.graph, n, VocabShExR.ShapeNot) )       return handleShapeNot(st, n);
-        if ( hasType(st.graph, n, VocabShExR.Collection) )     return handleCollection(st, n);
+        if ( hasType(st.graph, n, VocabShExR.ListShape) )      return handleListShape(st, n);
         if ( hasType(st.graph, n, VocabShExR.NodeConstraint) ) return handleNodeConstraint(st, n);
         if ( hasType(st.graph, n, VocabShExR.Shape) )          return handleShape(st, n);
         if ( hasType(st.graph, n, VocabShExR.ShapeExternal) )  return new ShapeExternal();
@@ -215,15 +215,38 @@ public class ParserShExR {
         return ShapeNot.create(resolveShapeDeclOrExpr(st, bodyNode));
     }
 
-    /** RDF sequences: {@code sx:Collection} with {@code sx:shapeExpr} and optional {@code sx:min}/{@code sx:max} ({@code -1} for unbounded). */
-    private static ShapeExpr handleCollection(ParseState st, Node n) {
-        Node bodyNode = getOneSP(st.graph, n, VocabShExR.shapeExpr);
-        ShapeExpr eltExpr = resolveShapeDeclOrExpr(st, bodyNode);
+    /**
+     * RDF sequences: {@code sx:ListShape} with {@code sx:expression}, a list expression:
+     * {@code sx:Member} with {@code sx:shapeExpr}, or {@code sx:ListEachOf}/{@code sx:ListOneOf}
+     * with {@code sx:expressions ( … )}; each with optional {@code sx:min}/{@code sx:max}
+     * (absent: 1; {@code -1} unbounded).
+     */
+    private static ShapeExpr handleListShape(ParseState st, Node n) {
+        Node exprNode = getOneSP(st.graph, n, VocabShExR.expression);
+        return ListShape.create(handleListExpr(st, exprNode));
+    }
+
+    private static ListExpr handleListExpr(ParseState st, Node n) {
         Node minN = getZeroOrOneSP(st.graph, n, VocabShExR.min);
         Node maxN = getZeroOrOneSP(st.graph, n, VocabShExR.max);
-        int min = ( minN == null ) ? 0 : Integer.parseInt(minN.getLiteralLexicalForm());
-        int max = ( maxN == null ) ? Cardinality.UNBOUNDED : parseMax(maxN);
-        return ShapeCollection.create(eltExpr, min, max);
+        Cardinality cardinality = null;
+        if ( minN != null || maxN != null ) {
+            int min = ( minN == null ) ? 1 : Integer.parseInt(minN.getLiteralLexicalForm());
+            int max = ( maxN == null ) ? 1 : parseMax(maxN);
+            cardinality = new Cardinality(min, max);
+        }
+        if ( hasType(st.graph, n, VocabShExR.Member) ) {
+            Node bodyNode = getOneSP(st.graph, n, VocabShExR.shapeExpr);
+            return ListMember.create(resolveShapeDeclOrExpr(st, bodyNode), cardinality);
+        }
+        boolean eachOf = hasType(st.graph, n, VocabShExR.ListEachOf);
+        if ( !eachOf && !hasType(st.graph, n, VocabShExR.ListOneOf) )
+            throw new ShexParseException("sx:ListShape: not a list expression (sx:Member, sx:ListEachOf, sx:ListOneOf): "+n);
+        Node head = getOneSP(st.graph, n, VocabShExR.expressions);
+        List<ListExpr> exprs = new ArrayList<>();
+        for ( Node m : rdfList(st.graph, head) )
+            exprs.add(handleListExpr(st, m));
+        return eachOf ? ListEachOf.create(exprs, cardinality) : ListOneOf.create(exprs, cardinality);
     }
 
     private static ShapeExpr handleShape(ParseState st, Node n) {

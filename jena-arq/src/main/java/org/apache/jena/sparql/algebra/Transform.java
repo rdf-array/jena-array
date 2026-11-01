@@ -44,6 +44,7 @@ public interface Transform
     public Op transform(OpLabel opLabel, Op subOp) ;
     public Op transform(OpAssign opAssign, Op subOp) ;
     public Op transform(OpExtend opExtend, Op subOp) ;
+    public Op transform(OpUnnest opUnnest, Op subOp) ;
 
     // Op2
     public Op transform(OpJoin opJoin, Op left, Op right) ;

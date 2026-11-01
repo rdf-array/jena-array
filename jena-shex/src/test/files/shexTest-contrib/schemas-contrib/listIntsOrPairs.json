@@ -1,0 +1,76 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/Points",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/points",
+          "valueExpr": "http://a.example/IntsOrPairs"
+        }
+      }
+    },
+    {
+      "id": "http://a.example/Matrix",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/matrix",
+          "valueExpr": "http://a.example/IntsOrPairs"
+        }
+      }
+    },
+    {
+      "id": "http://a.example/IntsOrPairs",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "ListShape",
+        "expression": {
+          "type": "ListOneOf",
+          "expressions": [
+            {
+              "type": "Member",
+              "shapeExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+              }
+            },
+            {
+              "type": "Member",
+              "shapeExpr": {
+                "type": "ListShape",
+                "expression": {
+                  "type": "ListEachOf",
+                  "expressions": [
+                    {
+                      "type": "Member",
+                      "shapeExpr": {
+                        "type": "NodeConstraint",
+                        "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+                      }
+                    },
+                    {
+                      "type": "Member",
+                      "shapeExpr": {
+                        "type": "NodeConstraint",
+                        "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "min": 1,
+          "max": -1
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

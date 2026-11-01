@@ -24,7 +24,7 @@ public interface VoidShapeExprVisitor {
     public default void visit(ShapeAnd shapeAnd) {}
     public default void visit(ShapeOr shapeOr) {}
     public default void visit(ShapeNot shapeNot) {}
-    public default void visit(ShapeCollection shapeCollection) {}
+    public default void visit(ListShape listShape) {}
     public default void visit(ShapeExprRef shapeExprRef) {}
     public default void visit(ShapeExternal shapeExternal) {}
     public default void visit(Shape shape) {}

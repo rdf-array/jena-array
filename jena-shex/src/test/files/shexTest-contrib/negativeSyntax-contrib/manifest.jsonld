@@ -9,49 +9,49 @@
     {
       "@id": "",
       "@type": "mf:Manifest",
-      "rdfs:comment": "ShEx-array negative syntax tests: malformed Collection bounds",
+      "rdfs:comment": "ShEx-array negative syntax tests: what the LIST grammar rejects",
       "entries": [
         {
-          "@id": "#collBoundsStar",
+          "@id": "#listBare",
           "@type": "sht:NegativeSyntax",
-          "name": "collBoundsStar",
+          "name": "listBare",
           "status": "mf:Proposed",
-          "shex": "collBoundsStar.shex"
+          "shex": "listBare.shex"
         },
         {
-          "@id": "#collBoundsNoComma",
+          "@id": "#listEmpty",
           "@type": "sht:NegativeSyntax",
-          "name": "collBoundsNoComma",
+          "name": "listEmpty",
           "status": "mf:Proposed",
-          "shex": "collBoundsNoComma.shex"
+          "shex": "listEmpty.shex"
         },
         {
-          "@id": "#collBoundsNoMin",
+          "@id": "#listGroupThenAnd",
           "@type": "sht:NegativeSyntax",
-          "name": "collBoundsNoMin",
+          "name": "listGroupThenAnd",
           "status": "mf:Proposed",
-          "shex": "collBoundsNoMin.shex"
+          "shex": "listGroupThenAnd.shex"
         },
         {
-          "@id": "#collBoundsThree",
+          "@id": "#listComma",
           "@type": "sht:NegativeSyntax",
-          "name": "collBoundsThree",
+          "name": "listComma",
           "status": "mf:Proposed",
-          "shex": "collBoundsThree.shex"
+          "shex": "listComma.shex"
         },
         {
-          "@id": "#collBoundsEmpty",
+          "@id": "#listAfterExtends",
           "@type": "sht:NegativeSyntax",
-          "name": "collBoundsEmpty",
+          "name": "listAfterExtends",
           "status": "mf:Proposed",
-          "shex": "collBoundsEmpty.shex"
+          "shex": "listAfterExtends.shex"
         },
         {
-          "@id": "#collBoundsUnclosed",
+          "@id": "#listOldBounds",
           "@type": "sht:NegativeSyntax",
-          "name": "collBoundsUnclosed",
+          "name": "listOldBounds",
           "status": "mf:Proposed",
-          "shex": "collBoundsUnclosed.shex"
+          "shex": "listOldBounds.shex"
         }
       ]
     }

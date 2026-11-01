@@ -64,6 +64,8 @@ public class TransformSingle implements Transform
     public Op transform(OpAssign opAssign, Op subOp)        { return opAssign ; }
     @Override
     public Op transform(OpExtend opExtend, Op subOp)        { return opExtend ; }
+    @Override
+    public Op transform(OpUnnest opUnnest, Op subOp)        { return opUnnest ; }
 
     @Override
     public Op transform(OpJoin opJoin, Op left, Op right)           { return opJoin ; }

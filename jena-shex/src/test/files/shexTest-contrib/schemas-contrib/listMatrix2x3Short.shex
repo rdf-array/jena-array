@@ -1,0 +1,6 @@
+PREFIX : <http://a.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:Matrix { :matrix @:Matrix2x3 }
+
+:Matrix2x3 LIST {2} LIST {3} xsd:integer

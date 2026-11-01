@@ -904,6 +904,8 @@ Element GraphPatternNotTriples() : { Element el = null ; }
  |
    el = Bind()
  |
+   el = Unnest()
+ |
    el = InlineData()
 #ifdef ARQ
  |
@@ -957,6 +959,20 @@ Element Bind() : {  Var v ; Expr expr ; }
   v = Var()
   <RPAREN>
   { return new ElementBind(v, expr) ; }
+}
+
+// RDF sequences: UNNEST(expr AS ?x AT ?i) - one solution per member of a sequence,
+// ?x bound to the member and ?i (optional) to its 1-based position.
+Element Unnest() : {  Var v ; Var posVar = null ; Expr expr ; }
+{
+  <UNNEST>
+  <LPAREN>
+  expr = Expression()
+  <AS>
+  v = Var()
+  ( <AT_KW> posVar = Var() )?
+  <RPAREN>
+  { return new ElementUnnest(expr, v, posVar) ; }
 }
 
 Element InlineData() : { ElementData el ; Token t ; }
@@ -1500,10 +1516,6 @@ long Integer() : {Token t ;}
 
 Node TriplesNode(TripleCollectorMark acc) : { Node n ; }
 {
-  // RDF sequences: ((element))[index] - a sequence position pattern.
-  LOOKAHEAD( <LPAREN> <LPAREN> GraphNode(acc) <RPAREN> <RPAREN> <LBRACKET> )
-  n = SeqIndexPattern(acc) { return n ; }
- |
   n = Collection(acc) { return n ; }
  |
   n = BlankNodePropertyList(acc) { return n ; }
@@ -1511,19 +1523,6 @@ Node TriplesNode(TripleCollectorMark acc) : { Node n ; }
  |
   n = Reification(null, acc) { return n ; }
 #endif
-}
-
-// RDF sequences: ((element))[index] matches one position of a sequence.
-// index: a positive integer (1-based), a variable or * for any position.
-Node SeqIndexPattern(TripleCollectorMark acc) : { Node elt ; Node idx = null ; Token t ; }
-{
-  t = <LPAREN> <LPAREN>
-  elt = GraphNode(acc)
-  <RPAREN> <RPAREN>
-  <LBRACKET>
-  ( idx = Var() | idx = NumericLiteral() | <STAR> { idx = Node.ANY ; } )
-  <RBRACKET>
-  { return createSeqIndexNode(elt, idx, t.beginLine, t.beginColumn) ; }
 }
 
 Node BlankNodePropertyList(TripleCollector acc) : { Token t ; }
@@ -1537,10 +1536,6 @@ Node BlankNodePropertyList(TripleCollector acc) : { Token t ; }
 
 Node TriplesNodePath(TripleCollectorMark acc) : { Node n ; }
 {
-  // RDF sequences: ((element))[index] - a sequence position pattern.
-  LOOKAHEAD( <LPAREN> <LPAREN> GraphNodePath(acc) <RPAREN> <RPAREN> <LBRACKET> )
-  n = SeqIndexPatternPath(acc) { return n ; }
- |
   n = CollectionPath(acc) { return n ; }
  |
   n = BlankNodePropertyListPath(acc) { return n ; }
@@ -1548,17 +1543,6 @@ Node TriplesNodePath(TripleCollectorMark acc) : { Node n ; }
  |
   n = Reification(null, acc) { return n ; }
 #endif
-}
-
-Node SeqIndexPatternPath(TripleCollectorMark acc) : { Node elt ; Node idx = null ; Token t ; }
-{
-  t = <LPAREN> <LPAREN>
-  elt = GraphNodePath(acc)
-  <RPAREN> <RPAREN>
-  <LBRACKET>
-  ( idx = Var() | idx = NumericLiteral() | <STAR> { idx = Node.ANY ; } )
-  <RBRACKET>
-  { return createSeqIndexNode(elt, idx, t.beginLine, t.beginColumn) ; }
 }
 
 Node BlankNodePropertyListPath(TripleCollector acc) : { Token t ; }
@@ -1599,6 +1583,7 @@ Node Reification(Node id, TripleCollectorMark acc) :
 // ------- RDF collections
 
 // RDF sequences: a collection is one sequence term, not rdf:first/rdf:rest triples.
+// Templates and data: members only, no gaps.
 Node Collection(TripleCollectorMark acc) : 
     { List<Node> elts = new ArrayList<Node>() ; Node n ; Token t ; }
 {
@@ -1613,18 +1598,29 @@ Node Collection(TripleCollectorMark acc) :
    { return createSeqNode(elts, beginLine, beginColumn) ; }
 }
 
+// RDF sequences: in a pattern, a member may also be a gap "..." (any run of members)
+// or a named gap "...?rest" (any run, bound to ?rest as a sequence).
 Node CollectionPath(TripleCollectorMark acc) : 
     { List<Node> elts = new ArrayList<Node>() ; Node n ; Token t ; }
 {
   t = <LPAREN>
   { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
   (
-    n = GraphNodePath(acc)
+    n = SeqMemberPath(acc)
     { elts.add(n) ; }
   ) +
   // Not * here - "()" is handled separately.
   <RPAREN>
    { return createSeqNode(elts, beginLine, beginColumn) ; }
+}
+
+Node SeqMemberPath(TripleCollectorMark acc) : { Node n ; Token t ; }
+{
+  n = GraphNodePath(acc) { return n ; }
+ |
+  t = <ELLIPSIS> { return createSeqGapNode(t.beginLine, t.beginColumn) ; }
+ |
+  t = <GAPVAR>   { return createSeqGapNode(t.image, t.beginLine, t.beginColumn) ; }
 }
 
 // RDF-star Annotation Syntax
@@ -1787,12 +1783,31 @@ Expr RelationalExpression() : { Expr expr1, expr2 ; ExprList a ; }
       { expr1 = new E_LessThanOrEqual(expr1, expr2) ; }
   | <GE> expr2 = NumericExpression()
       { expr1 = new E_GreaterThanOrEqual(expr1, expr2) ; }
-  | <IN> a = ExpressionList()
+  | <IN>
+    ( a = ExpressionList()
       { expr1 = new E_OneOf(expr1, a) ; }
-  | <NOT> <IN> a = ExpressionList()
+    | expr2 = SeqRef()
+      { expr1 = new E_InSeq(expr1, expr2) ; }
+    )
+  | <NOT> <IN>
+    ( a = ExpressionList()
       { expr1 = new E_NotOneOf(expr1, a) ; }
+    | expr2 = SeqRef()
+      { expr1 = new E_NotInSeq(expr1, expr2) ; }
+    )
   )?
     { return expr1 ; }
+}
+
+// RDF sequences: the right-hand side of "IN ?seq": a variable, SEQ(...) or an indexed one of these,
+// so that "IN (" still opens an expression list.
+Expr SeqRef() : { Expr expr ; Expr idx ; Node n ; ExprList a ; }
+{
+  ( n = Var() { expr = asExpr(n) ; }
+  | <SEQ> a = ExpressionList() { expr = new E_MkSeq(a) ; }
+  )
+  ( <LBRACKET> idx = Expression() <RBRACKET> { expr = new E_SeqAt(expr, idx) ; } )*
+  { return expr ; }
 }
 
 Expr NumericExpression ()  : { Expr expr ; }
@@ -1866,7 +1881,7 @@ Expr UnaryExpression() : { Expr expr ; }
   | expr = PrimaryExpression() { return expr ; }
 }
 
-Expr PrimaryExpression() : { Expr expr ; Node n ; Expr idx ; }
+Expr PrimaryExpression() : { Expr expr ; Node n ; Expr idx ; Expr idx2 ; }
 {
   ( expr = BrackettedExpression()
   | expr = BuiltInCall()
@@ -1885,8 +1900,19 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; Expr idx ; }
 // Use this for ?var(args)
 //  |  expr = VarOrFunction()  { return expr ; }
   )
-  // RDF sequences: expr[index] is the element at a 1-based position.
-  ( <LBRACKET> idx = Expression() <RBRACKET> { expr = new E_SeqAt(expr, idx) ; } )*
+  // RDF sequences: expr[i] is the member at a 1-based position;
+  // expr[m...n], expr[m...], expr[...n] are slices (closed, 1-based, clamped).
+  ( <LBRACKET>
+    ( <ELLIPSIS> idx2 = Expression() <RBRACKET>
+        { expr = new E_SeqSliceTo(expr, idx2) ; }
+    | idx = Expression()
+      ( <RBRACKET>
+          { expr = new E_SeqAt(expr, idx) ; }
+      | <ELLIPSIS> { idx2 = null ; } ( idx2 = Expression() )? <RBRACKET>
+          { expr = ( idx2 == null ) ? new E_SeqSliceFrom(expr, idx) : new E_SeqSlice(expr, idx, idx2) ; }
+      )
+    )
+  )*
   { return expr ; }
 }
 
@@ -2469,6 +2495,8 @@ TOKEN:
 |  <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS>|".")* <PN_CHARS>)?  >
 |  <VAR1: "?" <VARNAME> >
 |  <VAR2: "$" <VARNAME> >
+   // RDF sequences: a named gap "...?rest" in a sequence pattern is one token.
+|  <GAPVAR: "..." ("?" | "$") <VARNAME> >
 |  <LANGTAG: <AT> (<A2Z>)+("-" (<A2ZN>)+)* >
 |  <#A2Z: ["a"-"z","A"-"Z"]>
 |  <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
@@ -2520,6 +2548,8 @@ TOKEN [IGNORE_CASE] :
 |  < UNION:       "union" >
 |  < MINUS_P:     "minus" >
 |  < BIND:        "bind" >
+|  < UNNEST:      "unnest" >
+|  < AT_KW:       "at" >
 |  < SERVICE:     "service" >
 
 #ifdef ARQ
@@ -2756,6 +2786,8 @@ TOKEN :
 | < SEMICOLON: ";" >
 | < COMMA:     "," >
 | < DOT:       "." >
+  // RDF sequences: a gap in a sequence pattern, and the range mark of a slice.
+| < ELLIPSIS:  "..." >
 | < EQ:      "=" >
 | < NE:      "!=" >
 | < GT:      ">" >

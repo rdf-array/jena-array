@@ -20,40 +20,55 @@ pattern.
 | core  | `Node_Seq` (`List<Node>`), `Node.isNodeSeq()/getSeq()`, `NodeFactory.createSeqNode(...)`, `NodeVisitor.visitSeq` | `jena-core/.../graph/` |
 | RIOT  | Turtle/TriG `( ... )` and N-Triples/N-Quads `( ... )` parse to a `Node_Seq`; `NodeFormatter` writes `( e1 e2 )` / `()`; `ParserProfile.createSeqNode`; checker accepts sequences as subject/object | `riot/lang/LangTurtleBase`, `LangNTuple`, `LangNQuads`, `riot/out/NodeFormatterBase`, `riot/system/{Checker,ParserProfileStd,ParserProfile}` |
 | RIOT  | the pretty Turtle/TriG writer no longer abbreviates legacy first/rest ladders as `( )` (that would silently change the model on re-read); `rdf:nil` is written as `rdf:nil`, not `()` | `riot/writer/TurtleShell` (`ABBREVIATE_LEGACY_LISTS = false`) |
-| SPARQL | grammar: `( e1 e2 )` is one sequence term (patterns, templates, INSERT/DELETE DATA); `()` is the empty sequence; `((element))[index]` is a **position pattern**; `expr[i]` indexes a sequence in expressions; `isSEQ(x)`, `SEQLEN(x)`, `SEQ(e1, ...)` | `jena-arq/Grammar/main.jj`, regenerated `sparql_12` and `arq` parsers (JavaCC 7.0.13) |
-| SPARQL | `Node_SeqIndex` pattern term `((element))[index]`: index is a 1-based integer, a variable (bound to the position), or `*` (any position) | `sparql/core/Node_SeqIndex` |
-| SPARQL | matching: the RDF-star solvers became multi-result term matchers that recurse into triple terms, sequences and position patterns (`(1 ?x)`, `((?e))[2]`, `((?e))[?i]`, `((?e))[*]`, nested) | `engine/main/solver/{SolverRX3,SolverRX4,SolverLib}` |
-| SPARQL | substitution, variable collection, renaming, SSE (`(seqterm ...)`, `(seqpos elt idx)`), query/algebra serialisation, ordering (`NodeCmp`), isomorphism (`IsoAlg`), JSON results (`"type": "seq"`) | `core/Substitute`, `util/VarUtils`, `engine/Rename`, `graph/NodeTransformLib`, `sse/{Tags,ItemWriter,ItemLift,BuilderExpr}`, `util/FmtUtils`, `serializer/FmtExprSPARQL`, `util/NodeCmp`, `util/IsoAlg`, `riot/rowset/rw/RowSetWriterJSON` |
-| SPARQL | functions `E_IsSeq`, `E_SeqLen`, `E_SeqAt` (`x[i]`), `E_MkSeq` (`SEQ(...)`) over `function/library/seq/SeqFunctions` | `sparql/expr/` |
+| SPARQL | grammar (the syntax of rdf-array's [docs/array-syntax.md](https://rdf-array.github.io/rdf-array/docs/array-syntax.html)): `( e1 e2 )` is one sequence term (patterns, templates, INSERT/DELETE DATA); `()` is the empty sequence; in a WHERE pattern a member may be a **gap** `...` or a **named gap** `...?rest`; `UNNEST(expr AS ?x AT ?i)` is a graph pattern; `expr[i]` indexes and `expr[m...n]`, `expr[m...]`, `expr[...n]` slice a sequence in expressions; `?x IN ?seq` / `NOT IN ?seq`; `isSEQ(x)`, `SEQLEN(x)`, `SEQ(e1, ...)` | `jena-arq/Grammar/main.jj`, regenerated `sparql_12` and `arq` parsers (JavaCC 7.0.13) |
+| SPARQL | `Node_SeqGap` pattern term: `...` matches any run of members; `...?rest` also binds `?rest` to the run, as a sequence (the same variable twice must match equal runs) | `sparql/core/Node_SeqGap`, `lang/QueryParserBase.createSeqGapNode` |
+| SPARQL | matching: the RDF-star solvers are multi-result term matchers that recurse into triple terms and sequences; a sequence pattern with gaps is matched by backtracking over the run lengths (`SolverRX3.matchMembers`), so `( ... ( "c" ?n ( ?v ?u ) ) ... )` finds a tuple anywhere | `engine/main/solver/{SolverRX3,SolverRX4,SolverLib}` |
+| SPARQL | `UNNEST`: `ElementUnnest` → `OpUnnest` (`(unnest (?x ?i) expr sub)`) → `QueryIterUnnest`; one solution per member, none when the expression is unbound, errors or is not a sequence; a variable already bound keeps only the equal members (join semantics, no scope error) | `syntax/ElementUnnest`, `algebra/op/OpUnnest`, `engine/iterator/QueryIterUnnest`, `AlgebraGenerator`, `OpExecutor`, `ref/Evaluator*`, `OpVars`, `VarFinder`, `JoinClassifier`, `OpAsQuery`, the `Op`/`Element` visitors and transforms, `FormatterElement`, `sse/{WriterOp,BuilderOp}` |
+| SPARQL | substitution (a named gap bound to a sequence is spliced in), variable collection, renaming, SSE (`(seqterm ...)`, `(seqgap)`, `(seqgap ?rest)`), query/algebra serialisation, ordering (`NodeCmp`), isomorphism (`IsoAlg`), JSON results (`"type": "seq"`) | `core/Substitute`, `util/VarUtils`, `engine/Rename`, `graph/NodeTransformLib`, `sse/{Tags,ItemWriter,ItemLift,BuilderExpr}`, `util/FmtUtils`, `serializer/FmtExprSPARQL`, `util/NodeCmp`, `util/IsoAlg`, `riot/rowset/rw/RowSetWriterJSON` |
+| SPARQL | functions `E_IsSeq`, `E_SeqLen`, `E_SeqAt` (`x[i]`), `E_SeqSlice`/`E_SeqSliceFrom`/`E_SeqSliceTo` (`x[m...n]`, `x[m...]`, `x[...n]`: closed, 1-based, clamped; SSE `seqSlice`, `seqSliceFrom`, `seqSliceTo`), `E_InSeq`/`E_NotInSeq` (`x IN ?seq`; SSE `inSeq`, `notInSeq`), `E_MkSeq` (`SEQ(...)`) over `function/library/seq/SeqFunctions` | `sparql/expr/` |
 | lists  | `G.rdfList`, `G.getOneOrList`, `GraphList.{members,length,get,index,indexes,isListNode,findAllLists}` accept a sequence term as "the list" (legacy ladders still work), so ShExR, manifests, property-function argument lists (`?x apf:strSplit (?s "re")`) and `list:member/index/length` work over sequences | `system/G`, `sparql/util/graph/GraphList` |
-| ShEx  | `Collection` shape expression `((shapeExpr))[min, max]`: ShExC (`[m]` exactly m, `[m, n]`, `[m, *]`/`[m,]`, none = any length), ShExJ `{"type":"Collection","shapeExpr":…,"min":m,"max":n}`, ShExR `sx:Collection` + `sx:shapeExpr`/`sx:min`/`sx:max`; validation: focus node must be a sequence of acceptable length, each element validated (as a focus node of its own) against `shapeExpr`; ShExC writer; reporters | `jena-shex/shexc/shex.jj` (regenerated), `expressions/ShapeCollection`, `parser/{ParserShExC,ParserShExR}`, `jsonld/{JsonGEnum,ShexJsonldDeserializer}`, `validation/ShapeExprEval`, `writer/WriterShExC`, `calc/*Visitor*`, `reporting/*` |
-| tests | `riot/lang/TestLangSequences` (TS_Lang), `sparql/engine/TestSequenceQueries` (TS_Engine), `shex/TestShexCollection` (TS_Shex), `rdfarray/TestRdfArrayServer` (TS_RdfArray) | |
+| ShEx  | the `LIST` shape expression (array-syntax.md §2, variant G): ShExC `LIST ( regex )` and `LIST card x`; ShExJ `{"type":"ListShape","expression":…}` with `Member`/`ListEachOf`/`ListOneOf`; ShExR `sx:ListShape`/`sx:expression`, `sx:Member`/`sx:shapeExpr`, `sx:ListEachOf`/`sx:ListOneOf`/`sx:expressions`, `sx:min`/`sx:max`; validation: the focus node must be a sequence whose members, in order, match the regular expression (`ShapeExprEval.ListMatcher`: the set of end positions, as `ends()` in rdf-array's harness, each member validated once per shape expression as a focus node of its own); ShExC writer; reporters | `jena-shex/shexc/shex.jj` (regenerated), `expressions/{ListShape,ListExpr,ListMember,ListEachOf,ListOneOf}`, `parser/{ParserShExC,ParserShExR}`, `jsonld/{JsonGEnum,ShexJsonldDeserializer}`, `validation/ShapeExprEval`, `writer/WriterShExC`, `calc/*Visitor*`, `reporting/*` |
+| tests | `riot/lang/TestLangSequences` (TS_Lang), `sparql/engine/TestSequenceQueries` and `TestArraySyntaxExamples` (TS_Engine; the latter is array-syntax.md §4.1), `shex/TestShexList` (TS_Shex; §4.2 and §5), `rdfarray/TestRdfArrayServer` (TS_RdfArray) | |
 
-### SPARQL position patterns — the `(())[i]` notation
+### SPARQL-array: gaps, UNNEST, indexes, slices, IN
 
-    ?s :p (1 ?a ?b)          # exact length; positional binding
-    ?s :p ((?e))[2]          # 2nd element (1-based)
-    ?s :p ((?e))[?i]         # every element, ?i bound to its position
-    ?s :p ((?e))[*]          # every element
-    ?s :p ((((?e))[1]))[2]   # nested: first element of the second element
-    BIND(?seq[2] AS ?x)      # expression form; error (unbound) when out of range
-    FILTER(isSEQ(?x) && SEQLEN(?x) = 3)
-    CONSTRUCT { ?s :r (?a ?b) } WHERE { ?s :p (?a ?b ?c) }
+    ?s :p (1 ?a ?b)                 # exact length; positional binding
+    ?s :p ( ?first ... ?last )      # a gap matches any run of members (here: 2 or more members)
+    ?s :p ( ... ?x ... )            # every member
+    ?s :p ( ?h ...?t )              # a named gap binds the rest, as a sequence
+    ?s :p ( ...?pre ?x ... )        # SEQLEN(?pre) + 1 is ?x's position
+    ?s :p ( ... ( "c" ?n ( ?v ?u ) ) ... )   # a 3-tuple anywhere in a list of tuples; gaps nest
+    UNNEST(?seq AS ?x AT ?i)        # one solution per member, ?i its 1-based position; AT optional
+    BIND(?seq[2] AS ?x)             # index; error (unbound) when out of range
+    BIND(?seq[2...3] AS ?y)         # slices: closed, 1-based, clamped; also ?seq[2...] and ?seq[...3]
+    FILTER(?x IN ?seq)              # membership; the right-hand side is a variable, SEQ(...) or an indexed one of these
+    FILTER(?x IN (?seq))            # SPARQL 1.1: an expression list, ?x = ?seq
+    FILTER(isSEQ(?x) && SEQLEN(?x) = 3 && ?x = SEQ(1, 2, 3))
+    CONSTRUCT { ?s :r (?a ?b) } WHERE { ?s :p (?a ?b ?c) }   # no gaps in templates or data
 
-A bare `((x))` without brackets is a nested one-element sequence; the position
-pattern requires the `[...]`. Parsed with a syntactic lookahead
-`(( GraphNode ))[`, so `((1 2) 3)` is still a nested sequence.
+Lexing: `...` is one token and `...?rest` another, so `( ?a ... ?b )` is a gap and
+a member while `( ?a ...?b )` is a named gap; `1...` and `:a...` are a member and a
+gap, `:a...b` one prefixed name; `[2...4]` is a slice, `[2:4]` a syntax error (`:4`
+is a prefixed name). The old `((?e))[i]` position patterns and `Node_SeqIndex`
+are gone: `((?e))[2]` is now a pattern `( ( ?e ) )` followed by a syntax error.
 
-### ShExC — `((t))[m, n]`
+### ShExC — `LIST`
 
-    <S1> { <p> ((@<T>))[1, 2] }       # a sequence of 1..2 nodes each satisfying <T>
-    <S2> { <p> ((xsd:integer)) }      # any length (including empty) of integers
-    <S3> { <p> ((xsd:integer))[2] }   # exactly two
-    <S4> { <p> ((@<T>))[1, *] }       # at least one
+    <S1> { <p> LIST {1,2} @<T> }                  # one or two members, each satisfying <T>
+    <S2> { <p> LIST * xsd:integer }               # any number of integers, possibly none
+    <S3> { <p> LIST ( xsd:integer ; xsd:string ) }   # a pair: a regular expression over the members
+    <S4> { <p> LIST ( ( xsd:string ; xsd:integer ) * ) }   # a flat list of pairs (a repeated group)
+    <Tree> LIST ( xsd:string ; LIST ( @<Tree> * ) )      # recursion through nested lists
 
-Parsed with a syntactic lookahead for `(( shapeExpression ))`, so
-`((a OR b) AND c)` is still a parenthesised expression. The remaining ambiguity is
-`((x))` with nothing after it: it is a Collection, not doubly-parenthesised `x`.
+`LIST card x` is `LIST ( x card )`; a bare `LIST x` is a syntax error. Inside
+`LIST ( )` an opening `(` always starts a group, so a member's first atom may not be
+parenthesised (`( ( @<A> ) AND @<B> )` is an error; write `@<B> AND ( @<A> )`); a
+cardinality after a parenthesised group that already has one wraps it in a
+`ListEachOf` of one. A cardinality after the whole `LIST` belongs to the triple
+constraint. `LIST` is a shape atom in `shapeAtom` and `inlineShapeAtom`, not after
+`EXTENDS`. The writer prints `LIST ( regex )` always; a member that is an AND/OR whose
+first operand would be parenthesised has its operands rotated, and `. AND ( ... )`
+when all would be.
 
 ## rdf-array demo: `jena-rdfarray`
 
@@ -117,8 +132,9 @@ preload mode and `--serve-n`. See `jena-rdfarray/README.md`.
   found by rdf-tests-contrib).
 - **Expressions**: no `(1 2)` sequence constructor syntax inside expressions (use
   `SEQ(1, 2)`); `ExprTripleTerm`-style `ExprSeqTerm` not added.
-- **ShExJ writer**: jena-shex has no shape-expression serialiser to ShExJ, so
-  `Collection` is read, not written, in ShExJ.
+- **ShExJ and ShExR writers**: jena-shex has no shape-expression serialiser to ShExJ
+  (`ShexJsonLdSerializer` is a reflection stub) nor to ShExR, so `ListShape` is read,
+  not written, in those syntaxes.
 - **Property functions**: `?list list:member ?x` with an unbound `?list` finds
   sequences used as subjects/objects (full scan), not nested ones.
 - **jena-shexmap, jena-cmds, Fuseki** not rebuilt here (they are not in the offline
@@ -126,8 +142,8 @@ preload mode and `--serve-n`. See `jena-rdfarray/README.md`.
 
 ## Tests that query or test for rdf:first / rdf:rest (and what to do with them)
 
-Legend: *index* = can be expressed with `((x))[i]`, `[*]`, `SEQLEN`, or a ShEx
-Collection; *structural* = tests the ladder itself, no sequence equivalent.
+Legend: *index* = can be expressed with a gap pattern, `UNNEST`, `SEQLEN`, or a ShEx
+`LIST`; *structural* = tests the ladder itself, no sequence equivalent.
 
 ### SPARQL / ARQ (jena-arq)
 
@@ -164,7 +180,7 @@ still pass: `parseType="Collection"` still builds ladders.
 
 | test | class |
 |------|-------|
-| `1list0PlusDot-*_pass`, `1list0PlusIri-*_pass`, `1list1PlusIri-*_pass` (6) | the schema's `[rdf:nil] OR CLOSED { rdf:first . ; rdf:rest @<L> }` ladder shapes over data written as `( ... )`; expressible as `((.))`, `((IRI))`, `((IRI))[1, *]` — the shexTest corpus would gain Collection forms |
+| `1list0PlusDot-*_pass`, `1list0PlusIri-*_pass`, `1list1PlusIri-*_pass` (6) | the schema's `[rdf:nil] OR CLOSED { rdf:first . ; rdf:rest @<L> }` ladder shapes over data written as `( ... )`; shexTest-array (cf1d5e7) rewrites them as `LIST * .`, `LIST * IRI`, `LIST + IRI`, and those pass; `src/test/files/shexTest` is still the older copy |
 | `*manualList*` (data with explicit `rdf:first` triples) | still pass: ladders are still just triples |
 | `TestParserShExR.roundTripAgainstShExC` for `1list0PlusDot`, `1list0PlusIri`, `1list1PlusIri` | their ShExR `.ttl` fixtures write the value `rdf:nil` as `()` inside `sx:values ( () )`; under the new model that is an empty sequence. Fixture issue (`( rdf:nil )`). |
 
@@ -194,6 +210,19 @@ ladders — *structural*).
 | `TC_SHACL` 272 (2026-10-26) | pass; 5 skipped: the tests data-shapes-array marks `sht:rejected` (`path-strange-002`, SHACL 1.2's four node-level list tests) |
 | `TestJsonLDReadWrite` | 4 fail: JSON-LD `@list` |
 | `TS_Shex` 2165 | 7 fail: six `1list*` ladder-shape validations, `TestParserShExR.roundTripAgainstShExC` (`( () )` fixtures) |
+
+## Test status (2026-11-01, the array syntax of docs/array-syntax.md)
+
+| suite | result |
+|-------|--------|
+| new: `TestSequenceQueries` 36, `TestArraySyntaxExamples` 14 (§4.1), `TestShexList` 25 (§4.2, §5), `TestLangSequences` 14 | all pass |
+| contrib copies refreshed: `Scripts_RdfArrayContrib` 31, `Scripts_RdfArrayContribSPARQL` 96 (rdf-tests-contrib eee4e34); `TestShexContribSyntax` 22, `TestShexContribSyntaxBad` 6, `TestShexContribValidation` 56 (shexTest-contrib e1e7568) | all pass |
+| shexTest-array cf1d5e7, run from a scratch copy through the fork's runners (`src/test/files/shexTest` is still the older copy): schemas 491, negativeSyntax 105, validation 1242 | the `1list*` LIST tests pass; the 9 schema errors (`AND3G`, `Extend*`, `2val1refvsAnnot`, `extends-abstract-*`), 4 negative-syntax failures (duplicate-label tests) and 11 validation failures (`*Include1dotclosecardPlus*`, `1dotCode*`, `2val1refvsCode`) are differences between shexTest master and the fork's older copy, not LIST |
+| `TS_Lang` 2202, `TS_Query` 975, `TS_Engine` 67, `TS_Algebra` 260, `TS_Optimization` 457, `TS_Syntax` 105, `TS_SSE` 156, `TS_Expr` 1464, `Scripts_DAWG` 496, `Scripts_SPARQL11` 466, `Scripts_RDFStar` 102 | pass |
+| `Scripts_ARQ` 1111 | 4 fail: `list-length-2`, `filter-1`, `localname-1`, `namespace-1` (expectation files, as before) |
+| `Scripts_RefEngine` 487 | 2 fail: `localname-1`, `namespace-1` (as before) |
+| `TS_Shex` 2261 | 7 fail: six `1list*` ladder-shape validations and `TestParserShExR.roundTripAgainstShExC` in the older `shexTest` copy (as before) |
+| `TS_RdfArray` 23 | pass |
 
 ## SHACL-array (`jena-shacl`, 2026-10-25)
 
@@ -234,8 +263,10 @@ with the commit in a `*.commit` file:
 - `jena-arq/testing/rdf-array/rdf-tests-contrib/` ([rdf-tests-contrib](https://github.com/rdf-array/rdf-tests-contrib)
   `rdf/`, `sparql/`): run by `org.apache.jena.external.Scripts_RdfArrayContrib` (Turtle, TriG,
   N-Triples, N-Quads; `RunnerRIOT`) and `Scripts_RdfArrayContribSPARQL` (eval, update, syntax,
-  results; `RunnerSPARQL`). `SparqlTests.makeSPARQLTest` parses these with ARQ syntax: position
-  patterns and the sequence functions are ARQ extensions here, not SPARQL 1.1.
+  results; `RunnerSPARQL`). `SparqlTests.makeSPARQLTest` parses these with ARQ syntax: gap
+  patterns, `UNNEST` and the sequence functions are ARQ extensions here, not SPARQL 1.1. The
+  manifests' `ra:` requirements (`ra:GapPatterns`, `ra:Unnest`, `ra:SequenceFunctions`,
+  `ra:ListShapeExpression`) are not read by the runners.
 - `jena-shex/src/test/files/shexTest-contrib/` ([shexTest-contrib](https://github.com/rdf-array/shexTest-contrib)):
   run by `TestShexContribSyntax`, `TestShexContribSyntaxBad` and `TestShexContribValidation`. The
   copy comments out the manifests' `@base`, as `../shexTest` does, so the entries resolve to the
@@ -254,7 +285,7 @@ two sequence terms equal, so every expected result holding one failed.
     MVN="/Applications/IntelliJ IDEA.app/Contents/plugins/maven/lib/maven3/bin/mvn"
     "$MVN" -o -q -pl jena-shex -am -DskipTests -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Drat.skip=true -Denforcer.skip=true package
     "$MVN" -o -pl jena-arq,jena-shex -am -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Drat.skip=true -Denforcer.skip=true test \
-        -Dtest='TestLangSequences,TestSequenceQueries,TestShexCollection' -Dsurefire.failIfNoSpecifiedTests=false
+        -Dtest='TestLangSequences,TestSequenceQueries,TestArraySyntaxExamples,TestShexList' -Dsurefire.failIfNoSpecifiedTests=false
 
 Never `install` from this worktree: it would overwrite the 5.0.0-SNAPSHOT jars in
 `~/.m2` that the main checkout resolves offline. Grammar regeneration:

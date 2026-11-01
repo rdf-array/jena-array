@@ -18,7 +18,7 @@
 
 package org.apache.jena.sparql.lang;
 
-import org.apache.jena.sparql.core.Node_SeqIndex;
+import org.apache.jena.sparql.core.Node_SeqGap;
 
 import java.util.List;
 
@@ -433,22 +433,16 @@ public class QueryParserBase
         return NodeFactory.createSeqNode(elements);
     }
 
-    // RDF sequences: "((element))[index]" matches one position of a sequence.
-    // index: a positive integer (1-based), a variable, or Node.ANY for "*" (any position).
-    protected Node createSeqIndexNode(Node element, Node index, int line, int column) {
-        if ( index == null )
-            index = Node.ANY;
-        if ( ! Node.ANY.equals(index) && ! Var.isVar(index) ) {
-            Integer position = null;
-            if ( index.isLiteral() && XSDDatatype.XSDinteger.equals(index.getLiteralDatatype()) ) {
-                try {
-                    position = Integer.valueOf(index.getLiteralLexicalForm());
-                } catch (NumberFormatException ex) { /* not an int */ }
-            }
-            if ( position == null || position < 1 )
-                throwParseException("Sequence index must be a positive integer, a variable or *: "+index, line, column);
-        }
-        return Node_SeqIndex.create(element, index);
+    // RDF sequences: a gap "..." in a sequence pattern matches any run of members.
+    protected Node createSeqGapNode(int line, int column) {
+        return Node_SeqGap.create();
+    }
+
+    // RDF sequences: a named gap "...?rest" matches any run of members and binds the
+    // variable to that run, as a sequence. The token image is "..." followed by the variable.
+    protected Node createSeqGapNode(String image, int line, int column) {
+        String varName = image.substring(4);   // "...?" or "...$"
+        return Node_SeqGap.create(Var.alloc(varName));
     }
 
     protected Expr createExprExists(Element element) {

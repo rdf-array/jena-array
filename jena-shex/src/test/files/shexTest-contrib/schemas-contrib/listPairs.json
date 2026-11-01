@@ -1,0 +1,58 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/KeyValues",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/pairs",
+          "valueExpr": "http://a.example/Pairs"
+        }
+      }
+    },
+    {
+      "id": "http://a.example/Points",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/points",
+          "valueExpr": "http://a.example/Pairs"
+        }
+      }
+    },
+    {
+      "id": "http://a.example/Pairs",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "ListShape",
+        "expression": {
+          "type": "ListEachOf",
+          "expressions": [
+            {
+              "type": "Member",
+              "shapeExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#string"
+              }
+            },
+            {
+              "type": "Member",
+              "shapeExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+              }
+            }
+          ],
+          "min": 0,
+          "max": -1
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

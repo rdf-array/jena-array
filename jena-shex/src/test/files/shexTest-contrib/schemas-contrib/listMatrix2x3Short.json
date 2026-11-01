@@ -1,0 +1,42 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/Matrix",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/matrix",
+          "valueExpr": "http://a.example/Matrix2x3"
+        }
+      }
+    },
+    {
+      "id": "http://a.example/Matrix2x3",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "ListShape",
+        "expression": {
+          "type": "Member",
+          "shapeExpr": {
+            "type": "ListShape",
+            "expression": {
+              "type": "Member",
+              "shapeExpr": {
+                "type": "NodeConstraint",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+              },
+              "min": 3,
+              "max": 3
+            }
+          },
+          "min": 2,
+          "max": 2
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

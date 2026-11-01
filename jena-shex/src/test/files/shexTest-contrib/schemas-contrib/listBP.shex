@@ -1,0 +1,8 @@
+PREFIX : <http://a.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:Observation { :component @:BP }
+
+:BP LIST + @:Component
+
+:Component LIST ( xsd:string ; xsd:string ; LIST ( xsd:integer ; xsd:string ) )

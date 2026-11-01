@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.core.Node_SeqIndex;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.iterator.Abortable;
@@ -65,8 +64,7 @@ public class SolverLib {
 
     /**
      * Test whether a triple has a compound term with variables as one of its
-     * components: a triple term (RDF-star) or a sequence with variables inside, or
-     * a sequence position pattern {@code ((..))[..]}.
+     * components: a triple term (RDF-star) or a sequence with variables or gaps inside.
      */
     public static boolean tripleHasEmbTripleWithVars(Triple triple) {
         return isCompoundWithVars(triple.getSubject())
@@ -76,8 +74,7 @@ public class SolverLib {
 
     /**
      * Test whether a quad has a compound term with variables as one of its
-     * components: a triple term (RDF-star) or a sequence with variables inside, or
-     * a sequence position pattern {@code ((..))[..]}.
+     * components: a triple term (RDF-star) or a sequence with variables or gaps inside.
      */
     public static boolean quadHasEmbTripleWithVars(Quad quad) {
         return isCompoundWithVars(quad.getSubject())
@@ -87,8 +84,6 @@ public class SolverLib {
     }
 
     private static boolean isCompoundWithVars(Node node) {
-        if ( node instanceof Node_SeqIndex )
-            return true;
         if ( node.isNodeTriple() || node.isNodeSeq() )
             return ! node.isConcrete();
         return false;
@@ -101,14 +96,12 @@ public class SolverLib {
 
     /**
      * Convert a pattern node into ANY, or leave as a constant term. Any compound
-     * term with a variable, that is {@code {@literal <<?var>>}} or {@code (?var)},
-     * and any sequence position pattern becomes an ANY.
+     * term with a variable or a gap, that is {@code {@literal <<?var>>}},
+     * {@code (?var)} or {@code ( ... )}, becomes an ANY.
      */
     public static Node nodeTopLevel(Node node) {
         // Public so TDB code can use it.
         if ( Var.isVar(node) )
-            return Node.ANY;
-        if ( node instanceof Node_SeqIndex )
             return Node.ANY;
         if ( node.isNodeTriple() || node.isNodeSeq() ) { //|| node.isNodeGraph() )
             if ( ! node.isConcrete() )

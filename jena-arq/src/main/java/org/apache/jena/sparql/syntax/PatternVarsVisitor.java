@@ -83,6 +83,13 @@ public class PatternVarsVisitor extends ElementVisitorBase
     }
 
     @Override
+    public void visit(ElementUnnest el) {
+        acc.add(el.getVar());
+        if ( el.hasPosVar() )
+            acc.add(el.getPosVar());
+    }
+
+    @Override
     public void visit(ElementData el) {
         acc.addAll(el.getVars());
     }

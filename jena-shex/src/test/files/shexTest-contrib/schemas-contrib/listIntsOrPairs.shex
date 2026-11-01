@@ -1,0 +1,8 @@
+PREFIX : <http://a.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:Points { :points @:IntsOrPairs }
+
+:Matrix { :matrix @:IntsOrPairs }
+
+:IntsOrPairs LIST ( ( xsd:integer | LIST ( xsd:integer ; xsd:integer ) ) + )

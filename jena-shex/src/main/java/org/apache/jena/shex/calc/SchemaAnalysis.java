@@ -259,9 +259,14 @@ public class SchemaAnalysis {
             }
 
             @Override
-            public void visit(ShapeCollection shapeCollection) {
-                // RDF sequences: the element shape expression applies to each element.
-                shapeCollection.getShapeExpr().visit(this);
+            public void visit(ListShape listShape) {
+                // RDF sequences: a member is validated as a focus node of its own, so a LIST is a
+                // boundary like a shape: references inside it are dependencies, not direct cycles.
+                context.addLast(SHAPE);
+                context.addLast(Collections.emptySet());
+                listShape.memberShapeExprs().forEach(se -> se.visit(this));
+                context.removeLast();
+                context.removeLast();
             }
 
             @Override

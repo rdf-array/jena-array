@@ -63,6 +63,54 @@ public class SeqFunctions {
         return NodeValue.makeNode(elts.get(idx-1));
     }
 
+    /**
+     * {@code seq[from...to]}: the members from position {@code from} to position
+     * {@code to}, both included and 1-based, clamped to the sequence. A null
+     * {@code from} is 1 ({@code seq[...to]}); a null {@code to} is the end
+     * ({@code seq[from...]}). Throws {@link ExprEvalException} if the first argument
+     * is not a sequence, or a bound is not an integer, or {@code from < 1}, or
+     * {@code to < 0}.
+     */
+    public static NodeValue seqSlice(NodeValue nvSeq, NodeValue nvFrom, NodeValue nvTo) {
+        List<Node> elts = elements("seqSlice", nvSeq);
+        int from = ( nvFrom == null ) ? 1 : bound("seqSlice", nvFrom, 1);
+        int to = ( nvTo == null ) ? elts.size() : bound("seqSlice", nvTo, 0);
+        int start = Math.min(from - 1, elts.size());
+        int end = Math.min(to, elts.size());
+        List<Node> slice = ( start >= end ) ? List.of() : elts.subList(start, end);
+        return NodeValue.makeNode(NodeFactory.createSeqNode(slice));
+    }
+
+    private static int bound(String name, NodeValue nv, int least) {
+        if ( ! nv.isInteger() )
+            throw new ExprEvalException(name+": Bound is not an integer: "+nv);
+        int x;
+        try {
+            x = nv.getInteger().intValueExact();
+        } catch (ArithmeticException ex) {
+            throw new ExprEvalException(name+": Bound out of range: "+nv);
+        }
+        if ( x < least )
+            throw new ExprEvalException(name+": Bound must be at least "+least+": "+nv);
+        return x;
+    }
+
+    /**
+     * {@code needle IN seq}: is some member of the sequence equal ({@code =}) to
+     * the needle? A member that is not comparable with the needle is not equal to
+     * it. Throws {@link ExprEvalException} if the second argument is not a sequence.
+     */
+    public static boolean inSeq(NodeValue needle, NodeValue nvSeq) {
+        List<Node> elts = elements("inSeq", nvSeq);
+        for ( Node elt : elts ) {
+            try {
+                if ( NodeValue.sameValueAs(needle, NodeValue.makeNode(elt)) )
+                    return true;
+            } catch (ExprEvalException ex) { /* not comparable: not equal */ }
+        }
+        return false;
+    }
+
     /** Build a sequence from its elements. */
     public static NodeValue mkSeq(List<NodeValue> args) {
         List<Node> elts = new ArrayList<>(args.size());

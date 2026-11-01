@@ -41,7 +41,10 @@ public enum JsonGEnum {
     SHAPE_AND("ShapeAnd"),
     SHAPE_NOT("ShapeNot"),
     SHAPE_EXTERNAL("ShapeExternal"),
-    COLLECTION("Collection"),            // RDF sequences: ((shapeExpr))[min, max]
+    LIST_SHAPE("ListShape"),             // RDF sequences: LIST ( ... )
+    MEMBER("Member"),
+    LIST_EACH_OF("ListEachOf"),
+    LIST_ONE_OF("ListOneOf"),
     EXPRESSION("expression"),
     EXPRESSIONS("expressions"),
     TRIPLE_CONSTRAINT("TripleConstraint"),

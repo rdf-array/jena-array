@@ -34,6 +34,7 @@ import org.apache.jena.shex.expressions.*;
 import org.apache.jena.shex.sys.SysShex;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -287,12 +288,94 @@ public class WriterShExC {
         }
 
         @Override
-        public void visit(ShapeCollection shapeCollection) {
-            // RDF sequences: ((shapeExpr))[min, max]
-            out.print("(( ");
-            printShapeExpression(shapeCollection.getShapeExpr());
-            out.print(" ))");
-            out.print(shapeCollection.boundsString());
+        public void visit(ListShape listShape) {
+            // RDF sequences: LIST ( regex ). The shorthand LIST card x parses to the same expression.
+            out.print("LIST ( ");
+            printListExpr(listShape.getExpression(), true);
+            out.print(" )");
+        }
+
+        private void printListExpr(ListExpr e, boolean top) {
+            if ( e instanceof ListMember m ) {
+                printListMemberShapeExpr(m.getShapeExpr());
+            } else {
+                // A group needs parentheses unless it is the whole expression and has no cardinality.
+                boolean parens = !top || e.hasCardinality();
+                String sep = ( e instanceof ListEachOf ) ? " ; " : " | ";
+                List<ListExpr> exprs = ( e instanceof ListEachOf eo ) ? eo.getExpressions() : ((ListOneOf)e).getExpressions();
+                if ( parens )
+                    out.print("( ");
+                boolean first = true;
+                for ( ListExpr x : exprs ) {
+                    if ( !first )
+                        out.print(sep);
+                    first = false;
+                    printListExpr(x, false);
+                }
+                if ( parens )
+                    out.print(" )");
+            }
+            if ( e.hasCardinality() ) {
+                out.print(" ");
+                out.print(PrettyPrinter.asPrettyString(e.getCardinality()));
+            }
+        }
+
+        /**
+         * Inside LIST ( ), a '(' always opens a group, so a member's first atom may not be
+         * parenthesised. An AND or OR whose first operand would be parenthesised has its
+         * operands rotated to start with one that is not; when every operand needs
+         * parentheses, the member is written as ". AND ( ... ) AND ( ... )" (an AND) or
+         * ". AND ( ... )" (an OR), which means the same.
+         */
+        private void printListMemberShapeExpr(ShapeExpr se) {
+            if ( se instanceof ShapeAnd || se instanceof ShapeOr ) {
+                List<ShapeExpr> operands = ( se instanceof ShapeAnd and ) ? and.getShapeExprs() : ((ShapeOr)se).getShapeExprs();
+                String op = ( se instanceof ShapeAnd ) ? " AND " : " OR ";
+                int firstPlain = -1;
+                for ( int i = 0 ; i < operands.size() ; i++ ) {
+                    if ( !(operands.get(i) instanceof ShapeAnd || operands.get(i) instanceof ShapeOr) ) {
+                        firstPlain = i;
+                        break;
+                    }
+                }
+                if ( firstPlain < 0 ) {
+                    // Every operand needs parentheses: lead with ".", which any node satisfies.
+                    out.print(".");
+                    if ( se instanceof ShapeAnd ) {
+                        for ( ShapeExpr x : operands ) {
+                            out.print(" AND ( ");
+                            printShapeExpression(x);
+                            out.print(" )");
+                        }
+                    } else {
+                        out.print(" AND ( ");
+                        printShapeExpression(se);
+                        out.print(" )");
+                    }
+                    return;
+                }
+                List<ShapeExpr> rotated = new ArrayList<>(operands.size());
+                rotated.add(operands.get(firstPlain));
+                for ( int i = 0 ; i < operands.size() ; i++ ) {
+                    if ( i != firstPlain )
+                        rotated.add(operands.get(i));
+                }
+                boolean first = true;
+                for ( ShapeExpr x : rotated ) {
+                    if ( !first )
+                        out.print(op);
+                    first = false;
+                    boolean needParens = ( x instanceof ShapeAnd || x instanceof ShapeOr );
+                    if ( needParens )
+                        out.print("( ");
+                    printShapeExpression(x);
+                    if ( needParens )
+                        out.print(" )");
+                }
+                return;
+            }
+            printShapeExpression(se);
         }
 
         @Override

@@ -127,27 +127,37 @@ public class NodeTransformLib {
         List<Node> elts2 = null;
         for ( int i = 0 ; i < elts.size() ; i++ ) {
             Node n = elts.get(i);
-            Node n1 = nodeTransform.apply(n);
+            Node n1 = ( n instanceof Node_SeqGap gap ) ? transformSeqGap(nodeTransform, gap) : nodeTransform.apply(n);
             if ( n1 != n && elts2 == null )
                 elts2 = new ArrayList<>(elts.subList(0, i));
-            if ( elts2 != null )
-                elts2.add(n1);
+            if ( elts2 != null ) {
+                if ( n instanceof Node_SeqGap && n1.isNodeSeq() )
+                    // A named gap whose variable became a sequence: that run of members.
+                    elts2.addAll(n1.getSeq());
+                else
+                    elts2.add(n1);
+            }
         }
         return ( elts2 == null ) ? seqNode : NodeFactory.createSeqNode(elts2);
     }
 
     /**
-     * Do a node{@literal ->}node conversion of the parts of a sequence position
-     * pattern {@code ((element))[index]} - return the original node for "no change".
+     * Do a node{@literal ->}node conversion of the variable of a named gap
+     * {@code ...?rest} in a sequence pattern - return the original node for "no
+     * change". An anonymous gap {@code ...} is unchanged. If the variable is
+     * converted to a sequence, that sequence is returned: the caller splices its
+     * members into the enclosing sequence.
      */
-    public static Node transformSeqIndex(NodeTransform nodeTransform, Node_SeqIndex pattern) {
-        Node e = pattern.getElement();
-        Node i = pattern.getIndex();
-        Node e1 = nodeTransform.apply(e);
-        Node i1 = Node.ANY.equals(i) ? i : nodeTransform.apply(i);
-        if ( e1 == e && i1 == i )
-            return pattern;
-        return Node_SeqIndex.create(e1, i1);
+    public static Node transformSeqGap(NodeTransform nodeTransform, Node_SeqGap gap) {
+        if ( !gap.isNamed() )
+            return gap;
+        Var v = gap.getVar();
+        Node v1 = nodeTransform.apply(v);
+        if ( v1 == v )
+            return gap;
+        if ( Var.isVar(v1) )
+            return Node_SeqGap.create(Var.alloc(v1));
+        return v1;
     }
 
     /**

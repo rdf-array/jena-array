@@ -200,8 +200,8 @@ public class ShexJsonldDeserializer {
             shapeExpr = handleShapeNot(map);
         } else if(type.equalsIgnoreCase(JsonGEnum.SHAPE_EXTERNAL.getLabel())) {
             shapeExpr = handleShapeExternal(map);
-        } else if(type.equalsIgnoreCase(JsonGEnum.COLLECTION.getLabel())) {
-            shapeExpr = handleCollection(map);
+        } else if(type.equalsIgnoreCase(JsonGEnum.LIST_SHAPE.getLabel())) {
+            shapeExpr = handleListShape(map);
         } else {
             throw new RuntimeException("Unexpected type: " + type + ". Expecting a " + JsonGEnum.SHAPE.getLabel());
         }
@@ -359,24 +359,56 @@ public class ShexJsonldDeserializer {
     }
 
     /**
-     * RDF sequences: {"type": "Collection", "shapeExpr": ..., "min": m, "max": n}
-     * (min defaults to 0, max to unbounded; -1 is unbounded).
+     * RDF sequences: {"type": "ListShape", "expression": listExpr} where listExpr is a
+     * {"type": "Member", "shapeExpr": ...} or a {"type": "ListEachOf"|"ListOneOf", "expressions": [...]},
+     * each with "min" and "max" as on triple expressions (absent: 1; -1 unbounded).
      */
-    protected ShapeExpr handleCollection(Map map) {
-        Object shapeExprJson = map.get(JsonGEnum.SHAPE_EXPRESSION.getLabel());
-        ShapeExpr shapeExpr;
-        if ( shapeExprJson instanceof String str )
-            // A reference to a shape declaration.
-            shapeExpr = ShapeExprRef.create(ShexJsonldDeserializationUtils.resolveOrCreateNode(model, str));
-        else if ( shapeExprJson instanceof Map m )
-            shapeExpr = handleShapeExpression(m);
-        else
-            throw new RuntimeException("Collection: expected \"shapeExpr\" to be a shape expression or a reference: " + shapeExprJson);
+    protected ShapeExpr handleListShape(Map map) {
+        Object exprJson = map.get(JsonGEnum.EXPRESSION.getLabel());
+        if ( !(exprJson instanceof Map m) )
+            throw new RuntimeException("ListShape: expected \"expression\" to be a list expression: " + exprJson);
+        return ListShape.create(handleListExpr(m));
+    }
+
+    protected ListExpr handleListExpr(Map map) {
+        String type = ShexJsonldDeserializationUtils.getTypeJsonField(map);
+        Cardinality cardinality = listCardinality(map);
+        if ( type.equalsIgnoreCase(JsonGEnum.MEMBER.getLabel()) ) {
+            Object shapeExprJson = map.get(JsonGEnum.SHAPE_EXPRESSION.getLabel());
+            ShapeExpr shapeExpr;
+            if ( shapeExprJson instanceof String str )
+                // A reference to a shape declaration.
+                shapeExpr = ShapeExprRef.create(ShexJsonldDeserializationUtils.resolveOrCreateNode(model, str));
+            else if ( shapeExprJson instanceof Map m )
+                shapeExpr = handleShapeExpression(m);
+            else
+                throw new RuntimeException("Member: expected \"shapeExpr\" to be a shape expression or a reference: " + shapeExprJson);
+            return ListMember.create(shapeExpr, cardinality);
+        }
+        boolean eachOf = type.equalsIgnoreCase(JsonGEnum.LIST_EACH_OF.getLabel());
+        if ( !eachOf && !type.equalsIgnoreCase(JsonGEnum.LIST_ONE_OF.getLabel()) )
+            throw new RuntimeException("Unexpected list expression type: " + type);
+        Object exprsJson = map.get(JsonGEnum.EXPRESSIONS.getLabel());
+        if ( !(exprsJson instanceof List<?> list) )
+            throw new RuntimeException(type + ": expected \"expressions\" to be an array: " + exprsJson);
+        List<ListExpr> exprs = new ArrayList<>();
+        for ( Object o : list ) {
+            if ( !(o instanceof Map m) )
+                throw new RuntimeException(type + ": expected a list expression: " + o);
+            exprs.add(handleListExpr(m));
+        }
+        return eachOf ? ListEachOf.create(exprs, cardinality) : ListOneOf.create(exprs, cardinality);
+    }
+
+    /** "min"/"max" of a list expression: absent means 1; -1 is unbounded; null when both are absent. */
+    private static Cardinality listCardinality(Map map) {
         Integer min = ShexJsonldDeserializationUtils.getMinJsonField(map);
         Integer max = ShexJsonldDeserializationUtils.getMaxJsonField(map);
-        int minV = ( min == null ) ? 0 : min;
-        int maxV = ( max == null || max < 0 ) ? Cardinality.UNBOUNDED : max;
-        return ShapeCollection.create(shapeExpr, minV, maxV);
+        if ( min == null && max == null )
+            return null;
+        int minV = ( min == null ) ? 1 : min;
+        int maxV = ( max == null ) ? 1 : ( max < 0 ? Cardinality.UNBOUNDED : max );
+        return new Cardinality(minV, maxV);
     }
 
     /**

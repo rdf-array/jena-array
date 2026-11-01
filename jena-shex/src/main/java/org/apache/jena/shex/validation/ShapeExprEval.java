@@ -332,27 +332,25 @@ public class ShapeExprEval {
         }
 
         @Override
-        public Boolean visit(ShapeCollection shapeCollection, Reporter reporter) {
-            // RDF sequences: the focus node must be a sequence of an acceptable length,
-            // each element satisfying the element shape expression (as a focus node of its own).
+        public Boolean visit(ListShape listShape, Reporter reporter) {
+            // RDF sequences: the focus node must be a sequence whose members, in order, match
+            // the list's regular expression; each member is validated as a focus node of its own.
             if ( ! dataNode.isNodeSeq() ) {
-                reporter.addInfo("Collection: not a sequence: " + ShexLib.displayStr(dataNode), null);
+                reporter.addInfo("LIST: not a sequence: " + ShexLib.displayStr(dataNode), null);
                 return reporter.setIsConformant(false);
             }
-            List<Node> elements = dataNode.getSeq();
-            if ( ! shapeCollection.acceptsSize(elements.size()) ) {
-                reporter.addInfo("Collection: " + elements.size() + " elements, bounds " + shapeCollection.boundsString(), null);
-                return reporter.setIsConformant(false);
+            List<Node> members = dataNode.getSeq();
+            ListMatcher matcher = new ListMatcher(members, vCxt, reporter);
+            boolean matched = matcher.ends(listShape.getExpression(), 0).contains(members.size());
+            if ( ! matched ) {
+                int reached = matcher.furthest;
+                if ( reached >= members.size() )
+                    reporter.addInfo("LIST: the sequence ends after " + members.size() + " members; more are required", null);
+                else
+                    reporter.addInfo("LIST: members 1.." + reached + " match; member " + (reached+1) + " does not fit: "
+                                     + ShexLib.displayStr(members.get(reached)), null);
             }
-            ShapeExpr eltExpr = shapeCollection.getShapeExpr();
-            for ( Node elt : elements ) {
-                Reporter eltReporter = reporter.createChild(elt, eltExpr, null);
-                if ( ! satisfies(elt, eltExpr, vCxt, eltReporter) ) {
-                    reporter.addInfo("Collection: element does not satisfy the element shape expression: " + ShexLib.displayStr(elt), null);
-                    return reporter.setIsConformant(false);
-                }
-            }
-            return reporter.setIsConformant(true);
+            return reporter.setIsConformant(matched);
         }
 
         @Override
@@ -370,6 +368,91 @@ public class ShapeExprEval {
         @Override
         public Boolean visit(NodeConstraint nodeConstraint, Reporter reporter) {
             return satisfiesNodeConstraint(nodeConstraint, dataNode, reporter);
+        }
+    }
+
+    /**
+     * Matches the members of a sequence against a list expression (a regular
+     * expression over shape expressions). {@link #ends} is the set of positions at
+     * which an expression, started at a position, can stop. The match succeeds when
+     * the whole expression can stop at the end of the sequence.
+     */
+    private static class ListMatcher {
+        private final List<Node> members;
+        private final ValidationContext vCxt;
+        private final Reporter reporter;
+        // (member index, shape expression) -> does the member satisfy it? Each pair is validated once.
+        private final Map<Integer, Map<ShapeExpr, Boolean>> cache = new HashMap<>();
+        // The greatest position any member match reached, for reporting.
+        int furthest = 0;
+
+        ListMatcher(List<Node> members, ValidationContext vCxt, Reporter reporter) {
+            this.members = members;
+            this.vCxt = vCxt;
+            this.reporter = reporter;
+        }
+
+        private boolean memberSatisfies(int j, ShapeExpr se) {
+            Map<ShapeExpr, Boolean> row = cache.computeIfAbsent(j, k -> new HashMap<>());
+            Boolean b = row.get(se);
+            if ( b == null ) {
+                Node member = members.get(j);
+                Reporter memberReporter = reporter.createChild(member, se, null);
+                b = satisfies(member, se, vCxt, memberReporter);
+                row.put(se, b);
+                if ( b )
+                    furthest = Math.max(furthest, j+1);
+            }
+            return b;
+        }
+
+        /** The positions where one occurrence of {@code e} (its cardinality ignored) can stop, starting at {@code j}. */
+        private Set<Integer> once(ListExpr e, int j) {
+            if ( e instanceof ListMember m ) {
+                if ( j < members.size() && memberSatisfies(j, m.getShapeExpr()) )
+                    return Set.of(j+1);
+                return Set.of();
+            }
+            if ( e instanceof ListOneOf oneOf ) {
+                Set<Integer> out = new HashSet<>();
+                for ( ListExpr x : oneOf.getExpressions() )
+                    out.addAll(ends(x, j));
+                return out;
+            }
+            ListEachOf eachOf = (ListEachOf)e;
+            Set<Integer> cur = Set.of(j);
+            for ( ListExpr x : eachOf.getExpressions() ) {
+                Set<Integer> next = new HashSet<>();
+                for ( int k : cur )
+                    next.addAll(ends(x, k));
+                cur = next;
+                if ( cur.isEmpty() )
+                    break;
+            }
+            return cur;
+        }
+
+        /** The positions where {@code e}, repeated per its cardinality, can stop, starting at {@code i}. */
+        Set<Integer> ends(ListExpr e, int i) {
+            int min = e.min();
+            int max = e.max();
+            Set<Integer> out = new HashSet<>();
+            if ( min == 0 )
+                out.add(i);
+            Set<Integer> cur = Set.of(i);
+            for ( int n = 1 ; ( max == Cardinality.UNBOUNDED || n <= max ) && !cur.isEmpty() ; n++ ) {
+                Set<Integer> next = new HashSet<>();
+                for ( int j : cur )
+                    next.addAll(once(e, j));
+                if ( n >= min ) {
+                    out.addAll(next);
+                    // Fixed point: no repetition can reach a new position.
+                    if ( cur.containsAll(next) )
+                        break;
+                }
+                cur = next;
+            }
+            return out;
         }
     }
 

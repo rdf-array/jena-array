@@ -117,7 +117,7 @@ public class RdfArrayServer {
         "",
         "  curl -i http://localhost:8099/turtle -F 'data=PREFIX : <http://example/>  :x :p (1 2) .'",
         "  curl -i http://localhost:8099/sparql -F 'data=PREFIX : <http://example/>  :x :p (1 2) .' \\",
-        "       -F 'query=PREFIX : <http://example/> SELECT ?e { :x :p ((?e))[2] }'",
+        "       -F 'query=PREFIX : <http://example/> SELECT ?e { :x :p ( ?a ?e ... ) }'",
         "  curl -i http://localhost:8099/validate -F 'schema=@schema.shex' -F 'shape=http://example/S' \\",
         "       -F 'data=@data.ttl' -F 'node=http://example/x'",
         "Preload the schema and shape, then send only the data:",

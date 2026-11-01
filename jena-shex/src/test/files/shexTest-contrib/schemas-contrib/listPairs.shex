@@ -1,0 +1,8 @@
+PREFIX : <http://a.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:KeyValues { :pairs @:Pairs }
+
+:Points { :points @:Pairs }
+
+:Pairs LIST ( ( xsd:string ; xsd:integer ) * )

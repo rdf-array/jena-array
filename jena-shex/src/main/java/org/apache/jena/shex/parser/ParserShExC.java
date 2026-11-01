@@ -367,42 +367,45 @@ public class ParserShExC extends LangParserBase {
         push(shapeExprStack, NodeConstraint.create(Collections.emptyList(), null));
     }
 
-    // RDF sequences: ((shapeExpr))[min, max]
-    // The inner shapeExpression() has pushed exactly one shape expression.
-    protected void finishShapeCollection(Cardinality bounds) {
+    // ---- RDF sequences: the LIST shape expression.
+
+    // LIST ( listOneOf ): the regular expression over the members.
+    protected void finishListShape(ListExpr expression) {
+        push(shapeExprStack, ListShape.create(expression));
+    }
+
+    // LIST card inlineShapeAtom: the atom has been pushed; the same as LIST ( atom card ).
+    protected void finishListShapeCard(Cardinality cardinality) {
         if ( shapeExprStack.isEmpty() )
-            throw new InternalErrorException("Collection shape: no element shape expression on the stack");
-        ShapeExpr eltExpr = pop(shapeExprStack);
-        ShapeExpr collection = ( bounds == null )
-                ? ShapeCollection.create(eltExpr)
-                : ShapeCollection.create(eltExpr, bounds.min, bounds.max);
-        push(shapeExprStack, collection);
+            throw new InternalErrorException("LIST shape: no member shape expression on the stack");
+        ShapeExpr member = pop(shapeExprStack);
+        push(shapeExprStack, ListShape.create(member, cardinality));
     }
 
-    // RDF sequences: the bounds "[m]", "[m, n]", "[m, *]", "[m,]" of a Collection shape expression.
-    protected Cardinality collectionBounds(String minImage, boolean comma, String maxImage, boolean star, int line, int column) {
-        int min = parseBound(minImage, line, column);
-        int max;
-        if ( ! comma )
-            max = min;
-        else if ( star || maxImage == null )
-            max = Cardinality.UNBOUNDED;
-        else
-            max = parseBound(maxImage, line, column);
-        if ( max < min )
-            throw new ShexParseException("Collection bounds: max < min: ["+min+", "+max+"]", line, column);
-        return new Cardinality(min, max);
+    // A member: the (inline) shape expression just parsed has been pushed.
+    protected ListExpr mkListMember() {
+        if ( shapeExprStack.isEmpty() )
+            throw new InternalErrorException("LIST member: no shape expression on the stack");
+        return ListMember.create(pop(shapeExprStack), null);
     }
 
-    private static int parseBound(String image, int line, int column) {
-        try {
-            int x = Integer.parseInt(image);
-            if ( x < 0 )
-                throw new ShexParseException("Collection bounds: negative bound: "+image, line, column);
-            return x;
-        } catch (NumberFormatException ex) {
-            throw new ShexParseException("Collection bounds: not an integer: "+image, line, column);
-        }
+    // listMember cardinality?
+    protected ListExpr mkListUnary(ListExpr expr, Cardinality cardinality) {
+        return expr.applyCardinality(cardinality);
+    }
+
+    // listUnary ( ';' listUnary )*
+    protected ListExpr mkListEachOf(List<ListExpr> exprs) {
+        if ( exprs.size() == 1 )
+            return exprs.get(0);
+        return ListEachOf.create(exprs, null);
+    }
+
+    // listEachOf ( '|' listEachOf )*
+    protected ListExpr mkListOneOf(List<ListExpr> exprs) {
+        if ( exprs.size() == 1 )
+            return exprs.get(0);
+        return ListOneOf.create(exprs, null);
     }
 
     protected void shapeReference(ShapeExprRef ref) {

@@ -829,6 +829,13 @@ public class OpAsQuery {
         }
 
         @Override
+        public void visit(OpUnnest opUnnest) {
+            Element e = asElement(opUnnest.getSubOp()) ;
+            insertIntoGroup(currentGroup(), e) ;
+            currentGroup().addElement(new ElementUnnest(opUnnest.getExpr(), opUnnest.getVar(), opUnnest.getPosVar())) ;
+        }
+
+        @Override
         public void visit(OpList opList) {
             opList.getSubOp().visit(this) ;
         }

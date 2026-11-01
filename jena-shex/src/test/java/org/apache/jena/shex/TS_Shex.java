@@ -37,7 +37,7 @@ import org.junit.runners.Suite;
     MatchingSearchProbesTest.class,
     TestParserShExR.class,
     TestShexManifest.class
-    , TestShexCollection.class
+    , TestShexList.class
     , TestShexContribSyntax.class
     , TestShexContribSyntaxBad.class
     , TestShexContribValidation.class

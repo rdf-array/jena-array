@@ -20,7 +20,7 @@ package org.apache.jena.sparql.util;
 
 import java.util.List;
 
-import org.apache.jena.sparql.core.Node_SeqIndex;
+import org.apache.jena.sparql.core.Node_SeqGap;
 
 import static org.apache.jena.atlas.lib.Lib.uppercase;
 
@@ -368,16 +368,11 @@ public class FmtUtils {
                 }
                 result.append(" )");
             }
-        } else if ( n instanceof Node_SeqIndex sx ) {
-            // RDF sequences: position pattern
-            result.append("((");
-            stringForNode(result, sx.getElement(), context);
-            result.append("))[");
-            if ( sx.isAnyPosition() )
-                result.append("*");
-            else
-                stringForNode(result, sx.getIndex(), context);
-            result.append("]");
+        } else if ( n instanceof Node_SeqGap gap ) {
+            // RDF sequences: a gap "..." or "...?rest" in a sequence pattern
+            result.append("...");
+            if ( gap.isNamed() )
+                stringForNode(result, gap.getVar(), context);
         } else if ( n.isNodeGraph() ) {
             Log.warn(FmtUtils.class, "Can not turn a graph term node into a string");
             result.append(" { graph }");

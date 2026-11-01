@@ -1,0 +1,31 @@
+PREFIX sx: <http://www.w3.org/ns/shex#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+[] a sx:Schema ;
+    sx:shapes ( <http://a.example/Points> <http://a.example/Matrix> <http://a.example/IntsOrPairs> ) .
+
+<http://a.example/Points> a sx:ShapeDecl ; sx:shapeExpr [ a sx:Shape ;
+    sx:expression [ a sx:TripleConstraint ;
+      sx:predicate <http://a.example/points> ;
+      sx:valueExpr <http://a.example/IntsOrPairs> ] ] .
+
+<http://a.example/Matrix> a sx:ShapeDecl ; sx:shapeExpr [ a sx:Shape ;
+    sx:expression [ a sx:TripleConstraint ;
+      sx:predicate <http://a.example/matrix> ;
+      sx:valueExpr <http://a.example/IntsOrPairs> ] ] .
+
+<http://a.example/IntsOrPairs> a sx:ShapeDecl ; sx:shapeExpr [ a sx:ListShape ;
+    sx:expression [ a sx:ListOneOf ;
+      sx:expressions ( [ a sx:Member ;
+        sx:shapeExpr [ a sx:NodeConstraint ;
+          sx:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ] [ a sx:Member ;
+        sx:shapeExpr [ a sx:ListShape ;
+          sx:expression [ a sx:ListEachOf ;
+            sx:expressions ( [ a sx:Member ;
+              sx:shapeExpr [ a sx:NodeConstraint ;
+                sx:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ] [ a sx:Member ;
+              sx:shapeExpr [ a sx:NodeConstraint ;
+                sx:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ] ) ] ] ] ) ;
+      sx:min 1 ;
+      sx:max -1 ] ] .
+

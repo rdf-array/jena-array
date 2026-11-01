@@ -312,6 +312,13 @@ public class OpVars
         }
 
         @Override
+        public void visit(OpUnnest opUnnest) {
+            acc.add(opUnnest.getVar());
+            if ( opUnnest.hasPosVar() )
+                acc.add(opUnnest.getPosVar());
+        }
+
+        @Override
         public void visit(OpPropFunc opPropFunc) {
             PropFuncArg.addVars(acc, opPropFunc.getSubjectArgs());
             PropFuncArg.addVars(acc, opPropFunc.getObjectArgs());
@@ -431,6 +438,14 @@ public class OpVars
         }
 
         @Override
+        public void visit(OpUnnest opUnnest) {
+            // Unknown position
+            unknownAcc.add(opUnnest.getVar());
+            if ( opUnnest.hasPosVar() )
+                unknownAcc.add(opUnnest.getPosVar());
+        }
+
+        @Override
         public void visit(OpPropFunc opPropFunc) {
             addvars(subjAcc, opPropFunc.getSubjectArgs());
             addvars(objAcc, opPropFunc.getObjectArgs());
@@ -489,6 +504,11 @@ public class OpVars
         @Override
         public void visit(OpExtend opExtend) {
             visitExtendAssign(opExtend);
+        }
+
+        @Override
+        public void visit(OpUnnest opUnnest) {
+            ExprVars.varsMentioned(acc, opUnnest.getExpr());
         }
 
         @Override

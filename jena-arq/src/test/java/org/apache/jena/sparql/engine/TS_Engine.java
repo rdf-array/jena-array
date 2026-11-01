@@ -27,6 +27,7 @@ import org.junit.runners.Suite ;
       , TestQueryEngineFromContext.class
       , TestJsonEval.class
       , TestSequenceQueries.class
+      , TestArraySyntaxExamples.class
 })
 
 public class TS_Engine {}

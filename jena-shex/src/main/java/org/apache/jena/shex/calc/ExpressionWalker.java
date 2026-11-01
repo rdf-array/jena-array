@@ -114,10 +114,12 @@ public class ExpressionWalker implements VoidTripleExprVisitor, VoidShapeExprVis
     }
 
     @Override
-    public void visit(ShapeCollection shapeCollection) {
-        process(shapeCollection);
-        if (recurse(shapeCollection))
-            shapeCollection.getShapeExpr().visit(this);
+    public void visit(ListShape listShape) {
+        process(listShape);
+        // A member is validated as a focus node of its own, like the value of a triple
+        // constraint: the members are below a shape boundary.
+        if (traverseShapes && recurse(listShape))
+            listShape.memberShapeExprs().forEach(se -> se.visit(this));
     }
 
     /**

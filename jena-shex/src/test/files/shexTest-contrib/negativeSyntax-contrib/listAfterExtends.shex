@@ -1,0 +1,6 @@
+PREFIX : <http://a.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:T { :q . }
+
+:S1 EXTENDS LIST + @:T { :p1 . }

@@ -546,6 +546,8 @@ Element GraphPatternNotTriples() : { Element el = null ; }
  |
    el = Bind()
  |
+   el = Unnest()
+ |
    el = InlineData()
  )
  { return el ; }
@@ -578,6 +580,17 @@ Element Bind() : { Var v ; Expr expr ; }
   v = Var()
   <RPAREN>
   { return new ElementBind(v, expr) ; }
+}
+Element Unnest() : { Var v ; Var posVar = null ; Expr expr ; }
+{
+  <UNNEST>
+  <LPAREN>
+  expr = Expression()
+  <AS>
+  v = Var()
+  ( <AT_KW> posVar = Var() )?
+  <RPAREN>
+  { return new ElementUnnest(expr, v, posVar) ; }
 }
 Element InlineData() : { ElementData el ; Token t ; }
 {
@@ -922,22 +935,9 @@ long Integer() : {Token t ;}
 }
 Node TriplesNode(TripleCollectorMark acc) : { Node n ; }
 {
-  LOOKAHEAD( <LPAREN> <LPAREN> GraphNode(acc) <RPAREN> <RPAREN> <LBRACKET> )
-  n = SeqIndexPattern(acc) { return n ; }
- |
   n = Collection(acc) { return n ; }
  |
   n = BlankNodePropertyList(acc) { return n ; }
-}
-Node SeqIndexPattern(TripleCollectorMark acc) : { Node elt ; Node idx = null ; Token t ; }
-{
-  t = <LPAREN> <LPAREN>
-  elt = GraphNode(acc)
-  <RPAREN> <RPAREN>
-  <LBRACKET>
-  ( idx = Var() | idx = NumericLiteral() | <STAR> { idx = Node.ANY ; } )
-  <RBRACKET>
-  { return createSeqIndexNode(elt, idx, t.beginLine, t.beginColumn) ; }
 }
 Node BlankNodePropertyList(TripleCollector acc) : { Token t ; }
 {
@@ -949,22 +949,9 @@ Node BlankNodePropertyList(TripleCollector acc) : { Token t ; }
 }
 Node TriplesNodePath(TripleCollectorMark acc) : { Node n ; }
 {
-  LOOKAHEAD( <LPAREN> <LPAREN> GraphNodePath(acc) <RPAREN> <RPAREN> <LBRACKET> )
-  n = SeqIndexPatternPath(acc) { return n ; }
- |
   n = CollectionPath(acc) { return n ; }
  |
   n = BlankNodePropertyListPath(acc) { return n ; }
-}
-Node SeqIndexPatternPath(TripleCollectorMark acc) : { Node elt ; Node idx = null ; Token t ; }
-{
-  t = <LPAREN> <LPAREN>
-  elt = GraphNodePath(acc)
-  <RPAREN> <RPAREN>
-  <LBRACKET>
-  ( idx = Var() | idx = NumericLiteral() | <STAR> { idx = Node.ANY ; } )
-  <RBRACKET>
-  { return createSeqIndexNode(elt, idx, t.beginLine, t.beginColumn) ; }
 }
 Node BlankNodePropertyListPath(TripleCollector acc) : { Token t ; }
 {
@@ -992,11 +979,19 @@ Node CollectionPath(TripleCollectorMark acc) :
   t = <LPAREN>
   { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
   (
-    n = GraphNodePath(acc)
+    n = SeqMemberPath(acc)
     { elts.add(n) ; }
   ) +
   <RPAREN>
    { return createSeqNode(elts, beginLine, beginColumn) ; }
+}
+Node SeqMemberPath(TripleCollectorMark acc) : { Node n ; Token t ; }
+{
+  n = GraphNodePath(acc) { return n ; }
+ |
+  t = <ELLIPSIS> { return createSeqGapNode(t.beginLine, t.beginColumn) ; }
+ |
+  t = <GAPVAR> { return createSeqGapNode(t.image, t.beginLine, t.beginColumn) ; }
 }
 void AnnotationPath(TripleCollector acc, Node s, Node p, Path path, Node o) : {}
 {
@@ -1125,12 +1120,28 @@ Expr RelationalExpression() : { Expr expr1, expr2 ; ExprList a ; }
       { expr1 = new E_LessThanOrEqual(expr1, expr2) ; }
   | <GE> expr2 = NumericExpression()
       { expr1 = new E_GreaterThanOrEqual(expr1, expr2) ; }
-  | <IN> a = ExpressionList()
+  | <IN>
+    ( a = ExpressionList()
       { expr1 = new E_OneOf(expr1, a) ; }
-  | <NOT> <IN> a = ExpressionList()
+    | expr2 = SeqRef()
+      { expr1 = new E_InSeq(expr1, expr2) ; }
+    )
+  | <NOT> <IN>
+    ( a = ExpressionList()
       { expr1 = new E_NotOneOf(expr1, a) ; }
+    | expr2 = SeqRef()
+      { expr1 = new E_NotInSeq(expr1, expr2) ; }
+    )
   )?
     { return expr1 ; }
+}
+Expr SeqRef() : { Expr expr ; Expr idx ; Node n ; ExprList a ; }
+{
+  ( n = Var() { expr = asExpr(n) ; }
+  | <SEQ> a = ExpressionList() { expr = new E_MkSeq(a) ; }
+  )
+  ( <LBRACKET> idx = Expression() <RBRACKET> { expr = new E_SeqAt(expr, idx) ; } )*
+  { return expr ; }
 }
 Expr NumericExpression () : { Expr expr ; }
 {
@@ -1191,7 +1202,7 @@ Expr UnaryExpression() : { Expr expr ; }
   | <MINUS> expr = PrimaryExpression() { return new E_UnaryMinus(expr) ; }
   | expr = PrimaryExpression() { return expr ; }
 }
-Expr PrimaryExpression() : { Expr expr ; Node n ; Expr idx ; }
+Expr PrimaryExpression() : { Expr expr ; Node n ; Expr idx ; Expr idx2 ; }
 {
   ( expr = BrackettedExpression()
   | expr = BuiltInCall()
@@ -1202,7 +1213,17 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; Expr idx ; }
   | n = Var() { expr = asExpr(n) ; }
   | n = ExprQuotedTriple() { expr = asExpr(n) ; }
   )
-  ( <LBRACKET> idx = Expression() <RBRACKET> { expr = new E_SeqAt(expr, idx) ; } )*
+  ( <LBRACKET>
+    ( <ELLIPSIS> idx2 = Expression() <RBRACKET>
+        { expr = new E_SeqSliceTo(expr, idx2) ; }
+    | idx = Expression()
+      ( <RBRACKET>
+          { expr = new E_SeqAt(expr, idx) ; }
+      | <ELLIPSIS> { idx2 = null ; } ( idx2 = Expression() )? <RBRACKET>
+          { expr = ( idx2 == null ) ? new E_SeqSliceFrom(expr, idx) : new E_SeqSlice(expr, idx, idx2) ; }
+      )
+    )
+  )*
   { return expr ; }
 }
 Node ExprVarOrTerm() : { Node n; String s;}
@@ -1546,6 +1567,7 @@ TOKEN:
 | <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS>|".")* <PN_CHARS>)? >
 | <VAR1: "?" <VARNAME> >
 | <VAR2: "$" <VARNAME> >
+| <GAPVAR: "..." ("?" | "$") <VARNAME> >
 | <LANGTAG: <AT> (<A2Z>)+("-" (<A2ZN>)+)* >
 | <#A2Z: ["a"-"z","A"-"Z"]>
 | <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
@@ -1578,6 +1600,8 @@ TOKEN [IGNORE_CASE] :
 | < UNION: "union" >
 | < MINUS_P: "minus" >
 | < BIND: "bind" >
+| < UNNEST: "unnest" >
+| < AT_KW: "at" >
 | < SERVICE: "service" >
 | < TRIPLE: "TRIPLE" >
 | < IS_TRIPLE: "isTRIPLE" >
@@ -1740,6 +1764,7 @@ TOKEN :
 | < SEMICOLON: ";" >
 | < COMMA: "," >
 | < DOT: "." >
+| < ELLIPSIS: "..." >
 | < EQ: "=" >
 | < NE: "!=" >
 | < GT: ">" >

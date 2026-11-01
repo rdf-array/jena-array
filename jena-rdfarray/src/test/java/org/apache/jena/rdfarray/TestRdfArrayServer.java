@@ -44,7 +44,7 @@ public class TestRdfArrayServer {
 
     private static final String PREFIXES = "PREFIX : <http://example/>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n";
     private static final String DATA   = PREFIXES + ":x :p (1 2 3) ; :q (:a (:b :c)) .\n:y :p (1 2) .\n";
-    private static final String SCHEMA = PREFIXES + ":S { :p ((xsd:integer))[2] }\n";
+    private static final String SCHEMA = PREFIXES + ":S { :p LIST {2} xsd:integer }\n";
 
     private static RdfArrayServer server;
     private static String root;
@@ -131,8 +131,8 @@ public class TestRdfArrayServer {
 
     // ---- SPARQL-array
 
-    @Test public void sparql_select_position_pattern() throws Exception {
-        HttpResponse<String> r = post("sparql", Map.of("data", DATA, "query", PREFIXES + "SELECT ?e { :x :p ((?e))[2] }"));
+    @Test public void sparql_select_gap_pattern() throws Exception {
+        HttpResponse<String> r = post("sparql", Map.of("data", DATA, "query", PREFIXES + "SELECT ?e { :x :p ( ?a ?e ... ) }"));
         assertEquals(r.body(), 200, r.statusCode());
         assertTrue(r.headers().firstValue("Content-Type").orElse("").startsWith("application/sparql-results+json"));
         JsonObject j = JSON.parse(r.body());
@@ -150,7 +150,7 @@ public class TestRdfArrayServer {
     }
 
     @Test public void sparql_get_with_query_string() throws Exception {
-        HttpResponse<String> r = get("sparql?data=" + enc(DATA) + "&query=" + enc(PREFIXES + "SELECT (COUNT(*) AS ?n) { ?s :p ((?e))[*] }"));
+        HttpResponse<String> r = get("sparql?data=" + enc(DATA) + "&query=" + enc(PREFIXES + "SELECT (COUNT(*) AS ?n) { ?s :p ?seq UNNEST(?seq AS ?e) }"));
         assertEquals(r.body(), 200, r.statusCode());
         assertTrue(r.body().contains("\"value\": \"5\""));
     }
@@ -162,7 +162,7 @@ public class TestRdfArrayServer {
     }
 
     @Test public void sparql_construct_returns_turtle_with_sequences() throws Exception {
-        HttpResponse<String> r = post("sparql", Map.of("data", DATA, "query", PREFIXES + "CONSTRUCT { ?s :first ?f } WHERE { ?s :p ((?f))[1] }"));
+        HttpResponse<String> r = post("sparql", Map.of("data", DATA, "query", PREFIXES + "CONSTRUCT { ?s :first ?f } WHERE { ?s :p ( ?f ... ) }"));
         assertEquals(200, r.statusCode());
         assertTrue(r.headers().firstValue("Content-Type").orElse("").startsWith("text/turtle"));
         assertTrue(r.body(), r.body().contains(":first"));
@@ -171,7 +171,7 @@ public class TestRdfArrayServer {
     }
 
     @Test public void sparql_bad_query_is_400() throws Exception {
-        HttpResponse<String> r = post("sparql", Map.of("data", DATA, "query", "SELECT ?e { :x :p ((?e))[ }"));
+        HttpResponse<String> r = post("sparql", Map.of("data", DATA, "query", "SELECT ?e { :x :p ?o BIND(?o[2:4] AS ?e) }"));
         assertEquals(400, r.statusCode());
         assertEquals("ParsingError", JSON.parse(r.body()).get("type").getAsString().value());
     }
@@ -236,7 +236,7 @@ public class TestRdfArrayServer {
     }
 
     @Test public void validate_bad_schema_is_400() throws Exception {
-        HttpResponse<String> r = post("validate", Map.of("schema", ":S { :p ((xsd:integer))[2 }", "data", DATA, "node", ":y", "shape", ":S"));
+        HttpResponse<String> r = post("validate", Map.of("schema", ":S { :p LIST xsd:integer }", "data", DATA, "node", ":y", "shape", ":S"));
         assertEquals(400, r.statusCode());
         assertEquals("ParsingError", JSON.parse(r.body()).get("type").getAsString().value());
     }
@@ -260,7 +260,7 @@ public class TestRdfArrayServer {
         HttpRequest req = HttpRequest.newBuilder(URI.create(root + "sparql"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString("{ \"data\": " + JSON.parse("{\"d\":\"" + DATA.replace("\n", "\\n").replace("\"", "\\\"") + "\"}").get("d").toString()
-                        + ", \"query\": \"PREFIX : <http://example/> SELECT ?e { :y :p ((?e))[1] }\" }")).build();
+                        + ", \"query\": \"PREFIX : <http://example/> SELECT ?e { :y :p ( ?e ... ) }\" }")).build();
         HttpResponse<String> r = client.send(req, HttpResponse.BodyHandlers.ofString());
         assertEquals(r.body(), 200, r.statusCode());
         assertTrue(r.body().contains("\"value\": \"1\""));

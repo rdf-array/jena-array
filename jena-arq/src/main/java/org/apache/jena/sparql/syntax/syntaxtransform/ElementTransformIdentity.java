@@ -51,6 +51,8 @@ public final class ElementTransformIdentity implements ElementTransform
     @Override
     public Element transform(ElementBind el, Var v, Expr expr2) { return el ; }
     @Override
+    public Element transform(ElementUnnest el, Expr expr2, Var v, Var posVar) { return el ; }
+    @Override
     public Triple transform(Triple triple) { return triple; }
     @Override
     public Quad transform(Quad quad) { return quad; }

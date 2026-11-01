@@ -237,6 +237,20 @@ public class FormatterElement extends FormatterBase implements ElementVisitor {
     }
 
     @Override
+    public void visit(ElementUnnest el) {
+        out.print("UNNEST(");
+        FmtExprSPARQL v = new FmtExprSPARQL(out, context);
+        v.format(el.getExpr());
+        out.print(" AS ");
+        out.print("?" + el.getVar().getVarName());
+        if ( el.hasPosVar() ) {
+            out.print(" AT ");
+            out.print("?" + el.getPosVar().getVarName());
+        }
+        out.print(")");
+    }
+
+    @Override
     public void visit(ElementData el) {
         QuerySerializer.outputDataBlock(out, el.getVars(), el.getRows(), context);
     }

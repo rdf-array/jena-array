@@ -25,6 +25,7 @@ TOKENS
 | <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS> | ".")* <PN_CHARS>)?>
 | <VAR1: "?" <VARNAME>>
 | <VAR2: "$" <VARNAME>>
+| <GAPVAR: "..." ("?" | "$") <VARNAME>>
 | <LANGTAG: <AT> (<A2Z>)+ ("-" (<A2ZN>)+)*>
 | <#A2Z: ["a"-"z","A"-"Z"]>
 | <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
@@ -60,6 +61,8 @@ TOKENS
 | <UNION: "union">
 | <MINUS_P: "minus">
 | <BIND: "bind">
+| <UNNEST: "unnest">
+| <AT_KW: "at">
 | <SERVICE: "service">
 | <TRIPLE: "TRIPLE">
 | <IS_TRIPLE: "isTRIPLE">
@@ -208,6 +211,7 @@ TOKENS
 | <SEMICOLON: ";">
 | <COMMA: ",">
 | <DOT: ".">
+| <ELLIPSIS: "...">
 | <EQ: "=">
 | <NE: "!=">
 | <GT: ">">
@@ -309,11 +313,12 @@ NON-TERMINALS
 	GroupGraphPattern	:=	<LBRACE> ( SubSelect | GroupGraphPatternSub ) <RBRACE>
 	GroupGraphPatternSub	:=	( TriplesBlock )? ( GraphPatternNotTriples ( <DOT> )? ( TriplesBlock )? )*
 	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
-	GraphPatternNotTriples	:=	( GroupOrUnionGraphPattern | OptionalGraphPattern | MinusGraphPattern | GraphGraphPattern | ServiceGraphPattern | Filter | Bind | InlineData )
+	GraphPatternNotTriples	:=	( GroupOrUnionGraphPattern | OptionalGraphPattern | MinusGraphPattern | GraphGraphPattern | ServiceGraphPattern | Filter | Bind | Unnest | InlineData )
 	OptionalGraphPattern	:=	<OPTIONAL> GroupGraphPattern
 	GraphGraphPattern	:=	<GRAPH> VarOrIri GroupGraphPattern
 	ServiceGraphPattern	:=	<SERVICE> ( <SILENT> )? VarOrIri GroupGraphPattern
 	Bind	:=	<BIND> <LPAREN> Expression <AS> Var <RPAREN>
+	Unnest	:=	<UNNEST> <LPAREN> Expression <AS> Var ( <AT_KW> Var )? <RPAREN>
 	InlineData	:=	<VALUES> DataBlock
 	DataBlock	:=	( InlineDataOneVar | InlineDataFull )
 	InlineDataOneVar	:=	Var <LBRACE> ( DataBlockValue )* <RBRACE>
@@ -358,18 +363,17 @@ NON-TERMINALS
 	PathNegatedPropertySet	:=	( PathOneInPropertySet | <LPAREN> ( PathOneInPropertySet ( <VBAR> PathOneInPropertySet )* )? <RPAREN> )
 	PathOneInPropertySet	:=	( iri | <KW_A> | <CARAT> ( iri | <KW_A> ) )
 	Integer	:=	<INTEGER>
-	TriplesNode	:=	SeqIndexPattern
-		|	Collection
+	TriplesNode	:=	Collection
 		|	BlankNodePropertyList
-	SeqIndexPattern	:=	<LPAREN> <LPAREN> GraphNode <RPAREN> <RPAREN> <LBRACKET> ( Var | NumericLiteral | <STAR> ) <RBRACKET>
 	BlankNodePropertyList	:=	<LBRACKET> PropertyListNotEmpty <RBRACKET>
-	TriplesNodePath	:=	SeqIndexPatternPath
-		|	CollectionPath
+	TriplesNodePath	:=	CollectionPath
 		|	BlankNodePropertyListPath
-	SeqIndexPatternPath	:=	<LPAREN> <LPAREN> GraphNodePath <RPAREN> <RPAREN> <LBRACKET> ( Var | NumericLiteral | <STAR> ) <RBRACKET>
 	BlankNodePropertyListPath	:=	<LBRACKET> PropertyListPathNotEmpty <RBRACKET>
 	Collection	:=	<LPAREN> ( GraphNode )+ <RPAREN>
-	CollectionPath	:=	<LPAREN> ( GraphNodePath )+ <RPAREN>
+	CollectionPath	:=	<LPAREN> ( SeqMemberPath )+ <RPAREN>
+	SeqMemberPath	:=	GraphNodePath
+		|	<ELLIPSIS>
+		|	<GAPVAR>
 	AnnotationPath	:=	( <L_ANN> PropertyListPathNotEmpty <R_ANN> )?
 	Annotation	:=	( <L_ANN> PropertyListNotEmpty <R_ANN> )?
 	GraphNode	:=	VarOrTerm
@@ -390,7 +394,8 @@ NON-TERMINALS
 	ConditionalOrExpression	:=	ConditionalAndExpression ( <SC_OR> ConditionalAndExpression )*
 	ConditionalAndExpression	:=	ValueLogical ( <SC_AND> ValueLogical )*
 	ValueLogical	:=	RelationalExpression
-	RelationalExpression	:=	NumericExpression ( <EQ> NumericExpression | <NE> NumericExpression | <LT> NumericExpression | <GT> NumericExpression | <LE> NumericExpression | <GE> NumericExpression | <IN> ExpressionList | <NOT> <IN> ExpressionList )?
+	RelationalExpression	:=	NumericExpression ( <EQ> NumericExpression | <NE> NumericExpression | <LT> NumericExpression | <GT> NumericExpression | <LE> NumericExpression | <GE> NumericExpression | <IN> ( ExpressionList | SeqRef ) | <NOT> <IN> ( ExpressionList | SeqRef ) )?
+	SeqRef	:=	( Var | <SEQ> ExpressionList ) ( <LBRACKET> Expression <RBRACKET> )*
 	NumericExpression	:=	AdditiveExpression
 	AdditiveExpression	:=	MultiplicativeExpression ( <PLUS> MultiplicativeExpression | <MINUS> MultiplicativeExpression | ( NumericLiteralPositive | NumericLiteralNegative ) ( ( <STAR> UnaryExpression ) | ( <SLASH> UnaryExpression ) )* )*
 	MultiplicativeExpression	:=	UnaryExpression ( <STAR> UnaryExpression | <SLASH> UnaryExpression )*
@@ -398,7 +403,7 @@ NON-TERMINALS
 		|	<PLUS> PrimaryExpression
 		|	<MINUS> PrimaryExpression
 		|	PrimaryExpression
-	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprQuotedTriple ) ( <LBRACKET> Expression <RBRACKET> )*
+	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprQuotedTriple ) ( <LBRACKET> ( <ELLIPSIS> Expression <RBRACKET> | Expression ( <RBRACKET> | <ELLIPSIS> ( Expression )? <RBRACKET> ) ) )*
 	ExprVarOrTerm	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprQuotedTriple )
 	ExprQuotedTriple	:=	<LT2> ExprVarOrTerm Verb ExprVarOrTerm <GT2>
 	BrackettedExpression	:=	<LPAREN> Expression <RPAREN>

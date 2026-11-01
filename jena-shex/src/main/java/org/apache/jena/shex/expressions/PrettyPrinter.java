@@ -45,6 +45,33 @@ public class PrettyPrinter {
         return x.asString();
     }
 
+    /** A list expression, in ShExC: {@code xsd:string ; xsd:integer *}. */
+    public static String asPrettyString(ListExpr listExpr) {
+        StringBuilder sb = new StringBuilder();
+        listExprString(sb, listExpr, true);
+        return sb.toString();
+    }
+
+    private static void listExprString(StringBuilder sb, ListExpr e, boolean top) {
+        if ( e instanceof ListMember m ) {
+            sb.append(asPrettyString(m.getShapeExpr()).trim());
+        } else {
+            boolean parens = !top || e.hasCardinality();
+            String sep = ( e instanceof ListEachOf ) ? " ; " : " | ";
+            List<ListExpr> exprs = ( e instanceof ListEachOf eo ) ? eo.getExpressions() : ((ListOneOf)e).getExpressions();
+            if ( parens ) sb.append("( ");
+            boolean first = true;
+            for ( ListExpr x : exprs ) {
+                if ( !first ) sb.append(sep);
+                first = false;
+                listExprString(sb, x, false);
+            }
+            if ( parens ) sb.append(" )");
+        }
+        if ( e.hasCardinality() )
+            sb.append(" ").append(asPrettyString(e.getCardinality()));
+    }
+
     public static String asPrettyString(TripleExpr tripleExpr) {
         IndentedLineBuffer x = new IndentedLineBuffer();
         x.setFlatMode(true);
@@ -136,9 +163,9 @@ public class PrettyPrinter {
         }
 
         @Override
-        public void visit(ShapeCollection shapeCollection) {
-            out.print("Collection" + shapeCollection.boundsString() + " ");
-            shapeCollection.getShapeExpr().visit(this);
+        public void visit(ListShape listShape) {
+            out.print("LIST ( " + asPrettyString(listShape.getExpression()) + " )");
+            out.println();
         }
 
         @Override

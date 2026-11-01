@@ -20,11 +20,13 @@ package org.apache.jena.sparql.engine;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -33,6 +35,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QueryParseException;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Model;
@@ -48,9 +51,10 @@ import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.exec.RowSet;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.update.UpdateAction;
+import org.apache.jena.update.UpdateFactory;
 import org.junit.Test;
 
-/** RDF sequences in SPARQL: sequence patterns, position patterns {@code ((x))[i]}, functions. */
+/** RDF sequences in SPARQL: sequence patterns with gaps, UNNEST, indexes, slices, IN ?seq, functions. */
 public class TestSequenceQueries {
 
     private static final String PREFIX = "PREFIX : <http://example/>\n";
@@ -119,49 +123,130 @@ public class TestSequenceQueries {
         assertEquals(uri("z"), r.get(0).get("s"));
     }
 
-    @Test public void position_constant() {
-        List<Binding> r = exec("SELECT ?e { :x :p ((?e))[2] }");
+    // ---- Gaps: "..." matches any run of members; "...?rest" also binds it, as a sequence.
+
+    @Test public void gap_first_and_last() {
+        List<Binding> r = exec("SELECT ?first ?last { :x :p ( ?first ... ?last ) }");
+        assertEquals(1, r.size());
+        assertEquals(intLit(1), r.get(0).get("first"));
+        assertEquals(intLit(3), r.get(0).get("last"));
+        // The gap may be empty.
+        assertEquals(1, exec("SELECT ?a ?b { :y :p ( ?a ... ?b ) }").size());
+        // But there must be a first and a last member.
+        assertEquals(0, exec("SELECT ?a ?b { :z :p ( ?a ... ?b ) }").size());
+    }
+
+    @Test public void gap_second_member() {
+        List<Binding> r = exec("SELECT ?e { :x :p ( ?a ?e ... ) }");
         assertEquals(1, r.size());
         assertEquals(intLit(2), r.get(0).get("e"));
-        assertEquals(0, exec("SELECT ?e { :x :p ((?e))[4] }").size());
+        assertEquals(0, exec("SELECT ?e { :x :p ( ?a ?b ?c ?e ... ) }").size());
     }
 
-    @Test public void position_variable() {
-        List<Binding> r = exec("SELECT ?i ?e { :x :p ((?e))[?i] } ORDER BY ?i");
-        assertEquals(3, r.size());
-        for ( int i = 0 ; i < 3 ; i++ ) {
-            assertEquals(intLit(i+1), r.get(i).get("i"));
-            assertEquals(intLit(i+1), r.get(i).get("e"));
-        }
-    }
-
-    @Test public void position_any() {
-        List<Binding> r = exec("SELECT ?s ?e { ?s :p ((?e))[*] } ORDER BY ?s ?e");
+    @Test public void gap_every_member() {
+        List<Binding> r = exec("SELECT ?s ?e { ?s :p ( ... ?e ... ) } ORDER BY ?s ?e");
         // :x has 3 elements, :y has 2, :z none, :w is not a sequence.
         assertEquals(5, r.size());
         assertEquals(uri("x"), r.get(0).get("s"));
         assertEquals(uri("y"), r.get(3).get("s"));
     }
 
-    @Test public void position_constant_element_pattern() {
-        // The element at position 1 must be :a.
-        assertEquals(1, exec("SELECT ?s { ?s :p ((:a))[1] }").size());
-        assertEquals(0, exec("SELECT ?s { ?s :p ((:a))[2] }").size());
+    @Test public void gap_with_constant_member() {
+        assertEquals(1, exec("SELECT ?s { ?s :p ( :a ... ) }").size());
+        assertEquals(0, exec("SELECT ?s { ?s :p ( ... :a ) }").size());
+        assertEquals(1, exec("SELECT ?s { ?s :p ( ... :a ... ) }").size());
     }
 
-    @Test public void nested_position_patterns() {
-        // Second element of the sequence, then its first element.
-        List<Binding> r = exec("SELECT ?e { :y :p ((((?e))[1]))[2] }");
+    @Test public void gaps_nested() {
+        // The first member of the second member.
+        List<Binding> r = exec("SELECT ?e { :y :p ( ?a ( ?e ... ) ... ) }");
         assertEquals(1, r.size());
         assertEquals(uri("b"), r.get(0).get("e"));
     }
 
-    @Test public void position_bound_by_earlier_pattern() {
-        Graph g = RDFParser.fromString(PREFIX+":s :p (10 20 30) ; :idx 2 .").lang(Lang.TURTLE).toGraph();
-        List<Binding> r = exec(g, "SELECT ?e { :s :idx ?i . :s :p ((?e))[?i] }");
+    @Test public void named_gap_head_and_tail() {
+        List<Binding> r = exec("SELECT ?h ?t { :x :p ( ?h ...?t ) }");
         assertEquals(1, r.size());
-        assertEquals(intLit(20), r.get(0).get("e"));
+        assertEquals(intLit(1), r.get(0).get("h"));
+        assertEquals(NodeFactory.createSeqNode(intLit(2), intLit(3)), r.get(0).get("t"));
+        List<Binding> r2 = exec("SELECT ?pre ?x { :x :p ( ...?pre ?x ... ) } ORDER BY ?x");
+        assertEquals(3, r2.size());
+        assertEquals(NodeFactory.createSeqNode(), r2.get(0).get("pre"));
+        assertEquals(NodeFactory.createSeqNode(intLit(1), intLit(2)), r2.get(2).get("pre"));
     }
+
+    @Test public void named_gap_repeated_must_match_equal_runs() {
+        Graph g = RDFParser.fromString(PREFIX+":s :p (1 2 1 2) . :t :p (1 2 2 1) .").lang(Lang.TURTLE).toGraph();
+        List<Binding> r = exec(g, "SELECT ?s ?a { ?s :p ( ...?a ...?a ) }");
+        assertEquals(1, r.size());
+        assertEquals(uri("s"), r.get(0).get("s"));
+        assertEquals(NodeFactory.createSeqNode(intLit(1), intLit(2)), r.get(0).get("a"));
+    }
+
+    @Test public void named_gap_bound_by_earlier_pattern() {
+        Graph g = RDFParser.fromString(PREFIX+":s :p (10 20 30) ; :tail (20 30) ; :other (30) .").lang(Lang.TURTLE).toGraph();
+        List<Binding> r = exec(g, "SELECT ?h { :s :tail ?t . :s :p ( ?h ...?t ) }");
+        assertEquals(1, r.size());
+        assertEquals(intLit(10), r.get(0).get("h"));
+        assertEquals(0, exec(g, "SELECT ?h { :s :other ?t . :s :p ( ?h ...?t ) }").size());
+    }
+
+    @Test public void gap_token_versus_gap_then_member() {
+        // "( ?a ... ?b )" is a gap and then a member; "( ?a ...?b )" is a named gap.
+        List<Binding> r1 = exec("SELECT ?a ?b { :x :p ( ?a ... ?b ) }");
+        assertEquals(intLit(3), r1.get(0).get("b"));
+        List<Binding> r2 = exec("SELECT ?a ?b { :x :p ( ?a ...?b ) }");
+        assertEquals(NodeFactory.createSeqNode(intLit(2), intLit(3)), r2.get(0).get("b"));
+    }
+
+    @Test public void lexing_of_ellipsis() {
+        // "1..." is 1 then a gap; ":a..." is :a then a gap; ":a...b" is one prefixed name.
+        assertEquals(1, exec("SELECT ?s { ?s :p ( 1... ) }").size());
+        assertEquals(1, exec("SELECT ?s { ?s :p ( :a... ) }").size());
+        Query q = QueryFactory.create(PREFIX+"SELECT * { ?s :p ( :a...b ) }");
+        assertTrue(q.toString(), q.toString().contains(":a...b"));
+        assertFalse(q.toString(), q.toString().contains(":a ..."));
+    }
+
+    @Test public void no_gap_in_templates_or_data() {
+        assertThrows(QueryParseException.class, () -> QueryFactory.create(PREFIX+"CONSTRUCT { ?s :p ( ?a ... ) } WHERE { ?s :p ?a }"));
+        assertThrows(QueryParseException.class, () -> UpdateFactory.create(PREFIX+"INSERT DATA { :n :p ( 1 ... ) }"));
+    }
+
+    // ---- UNNEST
+
+    @Test public void unnest_members_and_positions() {
+        List<Binding> r = exec("SELECT ?i ?e { :x :p ?seq UNNEST(?seq AS ?e AT ?i) } ORDER BY ?i");
+        assertEquals(3, r.size());
+        for ( int i = 0 ; i < 3 ; i++ ) {
+            assertEquals(intLit(i+1), r.get(i).get("i"));
+            assertEquals(intLit(i+1), r.get(i).get("e"));
+        }
+        List<Binding> r2 = exec("SELECT ?s ?e { ?s :p ?seq UNNEST(?seq AS ?e) } ORDER BY ?s");
+        assertEquals(5, r2.size());
+    }
+
+    @Test public void unnest_of_non_sequence_or_unbound_yields_nothing() {
+        assertEquals(0, exec("SELECT ?e { :w :p ?o UNNEST(?o AS ?e) }").size());
+        assertEquals(0, exec("SELECT ?e { :z :p ?o UNNEST(?o AS ?e) }").size());
+        assertEquals(0, exec("SELECT ?e { :x :p ?o UNNEST(?nothing AS ?e) }").size());
+        assertEquals(0, exec("SELECT ?e { :x :p ?o UNNEST(?o[7] AS ?e) }").size());
+    }
+
+    @Test public void unnest_of_an_expression() {
+        List<Binding> r = exec("SELECT ?e ?i { UNNEST(SEQ(:a, :b) AS ?e AT ?i) } ORDER BY ?i");
+        assertEquals(2, r.size());
+        assertEquals(uri("b"), r.get(1).get("e"));
+    }
+
+    @Test public void unnest_joins_with_an_already_bound_variable() {
+        // ?e bound earlier: keep the members equal to it.
+        List<Binding> r = exec("SELECT ?i { VALUES ?e { 2 } :x :p ?seq UNNEST(?seq AS ?e AT ?i) }");
+        assertEquals(1, r.size());
+        assertEquals(intLit(2), r.get(0).get("i"));
+    }
+
+    // ---- Expressions: index, slices, IN ?seq
 
     @Test public void functions_seqlen_isseq_index() {
         List<Binding> r = exec("SELECT ?s ?n ?second ?isseq { ?s :p ?seq . FILTER(isSEQ(?seq)) BIND(SEQLEN(?seq) AS ?n) BIND(?seq[2] AS ?second) BIND(isSEQ(?seq) AS ?isseq) } ORDER BY ?n");
@@ -188,6 +273,51 @@ public class TestSequenceQueries {
         List<Binding> r = exec("SELECT ?e { :y :p ?seq BIND(?seq[2][1] AS ?e) }");
         assertEquals(1, r.size());
         assertEquals(uri("b"), r.get(0).get("e"));
+    }
+
+    @Test public void slices() {
+        List<Binding> r = exec("SELECT ?a ?b ?c ?d ?e { :x :p ?s BIND(?s[2...3] AS ?a) BIND(?s[2...] AS ?b) BIND(?s[...2] AS ?c)"
+                               + " BIND(?s[2...9] AS ?d) BIND(?s[3...2] AS ?e) }");
+        assertEquals(1, r.size());
+        assertEquals(NodeFactory.createSeqNode(intLit(2), intLit(3)), r.get(0).get("a"));
+        assertEquals(NodeFactory.createSeqNode(intLit(2), intLit(3)), r.get(0).get("b"));
+        assertEquals(NodeFactory.createSeqNode(intLit(1), intLit(2)), r.get(0).get("c"));
+        assertEquals(NodeFactory.createSeqNode(intLit(2), intLit(3)), r.get(0).get("d"));    // clamped
+        assertEquals(NodeFactory.createSeqNode(), r.get(0).get("e"));                        // empty range
+        // Clamped: ()[2...] is ().
+        List<Binding> r2 = exec("SELECT ?a { :z :p ?s BIND(?s[2...] AS ?a) }");
+        assertEquals(NodeFactory.createSeqNode(), r2.get(0).get("a"));
+        // Errors leave the variable unbound: not a sequence, from < 1, a non-integer bound.
+        List<Binding> r3 = exec("SELECT ?a ?b ?c { :x :p ?s . :w :p ?w BIND(?w[1...2] AS ?a) BIND(?s[0...2] AS ?b) BIND(?s[1...'2'] AS ?c) }");
+        assertFalse(r3.get(0).contains("a"));
+        assertFalse(r3.get(0).contains("b"));
+        assertFalse(r3.get(0).contains("c"));
+        // The ends are expressions; a slice may be indexed.
+        List<Binding> r4 = exec("SELECT ?a ?b { :x :p ?s BIND(?s[SEQLEN(?s) - 1 ... SEQLEN(?s)] AS ?a) BIND(?s[2...][1] AS ?b) }");
+        assertEquals(NodeFactory.createSeqNode(intLit(2), intLit(3)), r4.get(0).get("a"));
+        assertEquals(intLit(2), r4.get(0).get("b"));
+    }
+
+    @Test public void slice_syntax_errors() {
+        // "[...]" alone is not a slice; "[2:4]" lexes ":4" as a prefixed name.
+        assertThrows(QueryParseException.class, () -> QueryFactory.create(PREFIX+"SELECT * { ?s :p ?o BIND(?o[...] AS ?x) }"));
+        assertThrows(QueryParseException.class, () -> QueryFactory.create(PREFIX+"SELECT * { ?s :p ?o BIND(?o[2:4] AS ?x) }"));
+    }
+
+    @Test public void in_sequence() {
+        assertEquals(1, exec("SELECT ?s { ?s :p ?seq FILTER(2 IN ?seq) }").size());
+        assertEquals(2, exec("SELECT ?s { ?s :p ?seq FILTER(isSEQ(?seq) && 2 NOT IN ?seq) }").size());
+        // The needle may be a sequence; the right-hand side may be SEQ(...) or indexed.
+        assertEquals(1, exec("SELECT ?s { ?s :p ?seq FILTER(SEQ(:b, :c) IN ?seq) }").size());
+        assertEquals(1, exec("SELECT ?s { ?s :p ?seq FILTER(:c IN ?seq[2]) }").size());
+        assertEquals(1, exec("SELECT ?s { ?s :p ?seq FILTER(?seq IN SEQ(SEQ(1, 2, 3))) }").size());
+        // A member not comparable with the needle is not equal to it.
+        assertEquals(1, exec("SELECT ?s { ?s :p ?seq FILTER(:a IN ?seq) }").size());
+        // Not a sequence: an error, so the filter fails.
+        assertEquals(0, exec("SELECT ?s { :w :p ?o FILTER(1 IN ?o) }").size());
+        // "IN ( ... )" keeps its SPARQL 1.1 meaning: ?o IN (?seq) asks whether ?o equals ?seq.
+        assertEquals(0, exec("SELECT ?s { ?s :p ?seq FILTER(2 IN (?seq)) }").size());
+        assertEquals(4, exec("SELECT ?s { ?s :p ?seq FILTER(?seq IN (?seq)) }").size());
     }
 
     @Test public void seq_constructor() {
@@ -220,7 +350,7 @@ public class TestSequenceQueries {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         UpdateAction.parseExecute(PREFIX+"INSERT DATA { :n :p (4 5) . :n :q () }", dsg);
         assertEquals(2, dsg.getDefaultGraph().size());
-        assertEquals(1, exec(dsg.getDefaultGraph(), "SELECT ?e { :n :p ((?e))[2] }").size());
+        assertEquals(1, exec(dsg.getDefaultGraph(), "SELECT ?e { :n :p ( ... ?e ) FILTER(?e = 5) }").size());
         UpdateAction.parseExecute(PREFIX+"DELETE DATA { :n :p (4 5) }", dsg);
         assertEquals(1, dsg.getDefaultGraph().size());
     }
@@ -228,7 +358,7 @@ public class TestSequenceQueries {
     @Test public void dataset_quad_matching() {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         RDFParser.fromString(PREFIX+":g { :x :p (1 2 3) } :h { :y :p (7 8) }").lang(Lang.TRIG).parse(dsg);
-        Query query = QueryFactory.create(PREFIX+"SELECT ?g ?e { GRAPH ?g { ?s :p ((?e))[2] } } ORDER BY ?g");
+        Query query = QueryFactory.create(PREFIX+"SELECT ?g ?e { GRAPH ?g { ?s :p ( ?a ?e ... ) } } ORDER BY ?g");
         try ( QueryExec qExec = QueryExec.dataset(dsg).query(query).build() ) {
             List<Binding> r = new ArrayList<>();
             qExec.select().forEachRemaining(r::add);
@@ -241,22 +371,60 @@ public class TestSequenceQueries {
     }
 
     @Test public void query_serialization_round_trip() {
-        Query q1 = QueryFactory.create(PREFIX+"SELECT * { ?s :p ((?e))[2] ; :q (1 ?x ()) ; :r ((?z))[*] ; :t ((?z))[?i] FILTER(?x[1] = SEQLEN(?z)) }");
+        Query q1 = QueryFactory.create(PREFIX+"SELECT * { ?s :p ( ?a ?e ... ) ; :q (1 ?x ()) ; :r ( ... ?z ...?rest ) ; :t ( ?h ...?t ) ."
+                                       + " UNNEST(?z AS ?m AT ?i) UNNEST(?rest AS ?n)"
+                                       + " FILTER(?x[1] = SEQLEN(?z) && ?m IN ?rest && ?m NOT IN SEQ(1, 2)[1] && ?x IN (?z))"
+                                       + " BIND(?z[2...3] AS ?s1) BIND(?z[2...] AS ?s2) BIND(?z[...2] AS ?s3) BIND(SEQ(?s1, ?s2) AS ?s4) }");
         String str = q1.toString();
-        assertTrue(str, str.contains("((?e))[2]"));
+        assertTrue(str, str.contains("( ?a ?e ... )"));
+        assertTrue(str, str.contains("( ... ?z ...?rest )"));
+        assertTrue(str, str.contains("UNNEST(?z AS ?m AT ?i)"));
+        assertTrue(str, str.contains("UNNEST(?rest AS ?n)"));
+        assertTrue(str, str.contains("?z[2...3]"));
+        assertTrue(str, str.contains("?z[2...]"));
+        assertTrue(str, str.contains("?z[...2]"));
+        assertTrue(str, str.contains("SEQ(?s1, ?s2)"));
         Query q2 = QueryFactory.create(str);
         assertEquals(q1, q2);
     }
 
     @Test public void algebra_sse_round_trip() {
-        Query q = QueryFactory.create(PREFIX+"SELECT * { ?s :p ((?e))[2] ; :q (1 ?x ()) ; :r ((?z))[*] FILTER(?x[1] = SEQLEN(?z) && isSEQ(SEQ(1))) }");
+        Query q = QueryFactory.create(PREFIX+"SELECT * { ?s :p ( ?a ?e ... ) ; :q (1 ?x ()) ; :r ( ...?pre ?z ... )"
+                                      + " UNNEST(?z AS ?m AT ?i) UNNEST(?pre AS ?n)"
+                                      + " FILTER(?x[1] = SEQLEN(?z) && isSEQ(SEQ(1)) && ?m IN ?pre && ?m NOT IN ?pre)"
+                                      + " BIND(?z[2...3] AS ?s1) BIND(?z[2...] AS ?s2) BIND(?z[...2] AS ?s3) }");
         Op op1 = Algebra.compile(q);
         String sse = op1.toString();
-        assertTrue(sse, sse.contains("(seqpos ?e 2)"));
-        assertTrue(sse, sse.contains("(seqpos ?z ANY)"));
+        assertTrue(sse, sse.contains("(seqterm ?a ?e (seqgap))"));
+        assertTrue(sse, sse.contains("(seqterm (seqgap ?pre) ?z (seqgap))"));
         assertTrue(sse, sse.replaceAll("\\s+", " ").contains("(seqterm 1 ?x (seqterm))"));
+        assertTrue(sse, sse.contains("(unnest (?m ?i) ?z"));
+        assertTrue(sse, sse.contains("(unnest (?n) ?pre"));
+        assertTrue(sse, sse.contains("(seqSlice ?z 2 3)"));
+        assertTrue(sse, sse.contains("(seqSliceFrom ?z 2)"));
+        assertTrue(sse, sse.contains("(seqSliceTo ?z 2)"));
+        assertTrue(sse, sse.contains("(inSeq ?m ?pre)"));
+        assertTrue(sse, sse.contains("(notInSeq ?m ?pre)"));
         Op op2 = SSE.parseOp(sse);
         assertEquals(op1, op2);
+    }
+
+    @Test public void algebra_optimizer_and_reference_engine() {
+        // The optimizer (filter placement, variable renaming in sub-queries) and the reference
+        // engine see the new operator and terms.
+        Query q = QueryFactory.create(PREFIX+"SELECT ?s ?i { { SELECT ?s ?seq { ?s :p ?seq FILTER(isSEQ(?seq)) } }"
+                                      + " UNNEST(?seq AS ?e AT ?i) FILTER(?e = 2) ?s :p ( ... ?e ... ) }");
+        Op op = Algebra.optimize(Algebra.compile(q));
+        assertTrue(op.toString(), op.toString().contains("unnest"));
+        List<Binding> r = exec(q.toString());
+        assertEquals(1, r.size());
+        assertEquals(intLit(2), r.get(0).get("i"));
+        try ( QueryExec qExec = QueryExec.graph(data()).query(q).set(org.apache.jena.query.ARQ.optimization, false).build() ) {
+            assertEquals(1, Iter.count(qExec.select()));
+        }
+        Op opRef = Algebra.compile(q);
+        QueryIterator qIter = Algebra.execRef(opRef, DatasetGraphFactory.wrap(data()));
+        assertEquals(1, Iter.count(qIter));
     }
 
     @Test public void json_results_carry_sequences() {

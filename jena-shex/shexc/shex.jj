@@ -167,18 +167,15 @@ void shapeNot() : { int idx; boolean negate = false; }
     { finishShapeNot(idx,negate); }
 }
 
-void shapeAtom() : { int idx; Cardinality card = null; }
+void shapeAtom() : { int idx; }
 {
     { idx = startShapeAtom(); }
       // No literals-as-subjects.
     ( nonLitOutlineNodeConstraint() (shapeOrRef())?
     | litOutlineNodeConstraint()
     | shapeOrRef() (nonLitOutlineNodeConstraint())?
-    // RDF sequences: ((shapeExpr))[min, max] - a Collection shape expression.
-    | LOOKAHEAD( <LPAREN> <LPAREN> shapeExpression() <RPAREN> <RPAREN> )
-      <LPAREN> <LPAREN> shapeExpression() <RPAREN> <RPAREN>
-      ( card = collectionBounds() )?
-      { finishShapeCollection(card); }
+    // RDF sequences: the LIST shape expression.
+    | listShape()
     | <LPAREN> shapeExpression() <RPAREN>
     | <DOT> { shapeAtomDOT(); }
     )
@@ -226,19 +223,96 @@ void inlineShapeNot() : { int idx; boolean negate = false; }
     { finishInlineShapeNot(idx, negate); }
 }
 
-void inlineShapeAtom() : { int idx; Cardinality card = null; }
+void inlineShapeAtom() : { int idx; }
 {
   { idx = startInlineShapeAtom(); }
     // No literals-as-subjects.
   ( nonLitInlineNodeConstraint() (inlineShapeOrRef())?
   | litInlineNodeConstraint()
   | inlineShapeOrRef() (nonLitInlineNodeConstraint())?
-  // RDF sequences: ((shapeExpr))[min, max] - a Collection shape expression.
-  | LOOKAHEAD( <LPAREN> <LPAREN> shapeExpression() <RPAREN> <RPAREN> )
-    <LPAREN> <LPAREN> shapeExpression() <RPAREN> <RPAREN>
-    ( card = collectionBounds() )?
-    { finishShapeCollection(card); }
+  // RDF sequences: the LIST shape expression.
+  | listShape()
   | <LPAREN> shapeExpression() <RPAREN>
+  | <DOT> { shapeAtomDOT(); }
+  )
+  { finishInlineShapeAtom(idx); }
+}
+
+// RDF sequences: the LIST shape expression.
+//   LIST ( listOneOf )          a regular expression over the members
+//   LIST cardinality inlineShapeAtom   that many members, each matching the atom (= LIST ( atom cardinality ))
+// Inside LIST ( ), a '(' always opens a group; a member is an inline shape expression whose
+// first atom is not parenthesised.
+void listShape() : { Cardinality card; ListExpr e; }
+{
+    <LIST>
+    ( <LPAREN> e = listOneOf() <RPAREN>
+      { finishListShape(e); }
+    | card = cardinality() inlineShapeAtom()
+      { finishListShapeCard(card); }
+    )
+}
+
+ListExpr listOneOf() : { ListExpr e; List<ListExpr> exprs = new ArrayList<ListExpr>(); }
+{
+    e = listEachOf() { exprs.add(e); }
+    ( <VBAR> e = listEachOf() { exprs.add(e); } )*
+    { return mkListOneOf(exprs); }
+}
+
+ListExpr listEachOf() : { ListExpr e; List<ListExpr> exprs = new ArrayList<ListExpr>(); }
+{
+    e = listUnary() { exprs.add(e); }
+    ( <SEMI_COLON> e = listUnary() { exprs.add(e); } )*
+    { return mkListEachOf(exprs); }
+}
+
+ListExpr listUnary() : { ListExpr e; Cardinality card = null; }
+{
+    e = listMember()
+    ( card = cardinality() )?
+    { return mkListUnary(e, card); }
+}
+
+ListExpr listMember() : { ListExpr e; }
+{
+    <LPAREN> e = listOneOf() <RPAREN>
+    { return e; }
+  | listMemberOr()
+    { return mkListMember(); }
+}
+
+// inlineShapeOr/And/Not/Atom, except that the first atom may not be parenthesised.
+void listMemberOr() : { int idx; }
+{
+    { idx = startInlineShapeOr(); }
+    listMemberAnd() (<OR> inlineShapeAnd())*
+    { finishInlineShapeOr(idx); }
+}
+
+void listMemberAnd() : { int idx; }
+{
+    { idx = startInlineShapeAnd(); }
+    listMemberNot() (<AND> inlineShapeNot())*
+    { finishInlineShapeAnd(idx); }
+}
+
+void listMemberNot() : { int idx; boolean negate = false; }
+{
+    { idx = startInlineShapeNot(); }
+    ( listMemberAtom()
+    | <NOT> { negate = true; } inlineShapeAtom()
+    )
+    { finishInlineShapeNot(idx, negate); }
+}
+
+void listMemberAtom() : { int idx; }
+{
+  { idx = startInlineShapeAtom(); }
+  ( nonLitInlineNodeConstraint() (inlineShapeOrRef())?
+  | litInlineNodeConstraint()
+  | inlineShapeOrRef() (nonLitInlineNodeConstraint())?
+  | listShape()
   | <DOT> { shapeAtomDOT(); }
   )
   { finishInlineShapeAtom(idx); }
@@ -518,17 +592,6 @@ Cardinality cardinality() : {}
 {
    	( <STAR> | <PLUS>| <QMARK> | <REPEAT_RANGE> )
     { return cardinalityRange(token.image, token.beginLine, token.beginColumn); }
-}
-
-// RDF sequences: the bounds of a Collection shape expression.
-// [m] exactly m elements; [m, n] between m and n; [m, *] or [m,] at least m.
-Cardinality collectionBounds() : { Token t1 ; Token t2 = null ; boolean comma = false ; boolean star = false ; }
-{
-    <LBRACKET>
-    t1 = <INTEGER>
-    ( <COMMA> { comma = true ; } ( t2 = <INTEGER> | <STAR> { star = true ; } )? )?
-    <RBRACKET>
-    { return collectionBounds(t1.image, comma, (t2 == null) ? null : t2.image, star, t1.beginLine, t1.beginColumn); }
 }
 
 boolean senseFlags() : {}
@@ -980,6 +1043,7 @@ TOKEN [IGNORE_CASE] :
 | <AND              : "and" >
 
 | <LITERAL          : "literal">
+| <LIST             : "list">
 | <IRI              : "iri" >
 | <BNODE            : "bnode" >
 | <NONLITERAL       : "nonliteral" >

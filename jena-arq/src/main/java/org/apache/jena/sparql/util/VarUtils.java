@@ -64,9 +64,9 @@ public class VarUtils {
         } else if ( n.isNodeSeq() ) {
             for ( Node elt : n.getSeq() )
                 addVar(acc, elt);
-        } else if ( n instanceof Node_SeqIndex sx ) {
-            addVar(acc, sx.getElement());
-            addVar(acc, sx.getIndex());
+        } else if ( n instanceof Node_SeqGap gap ) {
+            if ( gap.isNamed() )
+                acc.add(gap.getVar());
         }
     }
 

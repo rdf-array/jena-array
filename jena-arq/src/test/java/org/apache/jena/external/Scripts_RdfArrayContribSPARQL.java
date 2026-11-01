@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 /**
  * rdf-array: the SPARQL-array tests of rdf-tests-contrib
  * (https://github.com/rdf-array/rdf-tests-contrib), copied into testing/rdf-array by its
- * update.sh: sequence and position patterns, the sequence functions, update, syntax and the
+ * update.sh: sequence and gap patterns, UNNEST, the sequence functions, update, syntax and the
  * result formats.
  */
 @RunWith(RunnerSPARQL.class)
