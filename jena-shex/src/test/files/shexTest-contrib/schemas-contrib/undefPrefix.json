@@ -1,0 +1,35 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/S1",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/p1",
+          "valueExpr": {
+            "type": "ListShape",
+            "expression": {
+              "type": "ListEachOf",
+              "expressions": [
+                {
+                  "type": "Member",
+                  "shapeExpr": {
+                    "type": "NodeConstraint",
+                    "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+                  }
+                },
+                {
+                  "type": "Undef"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

@@ -373,7 +373,7 @@ public class ShapeExprEval {
 
     /**
      * Matches the members of a sequence against a list expression (a regular
-     * expression over shape expressions). {@link #ends} is the set of positions at
+     * expression over shape expressions and undef). {@link #ends} is the set of positions at
      * which an expression, started at a position, can stop. The match succeeds when
      * the whole expression can stop at the end of the sequence.
      */
@@ -392,7 +392,10 @@ public class ShapeExprEval {
             this.reporter = reporter;
         }
 
+        // No shape expression is met at an empty slot, . and NOT included: only undef matches one.
         private boolean memberSatisfies(int j, ShapeExpr se) {
+            if ( members.get(j).isNodeUndef() )
+                return false;
             Map<ShapeExpr, Boolean> row = cache.computeIfAbsent(j, k -> new HashMap<>());
             Boolean b = row.get(se);
             if ( b == null ) {
@@ -411,6 +414,13 @@ public class ShapeExprEval {
             if ( e instanceof ListMember m ) {
                 if ( j < members.size() && memberSatisfies(j, m.getShapeExpr()) )
                     return Set.of(j+1);
+                return Set.of();
+            }
+            if ( e instanceof ListUndef ) {
+                if ( j < members.size() && members.get(j).isNodeUndef() ) {
+                    furthest = Math.max(furthest, j+1);
+                    return Set.of(j+1);
+                }
                 return Set.of();
             }
             if ( e instanceof ListOneOf oneOf ) {

@@ -33,6 +33,15 @@
         <#listPairs>
         <#listIntsOrPairs>
         <#listTree>
+        <#undefIntOrSlot>
+        <#undefTuple>
+        <#undefShorthand>
+        <#undefCount>
+        <#undefUpperCase>
+        <#undefNested>
+        <#undefTripleCard>
+        <#undefPrefix>
+        <#undefWholeValue>
     ) .
 
 <#listRef1to2> a sht:RepresentationTest ;
@@ -253,4 +262,94 @@
     sx:shex <listTree.shex> ;
     sx:json <listTree.json> ;
     sx:ttl <listTree.ttl> ;
+    .
+
+<#undefIntOrSlot> a sht:RepresentationTest ;
+    mf:name "undefIntOrSlot" ;
+    rdfs:comment "any number of members, each an integer or an empty slot" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefIntOrSlot.shex> ;
+    sx:json <undefIntOrSlot.json> ;
+    sx:ttl <undefIntOrSlot.ttl> ;
+    .
+
+<#undefTuple> a sht:RepresentationTest ;
+    mf:name "undefTuple" ;
+    rdfs:comment "a string, an empty slot, an integer" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefTuple.shex> ;
+    sx:json <undefTuple.json> ;
+    sx:ttl <undefTuple.ttl> ;
+    .
+
+<#undefShorthand> a sht:RepresentationTest ;
+    mf:name "undefShorthand" ;
+    rdfs:comment "any number of empty slots: undef in the LIST card x form" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefShorthand.shex> ;
+    sx:json <undefShorthand.json> ;
+    sx:ttl <undefShorthand.ttl> ;
+    .
+
+<#undefCount> a sht:RepresentationTest ;
+    mf:name "undefCount" ;
+    rdfs:comment "exactly two empty slots" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefCount.shex> ;
+    sx:json <undefCount.json> ;
+    sx:ttl <undefCount.ttl> ;
+    .
+
+<#undefUpperCase> a sht:RepresentationTest ;
+    mf:name "undefUpperCase" ;
+    rdfs:comment "an optional empty slot then an integer; undef in any case" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefUpperCase.shex> ;
+    sx:json <undefUpperCase.json> ;
+    sx:ttl <undefUpperCase.ttl> ;
+    .
+
+<#undefNested> a sht:RepresentationTest ;
+    mf:name "undefNested" ;
+    rdfs:comment "rows of two members, each an integer or an empty slot" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefNested.shex> ;
+    sx:json <undefNested.json> ;
+    sx:ttl <undefNested.ttl> ;
+    .
+
+<#undefTripleCard> a sht:RepresentationTest ;
+    mf:name "undefTripleCard" ;
+    rdfs:comment "LIST ( x | undef ) * is one member, and its * counts the triples" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefTripleCard.shex> ;
+    sx:json <undefTripleCard.json> ;
+    sx:ttl <undefTripleCard.ttl> ;
+    .
+
+<#undefPrefix> a sht:RepresentationTest ;
+    mf:name "undefPrefix" ;
+    rdfs:comment "undef:p1 is a prefixed name and undef alone a slot" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefPrefix.shex> ;
+    sx:json <undefPrefix.json> ;
+    sx:ttl <undefPrefix.ttl> ;
+    .
+
+<#undefWholeValue> a sht:RepresentationTest ;
+    mf:name "undefWholeValue" ;
+    rdfs:comment "a sequence is a value of a triple constraint, whatever it holds" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefWholeValue.shex> ;
+    sx:json <undefWholeValue.json> ;
+    sx:ttl <undefWholeValue.ttl> ;
     .

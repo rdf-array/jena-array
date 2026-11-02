@@ -55,6 +55,8 @@ public class PrettyPrinter {
     private static void listExprString(StringBuilder sb, ListExpr e, boolean top) {
         if ( e instanceof ListMember m ) {
             sb.append(asPrettyString(m.getShapeExpr()).trim());
+        } else if ( e instanceof ListUndef ) {
+            sb.append("undef");
         } else {
             boolean parens = !top || e.hasCardinality();
             String sep = ( e instanceof ListEachOf ) ? " ; " : " | ";

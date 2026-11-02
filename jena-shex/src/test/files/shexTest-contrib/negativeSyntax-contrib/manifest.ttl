@@ -17,6 +17,13 @@
         <#listComma>
         <#listAfterExtends>
         <#listOldBounds>
+        <#undefOr>
+        <#undefOrFirst>
+        <#undefAnd>
+        <#undefNot>
+        <#undefValueExpr>
+        <#undefDecl>
+        <#undefBareList>
     ) .
 
 <#listBare> a sht:NegativeSyntax ;
@@ -65,4 +72,60 @@
     mf:status mf:Proposed ;
     mf:requires ra:ListShapeExpression ;
     sx:shex <listOldBounds.shex> ;
+    .
+
+<#undefOr> a sht:NegativeSyntax ;
+    mf:name "undefOr" ;
+    rdfs:comment "undef is not a shape expression: write | " ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefOr.shex> ;
+    .
+
+<#undefOrFirst> a sht:NegativeSyntax ;
+    mf:name "undefOrFirst" ;
+    rdfs:comment "undef is not a shape expression: it takes no OR" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefOrFirst.shex> ;
+    .
+
+<#undefAnd> a sht:NegativeSyntax ;
+    mf:name "undefAnd" ;
+    rdfs:comment "undef is not a shape expression: it takes no AND" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefAnd.shex> ;
+    .
+
+<#undefNot> a sht:NegativeSyntax ;
+    mf:name "undefNot" ;
+    rdfs:comment "undef is not a shape expression: it takes no NOT" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefNot.shex> ;
+    .
+
+<#undefValueExpr> a sht:NegativeSyntax ;
+    mf:name "undefValueExpr" ;
+    rdfs:comment "undef stands only in place of a list member, not as a value expression" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefValueExpr.shex> ;
+    .
+
+<#undefDecl> a sht:NegativeSyntax ;
+    mf:name "undefDecl" ;
+    rdfs:comment "undef is not a shape declaration" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefDecl.shex> ;
+    .
+
+<#undefBareList> a sht:NegativeSyntax ;
+    mf:name "undefBareList" ;
+    rdfs:comment "a bare LIST x, as with any member" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    sx:shex <undefBareList.shex> ;
     .

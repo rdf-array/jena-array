@@ -67,6 +67,33 @@
         <#listIntsOrPairs_m1_fail>
         <#listTree_tree_pass>
         <#listTree_m1_fail>
+        <#listInt_undef_fail>
+        <#listDot_undef_fail>
+        <#listNotInt_undef_fail>
+        <#listInt2_undef_fail>
+        <#listNested_undef_fail>
+        <#undefIntOrSlot_mixed_pass>
+        <#undefIntOrSlot_dense_pass>
+        <#undefIntOrSlot_allSlots_pass>
+        <#undefIntOrSlot_empty_pass>
+        <#undefIntOrSlot_string_fail>
+        <#undefTuple_pass>
+        <#undefTuple_value_fail>
+        <#undefTuple_short_fail>
+        <#undefShorthand_pass>
+        <#undefShorthand_empty_pass>
+        <#undefShorthand_value_fail>
+        <#undefCount_two_pass>
+        <#undefCount_one_fail>
+        <#undefCount_three_fail>
+        <#undefUpperCase_slot_pass>
+        <#undefUpperCase_none_pass>
+        <#undefNested_pass>
+        <#undefNested_short_fail>
+        <#undefTripleCard_slot_pass>
+        <#undefTripleCard_two_fail>
+        <#undefPrefix_pass>
+        <#undefWholeValue_pass>
     ) .
 
 <#listRef1to2_two_pass> a sht:ValidationTest ;
@@ -794,5 +821,356 @@
       sht:shape <http://a.example/Matrix> ;
       sht:data <listTree_m1_fail.ttl> ;
       sht:focus <http://a.example/m1>
+    ]
+    .
+
+<#listInt_undef_fail> a sht:ValidationFailure ;
+    mf:name "listInt_undef_fail" ;
+    rdfs:comment "a slot does not satisfy xsd:integer" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/listInt.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <listInt_undef_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#listDot_undef_fail> a sht:ValidationFailure ;
+    mf:name "listDot_undef_fail" ;
+    rdfs:comment "a slot does not satisfy ." ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/listDot.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <listDot_undef_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#listNotInt_undef_fail> a sht:ValidationFailure ;
+    mf:name "listNotInt_undef_fail" ;
+    rdfs:comment "a slot does not satisfy NOT xsd:integer" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/listNotInt.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <listNotInt_undef_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#listInt2_undef_fail> a sht:ValidationFailure ;
+    mf:name "listInt2_undef_fail" ;
+    rdfs:comment "the length is right and the slot is not an integer" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/listInt2.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <listInt2_undef_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#listNested_undef_fail> a sht:ValidationFailure ;
+    mf:name "listNested_undef_fail" ;
+    rdfs:comment "a slot at depth two does not satisfy @:T" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/listNested.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <listNested_undef_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefIntOrSlot_mixed_pass> a sht:ValidationTest ;
+    mf:name "undefIntOrSlot_mixed_pass" ;
+    rdfs:comment "undef matches the slot" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefIntOrSlot.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefIntOrSlot_mixed_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefIntOrSlot_dense_pass> a sht:ValidationTest ;
+    mf:name "undefIntOrSlot_dense_pass" ;
+    rdfs:comment "undef allows a slot and does not require one" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefIntOrSlot.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefIntOrSlot_dense_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefIntOrSlot_allSlots_pass> a sht:ValidationTest ;
+    mf:name "undefIntOrSlot_allSlots_pass" ;
+    rdfs:comment "nothing but slots" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefIntOrSlot.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefIntOrSlot_allSlots_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefIntOrSlot_empty_pass> a sht:ValidationTest ;
+    mf:name "undefIntOrSlot_empty_pass" ;
+    rdfs:comment "the empty sequence" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefIntOrSlot.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefIntOrSlot_empty_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefIntOrSlot_string_fail> a sht:ValidationFailure ;
+    mf:name "undefIntOrSlot_string_fail" ;
+    rdfs:comment "a string is neither an integer nor a slot" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefIntOrSlot.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefIntOrSlot_string_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefTuple_pass> a sht:ValidationTest ;
+    mf:name "undefTuple_pass" ;
+    rdfs:comment "a slot at the second position" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefTuple.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefTuple_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefTuple_value_fail> a sht:ValidationFailure ;
+    mf:name "undefTuple_value_fail" ;
+    rdfs:comment "undef does not match a value" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefTuple.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefTuple_value_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefTuple_short_fail> a sht:ValidationFailure ;
+    mf:name "undefTuple_short_fail" ;
+    rdfs:comment "undef does not match an absence: a slot counts" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefTuple.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefTuple_short_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefShorthand_pass> a sht:ValidationTest ;
+    mf:name "undefShorthand_pass" ;
+    rdfs:comment "LIST * undef over slots" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefShorthand.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefShorthand_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefShorthand_empty_pass> a sht:ValidationTest ;
+    mf:name "undefShorthand_empty_pass" ;
+    rdfs:comment "LIST * undef over the empty sequence" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefShorthand.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefShorthand_empty_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefShorthand_value_fail> a sht:ValidationFailure ;
+    mf:name "undefShorthand_value_fail" ;
+    rdfs:comment "a member that is not a slot" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefShorthand.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefShorthand_value_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefCount_two_pass> a sht:ValidationTest ;
+    mf:name "undefCount_two_pass" ;
+    rdfs:comment "two slots" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefCount.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefCount_two_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefCount_one_fail> a sht:ValidationFailure ;
+    mf:name "undefCount_one_fail" ;
+    rdfs:comment "one slot is too few" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefCount.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefCount_one_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefCount_three_fail> a sht:ValidationFailure ;
+    mf:name "undefCount_three_fail" ;
+    rdfs:comment "three slots are too many" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefCount.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefCount_three_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefUpperCase_slot_pass> a sht:ValidationTest ;
+    mf:name "undefUpperCase_slot_pass" ;
+    rdfs:comment "the optional slot taken" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefUpperCase.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefUpperCase_slot_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefUpperCase_none_pass> a sht:ValidationTest ;
+    mf:name "undefUpperCase_none_pass" ;
+    rdfs:comment "the optional slot left out" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefUpperCase.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefUpperCase_none_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefNested_pass> a sht:ValidationTest ;
+    mf:name "undefNested_pass" ;
+    rdfs:comment "slots at depth two" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefNested.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefNested_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefNested_short_fail> a sht:ValidationFailure ;
+    mf:name "undefNested_short_fail" ;
+    rdfs:comment "a row of one" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefNested.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefNested_short_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefTripleCard_slot_pass> a sht:ValidationTest ;
+    mf:name "undefTripleCard_slot_pass" ;
+    rdfs:comment "two triples, each with a list of one" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefTripleCard.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefTripleCard_slot_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefTripleCard_two_fail> a sht:ValidationFailure ;
+    mf:name "undefTripleCard_two_fail" ;
+    rdfs:comment "the * is not on the members: a list of two does not fit" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefTripleCard.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefTripleCard_two_fail.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefPrefix_pass> a sht:ValidationTest ;
+    mf:name "undefPrefix_pass" ;
+    rdfs:comment "the prefix undef: and the slot side by side" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefPrefix.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefPrefix_pass.ttl> ;
+      sht:focus <http://a.example/n1>
+    ]
+    .
+
+<#undefWholeValue_pass> a sht:ValidationTest ;
+    mf:name "undefWholeValue_pass" ;
+    rdfs:comment ". is met by the sequence; only its members are subject to the slot rule" ;
+    mf:status mf:Proposed ;
+    mf:requires ra:ListShapeExpression, ra:UndefSlots ;
+    mf:action [
+      sht:schema <../schemas-contrib/undefWholeValue.shex> ;
+      sht:shape <http://a.example/S1> ;
+      sht:data <undefWholeValue_pass.ttl> ;
+      sht:focus <http://a.example/n1>
     ]
     .

@@ -12,4 +12,8 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   mf:include <ladder-in-001.ttl> ;
   mf:include <in-empty-001.ttl> ;
   mf:include <xone-empty-001.ttl> ;
+  mf:include <undef-value-nodeKind-001.ttl> ;
+  mf:include <undef-in-001.ttl> ;
+  mf:include <undef-or-001.ttl> ;
+  mf:include <undef-ignoredProperties-001.ttl> ;
 .

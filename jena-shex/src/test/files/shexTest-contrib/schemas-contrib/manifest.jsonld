@@ -208,6 +208,87 @@
           "shex": "listTree.shex",
           "json": "listTree.json",
           "ttl": "listTree.ttl"
+        },
+        {
+          "@id": "#undefIntOrSlot",
+          "@type": "sht:RepresentationTest",
+          "name": "undefIntOrSlot",
+          "status": "mf:Proposed",
+          "shex": "undefIntOrSlot.shex",
+          "json": "undefIntOrSlot.json",
+          "ttl": "undefIntOrSlot.ttl"
+        },
+        {
+          "@id": "#undefTuple",
+          "@type": "sht:RepresentationTest",
+          "name": "undefTuple",
+          "status": "mf:Proposed",
+          "shex": "undefTuple.shex",
+          "json": "undefTuple.json",
+          "ttl": "undefTuple.ttl"
+        },
+        {
+          "@id": "#undefShorthand",
+          "@type": "sht:RepresentationTest",
+          "name": "undefShorthand",
+          "status": "mf:Proposed",
+          "shex": "undefShorthand.shex",
+          "json": "undefShorthand.json",
+          "ttl": "undefShorthand.ttl"
+        },
+        {
+          "@id": "#undefCount",
+          "@type": "sht:RepresentationTest",
+          "name": "undefCount",
+          "status": "mf:Proposed",
+          "shex": "undefCount.shex",
+          "json": "undefCount.json",
+          "ttl": "undefCount.ttl"
+        },
+        {
+          "@id": "#undefUpperCase",
+          "@type": "sht:RepresentationTest",
+          "name": "undefUpperCase",
+          "status": "mf:Proposed",
+          "shex": "undefUpperCase.shex",
+          "json": "undefUpperCase.json",
+          "ttl": "undefUpperCase.ttl"
+        },
+        {
+          "@id": "#undefNested",
+          "@type": "sht:RepresentationTest",
+          "name": "undefNested",
+          "status": "mf:Proposed",
+          "shex": "undefNested.shex",
+          "json": "undefNested.json",
+          "ttl": "undefNested.ttl"
+        },
+        {
+          "@id": "#undefTripleCard",
+          "@type": "sht:RepresentationTest",
+          "name": "undefTripleCard",
+          "status": "mf:Proposed",
+          "shex": "undefTripleCard.shex",
+          "json": "undefTripleCard.json",
+          "ttl": "undefTripleCard.ttl"
+        },
+        {
+          "@id": "#undefPrefix",
+          "@type": "sht:RepresentationTest",
+          "name": "undefPrefix",
+          "status": "mf:Proposed",
+          "shex": "undefPrefix.shex",
+          "json": "undefPrefix.json",
+          "ttl": "undefPrefix.ttl"
+        },
+        {
+          "@id": "#undefWholeValue",
+          "@type": "sht:RepresentationTest",
+          "name": "undefWholeValue",
+          "status": "mf:Proposed",
+          "shex": "undefWholeValue.shex",
+          "json": "undefWholeValue.json",
+          "ttl": "undefWholeValue.ttl"
         }
       ]
     }

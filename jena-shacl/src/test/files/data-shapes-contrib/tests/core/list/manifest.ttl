@@ -15,4 +15,9 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   mf:include <rgb-colour-001.ttl> ;
   mf:include <polygon-001.ttl> ;
   mf:include <playlist-001.ttl> ;
+  mf:include <undef-memberShape-property-001.ttl> ;
+  mf:include <undef-memberShape-any-001.ttl> ;
+  mf:include <undef-memberShape-nested-001.ttl> ;
+  mf:include <undef-listLength-001.ttl> ;
+  mf:include <undef-uniqueMembers-001.ttl> ;
 .

@@ -76,7 +76,7 @@ public class ClosedConstraint implements Constraint {
             Node ignored = G.getOneSP(shapesGraph, shNode, SHACL.ignoredProperties);
             if ( ignored != null ) {
                 // rdf-array: a SHACL list is a sequence term.
-                List<Node> members = ShLib.listMembers(ignored);
+                List<Node> members = ShLib.shapesGraphListMembers(ignored);
                 if ( members == null )
                     throw new ShaclParseException("sh:ignoredProperties is not a list (a sequence term) at "+displayStr(shNode));
                 ignoredProperties = new ArrayList<>(members);

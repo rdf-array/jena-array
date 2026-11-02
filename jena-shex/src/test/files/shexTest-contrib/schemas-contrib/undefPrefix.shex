@@ -1,0 +1,6 @@
+PREFIX : <http://a.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+PREFIX undef: <http://a.example/>
+
+:S1 { undef:p1 LIST ( xsd:integer ; undef ) }

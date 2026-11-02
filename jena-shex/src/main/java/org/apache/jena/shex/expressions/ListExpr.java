@@ -24,10 +24,10 @@ import java.util.function.Consumer;
 /**
  * The regular expression over the members of a {@link ListShape}: a
  * {@link ListMember} (one member matching a shape expression), a
- * {@link ListEachOf} (members in order) or a {@link ListOneOf} (a choice), each
- * with an optional cardinality (absent: exactly once).
+ * {@link ListUndef} (an empty slot), a {@link ListEachOf} (members in order) or a
+ * {@link ListOneOf} (a choice), each with an optional cardinality (absent: exactly once).
  * <p>
- * ShExJ: {@code Member}, {@code ListEachOf}, {@code ListOneOf}, with {@code min}
+ * ShExJ: {@code Member}, {@code Undef}, {@code ListEachOf}, {@code ListOneOf}, with {@code min}
  * and {@code max} as on triple expressions ({@code -1} unbounded).
  */
 public abstract class ListExpr {

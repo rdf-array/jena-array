@@ -298,6 +298,8 @@ public class WriterShExC {
         private void printListExpr(ListExpr e, boolean top) {
             if ( e instanceof ListMember m ) {
                 printListMemberShapeExpr(m.getShapeExpr());
+            } else if ( e instanceof ListUndef ) {
+                out.print("undef");
             } else {
                 // A group needs parentheses unless it is the whole expression and has no cardinality.
                 boolean parens = !top || e.hasCardinality();

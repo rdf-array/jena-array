@@ -312,7 +312,7 @@ public class Constraints {
      * an rdf:first/rdf:rest ladder is not read as one.
      */
     private static List<Node> list(Graph g, Node node) {
-        List<Node> elts = ShLib.listMembers(node);
+        List<Node> elts = ShLib.shapesGraphListMembers(node);
         if ( elts == null )
             throw new ShaclParseException("Not a list (a sequence term): "+displayStr(node));
         return elts;

@@ -215,6 +215,17 @@ public class ShLib {
         return isList(node) ? node.getSeq() : null;
     }
 
+    /**
+     * rdf-array: the members of a list in the shapes graph, or null if {@code node} is not
+     * one. A list there holds shapes, paths or values, so an empty slot in it is an error.
+     */
+    public static List<Node> shapesGraphListMembers(Node node) {
+        List<Node> members = listMembers(node);
+        if ( members != null && members.stream().anyMatch(Node::isNodeUndef) )
+            throw new ShaclParseException("An empty slot (undef) in a list in the shapes graph: "+displayStr(node));
+        return members;
+    }
+
     public static String displayStr(Node n) {
         return displayStr(n, nodeFmtAbbrev);
     }

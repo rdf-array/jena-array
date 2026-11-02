@@ -217,7 +217,7 @@ public class ParserShExR {
 
     /**
      * RDF sequences: {@code sx:ListShape} with {@code sx:expression}, a list expression:
-     * {@code sx:Member} with {@code sx:shapeExpr}, or {@code sx:ListEachOf}/{@code sx:ListOneOf}
+     * {@code sx:Member} with {@code sx:shapeExpr}, {@code sx:Undef} for an empty slot, or {@code sx:ListEachOf}/{@code sx:ListOneOf}
      * with {@code sx:expressions ( … )}; each with optional {@code sx:min}/{@code sx:max}
      * (absent: 1; {@code -1} unbounded).
      */
@@ -239,9 +239,11 @@ public class ParserShExR {
             Node bodyNode = getOneSP(st.graph, n, VocabShExR.shapeExpr);
             return ListMember.create(resolveShapeDeclOrExpr(st, bodyNode), cardinality);
         }
+        if ( hasType(st.graph, n, VocabShExR.Undef) )
+            return ListUndef.create(cardinality);
         boolean eachOf = hasType(st.graph, n, VocabShExR.ListEachOf);
         if ( !eachOf && !hasType(st.graph, n, VocabShExR.ListOneOf) )
-            throw new ShexParseException("sx:ListShape: not a list expression (sx:Member, sx:ListEachOf, sx:ListOneOf): "+n);
+            throw new ShexParseException("sx:ListShape: not a list expression (sx:Member, sx:Undef, sx:ListEachOf, sx:ListOneOf): "+n);
         Node head = getOneSP(st.graph, n, VocabShExR.expressions);
         List<ListExpr> exprs = new ArrayList<>();
         for ( Node m : rdfList(st.graph, head) )

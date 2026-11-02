@@ -44,6 +44,7 @@ public class VocabShExR {
     // RDF sequences: the LIST shape expression and its list expressions.
     public static final Node ListShape          = createURI(NS+"ListShape");
     public static final Node Member             = createURI(NS+"Member");
+    public static final Node Undef              = createURI(NS+"Undef");
     public static final Node ListEachOf         = createURI(NS+"ListEachOf");
     public static final Node ListOneOf          = createURI(NS+"ListOneOf");
     public static final Node NodeConstraint     = createURI(NS+"NodeConstraint");

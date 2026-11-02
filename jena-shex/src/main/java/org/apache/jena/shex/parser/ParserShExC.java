@@ -389,6 +389,11 @@ public class ParserShExC extends LangParserBase {
         return ListMember.create(pop(shapeExprStack), null);
     }
 
+    // undef, in place of a member: an empty slot of the sequence.
+    protected ListExpr mkListUndef() {
+        return ListUndef.create(null);
+    }
+
     // listMember cardinality?
     protected ListExpr mkListUnary(ListExpr expr, Cardinality cardinality) {
         return expr.applyCardinality(cardinality);

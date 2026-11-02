@@ -12,4 +12,6 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   mf:include <ladder-path-001.ttl> ;
   mf:include <ladder-path-002.ttl> ;
   mf:include <empty-path-001.ttl> ;
+  mf:include <undef-path-sequence-001.ttl> ;
+  mf:include <undef-path-alternative-001.ttl> ;
 .

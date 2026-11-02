@@ -4,7 +4,7 @@ set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-git clone --quiet --depth 1 https://github.com/rdf-array/shexTest-contrib.git "$tmp/shexTest-contrib"
+git clone --quiet --depth 1 --branch rdf-undef https://github.com/rdf-array/shexTest-contrib.git "$tmp/shexTest-contrib"
 git -C "$tmp/shexTest-contrib" rev-parse HEAD > "$here/shexTest-contrib.commit"
 for d in schemas-contrib validation-contrib negativeSyntax-contrib; do
   rm -rf "$here/$d"

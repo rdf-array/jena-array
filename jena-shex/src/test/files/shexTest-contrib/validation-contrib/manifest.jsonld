@@ -794,6 +794,384 @@
           "name": "listTree_m1_fail",
           "comment": "a row of integers is not a (label children) pair",
           "status": "mf:Proposed"
+        },
+        {
+          "@id": "#listInt_undef_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/listInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "listInt_undef_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "listInt_undef_fail",
+          "comment": "a slot does not satisfy xsd:integer",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#listDot_undef_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/listDot.shex",
+            "shape": "http://a.example/S1",
+            "data": "listDot_undef_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "listDot_undef_fail",
+          "comment": "a slot does not satisfy .",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#listNotInt_undef_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/listNotInt.shex",
+            "shape": "http://a.example/S1",
+            "data": "listNotInt_undef_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "listNotInt_undef_fail",
+          "comment": "a slot does not satisfy NOT xsd:integer",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#listInt2_undef_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/listInt2.shex",
+            "shape": "http://a.example/S1",
+            "data": "listInt2_undef_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "listInt2_undef_fail",
+          "comment": "the length is right and the slot is not an integer",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#listNested_undef_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/listNested.shex",
+            "shape": "http://a.example/S1",
+            "data": "listNested_undef_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "listNested_undef_fail",
+          "comment": "a slot at depth two does not satisfy @:T",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefIntOrSlot_mixed_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefIntOrSlot.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefIntOrSlot_mixed_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefIntOrSlot_mixed_pass",
+          "comment": "undef matches the slot",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefIntOrSlot_dense_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefIntOrSlot.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefIntOrSlot_dense_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefIntOrSlot_dense_pass",
+          "comment": "undef allows a slot and does not require one",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefIntOrSlot_allSlots_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefIntOrSlot.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefIntOrSlot_allSlots_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefIntOrSlot_allSlots_pass",
+          "comment": "nothing but slots",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefIntOrSlot_empty_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefIntOrSlot.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefIntOrSlot_empty_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefIntOrSlot_empty_pass",
+          "comment": "the empty sequence",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefIntOrSlot_string_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/undefIntOrSlot.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefIntOrSlot_string_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefIntOrSlot_string_fail",
+          "comment": "a string is neither an integer nor a slot",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefTuple_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefTuple.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefTuple_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefTuple_pass",
+          "comment": "a slot at the second position",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefTuple_value_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/undefTuple.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefTuple_value_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefTuple_value_fail",
+          "comment": "undef does not match a value",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefTuple_short_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/undefTuple.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefTuple_short_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefTuple_short_fail",
+          "comment": "undef does not match an absence: a slot counts",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefShorthand_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefShorthand.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefShorthand_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefShorthand_pass",
+          "comment": "LIST * undef over slots",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefShorthand_empty_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefShorthand.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefShorthand_empty_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefShorthand_empty_pass",
+          "comment": "LIST * undef over the empty sequence",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefShorthand_value_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/undefShorthand.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefShorthand_value_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefShorthand_value_fail",
+          "comment": "a member that is not a slot",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefCount_two_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefCount.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefCount_two_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefCount_two_pass",
+          "comment": "two slots",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefCount_one_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/undefCount.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefCount_one_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefCount_one_fail",
+          "comment": "one slot is too few",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefCount_three_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/undefCount.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefCount_three_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefCount_three_fail",
+          "comment": "three slots are too many",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefUpperCase_slot_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefUpperCase.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefUpperCase_slot_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefUpperCase_slot_pass",
+          "comment": "the optional slot taken",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefUpperCase_none_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefUpperCase.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefUpperCase_none_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefUpperCase_none_pass",
+          "comment": "the optional slot left out",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefNested_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefNested.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefNested_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefNested_pass",
+          "comment": "slots at depth two",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefNested_short_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/undefNested.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefNested_short_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefNested_short_fail",
+          "comment": "a row of one",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefTripleCard_slot_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefTripleCard.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefTripleCard_slot_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefTripleCard_slot_pass",
+          "comment": "two triples, each with a list of one",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefTripleCard_two_fail",
+          "@type": "sht:ValidationFailure",
+          "action": {
+            "schema": "../schemas-contrib/undefTripleCard.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefTripleCard_two_fail.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefTripleCard_two_fail",
+          "comment": "the * is not on the members: a list of two does not fit",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefPrefix_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefPrefix.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefPrefix_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefPrefix_pass",
+          "comment": "the prefix undef: and the slot side by side",
+          "status": "mf:Proposed"
+        },
+        {
+          "@id": "#undefWholeValue_pass",
+          "@type": "sht:ValidationTest",
+          "action": {
+            "schema": "../schemas-contrib/undefWholeValue.shex",
+            "shape": "http://a.example/S1",
+            "data": "undefWholeValue_pass.ttl",
+            "focus": "http://a.example/n1"
+          },
+          "extensionResults": [],
+          "name": "undefWholeValue_pass",
+          "comment": ". is met by the sequence; only its members are subject to the slot rule",
+          "status": "mf:Proposed"
         }
       ]
     }

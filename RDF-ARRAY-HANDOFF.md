@@ -303,5 +303,12 @@ no failures, including its `undef-*` tests. Those found that `ResultSetCompare.B
 `VALUES` takes no sequence, with or without a slot, so slots reach data through `INSERT DATA` and `DELETE DATA`.
 CSV results write `?` for any sequence (Comunica and Oxigraph write it out). Both predate slots.
 
-ShEx and SHACL are not decided (docs/rdf-undef.md §5): no code in jena-shex or jena-shacl names a slot. Today
-`LIST * xsd:integer` fails over `( 1 undef )`, and `LIST * .` holds, where rudof-array has it fail.
+ShEx (docs/rdf-undef.md §5): no value constraint is met at a slot, `.` and `NOT` included, and `undef` in place of a
+member matches one and nothing else: `LIST ( ( xsd:integer | undef ) * )`, `LIST * undef`. It is `ListUndef` beside
+`ListMember`, `{ "type": "Undef" }` in ShExJ and `sx:Undef` in ShExR, and it takes no `AND`, `OR` or `NOT`. Tests:
+`TestShexList`, and `TestShexContrib*` over shexTest-contrib's `rdf-undef` branch.
+
+SHACL: a slot conforms to no member shape, even one without constraints. It counts in `sh:minListLength` and
+`sh:maxListLength`, and in `sh:uniqueMembers` it is equal to a slot and to nothing else. A list in a shapes graph may
+not hold one (`ShLib.shapesGraphListMembers`), which is a `ShaclParseException`. Tests: `TestShaclContrib` over
+data-shapes-contrib's `rdf-undef` branch.

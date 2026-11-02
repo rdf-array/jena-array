@@ -100,7 +100,7 @@ public class ShaclPaths {
             return PathFactory.pathLink(node);
 
         if ( isList(graph, node) ) {
-            List<Node> nodes = ShLib.listMembers(node);
+            List<Node> nodes = ShLib.shapesGraphListMembers(node);
             if ( nodes.isEmpty() )
                 throw new ShaclParseException("Empty list for path sequence");
             Path path = null;
@@ -156,7 +156,7 @@ public class ShaclPaths {
                 if ( ! isList(graph, x) ) {
                     throw new ShaclParseException("Not a list for path alternativePath");
                 }
-                List<Node> nodes = ShLib.listMembers(x);
+                List<Node> nodes = ShLib.shapesGraphListMembers(x);
                 Path path = null;
                 for ( Node n : nodes ) {
                     Path p = path(graph, n);

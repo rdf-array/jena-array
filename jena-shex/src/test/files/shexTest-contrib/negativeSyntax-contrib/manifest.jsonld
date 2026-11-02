@@ -52,6 +52,55 @@
           "name": "listOldBounds",
           "status": "mf:Proposed",
           "shex": "listOldBounds.shex"
+        },
+        {
+          "@id": "#undefOr",
+          "@type": "sht:NegativeSyntax",
+          "name": "undefOr",
+          "status": "mf:Proposed",
+          "shex": "undefOr.shex"
+        },
+        {
+          "@id": "#undefOrFirst",
+          "@type": "sht:NegativeSyntax",
+          "name": "undefOrFirst",
+          "status": "mf:Proposed",
+          "shex": "undefOrFirst.shex"
+        },
+        {
+          "@id": "#undefAnd",
+          "@type": "sht:NegativeSyntax",
+          "name": "undefAnd",
+          "status": "mf:Proposed",
+          "shex": "undefAnd.shex"
+        },
+        {
+          "@id": "#undefNot",
+          "@type": "sht:NegativeSyntax",
+          "name": "undefNot",
+          "status": "mf:Proposed",
+          "shex": "undefNot.shex"
+        },
+        {
+          "@id": "#undefValueExpr",
+          "@type": "sht:NegativeSyntax",
+          "name": "undefValueExpr",
+          "status": "mf:Proposed",
+          "shex": "undefValueExpr.shex"
+        },
+        {
+          "@id": "#undefDecl",
+          "@type": "sht:NegativeSyntax",
+          "name": "undefDecl",
+          "status": "mf:Proposed",
+          "shex": "undefDecl.shex"
+        },
+        {
+          "@id": "#undefBareList",
+          "@type": "sht:NegativeSyntax",
+          "name": "undefBareList",
+          "status": "mf:Proposed",
+          "shex": "undefBareList.shex"
         }
       ]
     }

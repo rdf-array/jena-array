@@ -360,7 +360,7 @@ public class ShexJsonldDeserializer {
 
     /**
      * RDF sequences: {"type": "ListShape", "expression": listExpr} where listExpr is a
-     * {"type": "Member", "shapeExpr": ...} or a {"type": "ListEachOf"|"ListOneOf", "expressions": [...]},
+     * {"type": "Member", "shapeExpr": ...}, {"type": "Undef"} or a {"type": "ListEachOf"|"ListOneOf", "expressions": [...]},
      * each with "min" and "max" as on triple expressions (absent: 1; -1 unbounded).
      */
     protected ShapeExpr handleListShape(Map map) {
@@ -385,6 +385,8 @@ public class ShexJsonldDeserializer {
                 throw new RuntimeException("Member: expected \"shapeExpr\" to be a shape expression or a reference: " + shapeExprJson);
             return ListMember.create(shapeExpr, cardinality);
         }
+        if ( type.equalsIgnoreCase("Undef") )
+            return ListUndef.create(cardinality);
         boolean eachOf = type.equalsIgnoreCase(JsonGEnum.LIST_EACH_OF.getLabel());
         if ( !eachOf && !type.equalsIgnoreCase(JsonGEnum.LIST_ONE_OF.getLabel()) )
             throw new RuntimeException("Unexpected list expression type: " + type);

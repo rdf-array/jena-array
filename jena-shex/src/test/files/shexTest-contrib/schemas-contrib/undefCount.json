@@ -1,0 +1,25 @@
+{
+  "type": "Schema",
+  "shapes": [
+    {
+      "id": "http://a.example/S1",
+      "type": "ShapeDecl",
+      "shapeExpr": {
+        "type": "Shape",
+        "expression": {
+          "type": "TripleConstraint",
+          "predicate": "http://a.example/p1",
+          "valueExpr": {
+            "type": "ListShape",
+            "expression": {
+              "type": "Undef",
+              "min": 2,
+              "max": 2
+            }
+          }
+        }
+      }
+    }
+  ],
+  "@context": "http://www.w3.org/ns/shex.jsonld"
+}

@@ -393,4 +393,36 @@ public class TestShexList {
         assertTrue(conforms(schema, g, value(g, "x", "p"), "Point"));
         assertFalse(conforms(schema, g, value(g, "x", "p"), "Polyline"));
     }
+
+    // rdf-undef: no value constraint is met at a slot, and undef in place of a member matches one.
+
+    private static boolean valueConforms(String shape, String data) {
+        ShexSchema schema = Shex.schemaFromString(PREFIXES + ":S " + shape + "\n");
+        Graph g = graph(":x :p " + data + " .");
+        return conforms(schema, g, value(g, "x", "p"), "S");
+    }
+
+    @Test public void slot_satisfies_no_member() {
+        assertFalse(valueConforms("LIST * xsd:integer", "(1 undef)"));
+        assertFalse(valueConforms("LIST * .", "(1 undef)"));
+        assertFalse(valueConforms("LIST * ( NOT xsd:string )", "(1 undef)"));
+        assertFalse(valueConforms("LIST * LIST * .", "((undef))"));
+    }
+
+    @Test public void undef_member() {
+        assertTrue(valueConforms("LIST ( ( xsd:integer | undef ) * )", "(1 undef 3)"));
+        assertTrue(valueConforms("LIST ( ( xsd:integer | undef ) * )", "(1 2)"));
+        assertTrue(valueConforms("LIST ( xsd:integer ; undef )", "(1 undef)"));
+        assertFalse(valueConforms("LIST ( xsd:integer ; undef )", "(1 2)"));
+        assertTrue(valueConforms("LIST * undef", "()"));
+        assertTrue(valueConforms("LIST ( undef {2} )", "(undef undef)"));
+        assertFalse(valueConforms("LIST ( undef {2} )", "(undef)"));
+    }
+
+    @Test public void undef_is_not_a_shape_expression() {
+        for ( String bad : List.of("LIST ( undef OR xsd:integer )", "LIST ( xsd:integer OR undef )", "LIST ( NOT undef )",
+                                   "LIST ( undef AND . )", "undef", "{ :p undef }", "LIST undef") ) {
+            assertThrows(bad, ShexParseException.class, ()->Shex.schemaFromString(PREFIXES + ":S " + bad + "\n"));
+        }
+    }
 }

@@ -241,6 +241,7 @@ void inlineShapeAtom() : { int idx; }
 // RDF sequences: the LIST shape expression.
 //   LIST ( listOneOf )          a regular expression over the members
 //   LIST cardinality inlineShapeAtom   that many members, each matching the atom (= LIST ( atom cardinality ))
+//   undef                       in place of a member: an empty slot of the sequence (rdf-undef)
 // Inside LIST ( ), a '(' always opens a group; a member is an inline shape expression whose
 // first atom is not parenthesised.
 void listShape() : { Cardinality card; ListExpr e; }
@@ -248,8 +249,10 @@ void listShape() : { Cardinality card; ListExpr e; }
     <LIST>
     ( <LPAREN> e = listOneOf() <RPAREN>
       { finishListShape(e); }
-    | card = cardinality() inlineShapeAtom()
-      { finishListShapeCard(card); }
+    | card = cardinality()
+      ( inlineShapeAtom() { finishListShapeCard(card); }
+      | <UNDEF> { finishListShape(mkListUnary(mkListUndef(), card)); }
+      )
     )
 }
 
@@ -278,6 +281,8 @@ ListExpr listMember() : { ListExpr e; }
 {
     <LPAREN> e = listOneOf() <RPAREN>
     { return e; }
+  | <UNDEF>
+    { return mkListUndef(); }
   | listMemberOr()
     { return mkListMember(); }
 }
@@ -1044,6 +1049,7 @@ TOKEN [IGNORE_CASE] :
 
 | <LITERAL          : "literal">
 | <LIST             : "list">
+| <UNDEF            : "undef">
 | <IRI              : "iri" >
 | <BNODE            : "bnode" >
 | <NONLITERAL       : "nonliteral" >

@@ -34,7 +34,8 @@ import org.apache.jena.shex.calc.VoidShapeExprVisitor;
  * triple constraints in a triple expression, except that {@code ;} is ordered here.
  * {@code LIST ( xsd:string ; xsd:integer )} is a pair, {@code LIST ( xsd:integer * )}
  * and {@code LIST * xsd:integer} any list of integers. A node that is not a sequence
- * does not satisfy a LIST shape expression.
+ * does not satisfy a LIST shape expression. A slot of the sequence satisfies no member,
+ * and only {@code undef} in the expression matches it: {@code LIST ( ( xsd:integer | undef ) * )}.
  * <p>
  * ShExJ: {@code { "type": "ListShape", "expression": listExpr }}.
  * ShExR: {@code sx:ListShape} with {@code sx:expression}.

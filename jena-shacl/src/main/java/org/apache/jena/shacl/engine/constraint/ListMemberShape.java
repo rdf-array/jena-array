@@ -36,7 +36,8 @@ import org.apache.jena.sparql.util.FmtUtils;
 /**
  * sh:memberShape (SHACL 1.2). rdf-array: the value must be a SHACL list, which is a
  * sequence term, and each of its members must conform to the shape. One result per
- * value node, naming the members that do not conform.
+ * value node, naming the members that do not conform. An empty slot (rdf-undef) conforms
+ * to no member shape.
  */
 public class ListMemberShape extends ConstraintOp1 {
 
@@ -56,6 +57,10 @@ public class ListMemberShape extends ConstraintOp1 {
             return new ReportItem(toString()+": Not a list: "+displayStr(node), node);
         List<Node> failed = new ArrayList<>();
         for ( Node member : members ) {
+            if ( member.isNodeUndef() ) {
+                failed.add(member);
+                continue;
+            }
             ValidationContext vCxt2 = ValidationContext.create(vCxt);
             ValidationProc.execValidateShape(vCxt2, data, other, member);
             if ( ! vCxt2.generateReport().conforms() )
