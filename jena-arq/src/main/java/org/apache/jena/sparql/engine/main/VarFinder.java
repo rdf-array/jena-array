@@ -33,6 +33,7 @@ import org.apache.jena.atlas.lib.SetUtils ;
 import org.apache.jena.sparql.algebra.Op ;
 import org.apache.jena.sparql.algebra.OpVisitor ;
 import org.apache.jena.sparql.algebra.op.* ;
+import org.apache.jena.graph.Triple ;
 import org.apache.jena.sparql.core.BasicPattern ;
 import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.core.VarExprList ;
@@ -133,30 +134,45 @@ public class VarFinder
             assignMentions = _assignMentions;
         }
 
+        // A variable that occurs only inside sequences may stay unbound, at an empty slot.
+        private void addPattern(List<Triple> triples) {
+            Set<Var> all = new HashSet<>();
+            for ( Triple t : triples ) {
+                VarUtils.addFixedVarsFromTriple(defines, t);
+                addVarsFromTriple(all, t);
+            }
+            all.removeAll(defines);
+            optDefines.addAll(all);
+        }
+
         @Override
         public void visit(OpQuadPattern quadPattern) {
-            addVars(defines, quadPattern.getGraphNode(), quadPattern.getBasicPattern());
+            addVar(defines, quadPattern.getGraphNode());
+            addPattern(quadPattern.getBasicPattern().getList());
         }
 
         @Override
         public void visit(OpBGP opBGP) {
-            BasicPattern triples = opBGP.getPattern();
-            addVars(defines, triples);
+            addPattern(opBGP.getPattern().getList());
         }
 
         @Override
         public void visit(OpQuadBlock quadBlock) {
-            addVars(defines, quadBlock.getPattern()) ;
+            quadBlock.getPattern().forEach(q->{
+                addVar(defines, q.getGraph());
+                addPattern(List.of(q.asTriple()));
+            });
         }
 
         @Override
         public void visit(OpTriple opTriple) {
-            addVarsFromTriple(defines, opTriple.getTriple()) ;
+            addPattern(List.of(opTriple.getTriple()));
         }
 
         @Override
         public void visit(OpQuad opQuad) {
-            addVarsFromQuad(defines, opQuad.getQuad()) ;
+            addVar(defines, opQuad.getQuad().getGraph());
+            addPattern(List.of(opQuad.getQuad().asTriple()));
         }
 
         @Override
@@ -330,7 +346,8 @@ public class VarFinder
         @Override
         public void visit(OpUnnest opUnnest) {
             opUnnest.getSubOp().visit(this);
-            defines.add(opUnnest.getVar());
+            // Unbound at an empty slot.
+            optDefines.add(opUnnest.getVar());
             if ( opUnnest.hasPosVar() )
                 defines.add(opUnnest.getPosVar());
             ExprVars.nonOpVarsMentioned(assignMentions, opUnnest.getExpr());

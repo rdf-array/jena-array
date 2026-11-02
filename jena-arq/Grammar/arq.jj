@@ -845,6 +845,24 @@ Args ArgList() : { Expr expr ; Args args = new Args() ; Token t ; }
    )
     { return args ; }
 }
+ExprList SeqArgs() : { Expr expr = null ; ExprList exprList = new ExprList() ;}
+{
+  (
+    <NIL>
+  |
+    <LPAREN>
+    expr = SeqArg() { exprList.add(expr) ; }
+      (<COMMA> expr = SeqArg() { exprList.add(expr) ; } )*
+    <RPAREN>
+  )
+  { return exprList ; }
+}
+Expr SeqArg() : { Expr expr ; }
+{
+  expr = Expression() { return expr ; }
+ |
+  <UNDEF> { return NodeValue.makeNode(Node.UNDEF) ; }
+}
 ExprList ExpressionList() : { Expr expr = null ; ExprList exprList = new ExprList() ;}
 {
   (
@@ -1132,11 +1150,17 @@ Node Collection(TripleCollectorMark acc) :
   t = <LPAREN>
   { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
   (
-    n = GraphNode(acc)
+    n = SeqMember(acc)
     { elts.add(n) ; }
   ) +
   <RPAREN>
    { return createSeqNode(elts, beginLine, beginColumn) ; }
+}
+Node SeqMember(TripleCollectorMark acc) : { Node n ; }
+{
+  n = GraphNode(acc) { return n ; }
+ |
+  <UNDEF> { return Node.UNDEF ; }
 }
 Node CollectionPath(TripleCollectorMark acc) :
     { List<Node> elts = new ArrayList<Node>() ; Node n ; Token t ; }
@@ -1153,6 +1177,8 @@ Node CollectionPath(TripleCollectorMark acc) :
 Node SeqMemberPath(TripleCollectorMark acc) : { Node n ; Token t ; }
 {
   n = GraphNodePath(acc) { return n ; }
+ |
+  <UNDEF> { return Node.UNDEF ; }
  |
   t = <ELLIPSIS> { return createSeqGapNode(t.beginLine, t.beginColumn) ; }
  |
@@ -1308,7 +1334,7 @@ Expr RelationalExpression() : { Expr expr1, expr2 ; ExprList a ; }
 Expr SeqRef() : { Expr expr ; Expr idx ; Node n ; ExprList a ; }
 {
   ( n = Var() { expr = asExpr(n) ; }
-  | <SEQ> a = ExpressionList() { expr = new E_MkSeq(a) ; }
+  | <SEQ> a = SeqArgs() { expr = new E_MkSeq(a) ; }
   )
   ( <LBRACKET> idx = Expression() <RBRACKET> { expr = new E_SeqAt(expr, idx) ; } )*
   { return expr ; }
@@ -1534,7 +1560,7 @@ Expr BuiltInCall() : { Expr expr ;
     { return new E_IsSeq(expr) ; }
   | <SEQLEN> <LPAREN> expr = Expression() <RPAREN>
     { return new E_SeqLen(expr) ; }
-  | <SEQ> a = ExpressionList()
+  | <SEQ> a = SeqArgs()
     { return new E_MkSeq(a) ; }
   | <TRIPLE> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <COMMA> expr3 = Expression() <RPAREN>
     { return new E_TripleFn(expr1, expr2, expr3) ; }

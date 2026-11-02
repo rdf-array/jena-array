@@ -144,6 +144,8 @@ public abstract class LangNTuple<X> extends LangBase implements Iterator<X>
             return parseTripleTerm();
         if ( t.hasType(TokenType.LPAREN) )
             return parseSeqTerm();
+        if ( t.hasType(TokenType.KEYWORD) && "undef".equalsIgnoreCase(t.getImage()) )
+            return Node.UNDEF;
         checkRDFTerm(t);
         return tokenAsNode(t);
     }

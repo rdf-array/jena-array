@@ -80,6 +80,8 @@ public class Checker {
         }
         else if ( node.isNodeSeq() ) {
             for ( Node elt : node.getSeq() ) {
+                if ( elt.isNodeUndef() )
+                    continue;
                 if ( ! check(elt, errorHandler, line, col) )
                     return false;
             }

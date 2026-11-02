@@ -425,8 +425,14 @@ public class RowSetJSONStreaming<E> extends IteratorSlotted<Binding> implements 
         case kSeq:
             // RDF sequences: { "type": "seq", "value": [ term, term, ... ] }
             List<Node> elements = new ArrayList<>();
-            for (JsonElement e : valueJson.getAsJsonArray())
-                elements.add(parseOneTerm(e, labelMap, onUnknownRdfTermType));
+            for (JsonElement e : valueJson.getAsJsonArray()) {
+                // An empty slot: { "type": "undef" }
+                JsonElement eType = e.getAsJsonObject().get(kType);
+                if (eType != null && kUnbound.equals(eType.getAsString()))
+                    elements.add(Node.UNDEF);
+                else
+                    elements.add(parseOneTerm(e, labelMap, onUnknownRdfTermType));
+            }
             result = NodeFactory.createSeqNode(elements);
             break;
         default:

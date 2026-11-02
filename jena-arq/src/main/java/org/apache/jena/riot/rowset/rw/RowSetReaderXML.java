@@ -446,6 +446,12 @@ public class RowSetReaderXML implements RowSetReader {
               // RDF sequences: <seq> term term ... </seq>
               List<Node> elements = new ArrayList<>();
               while ( parser.nextTag() == XMLStreamConstants.START_ELEMENT ) {
+                  if ( isTag(parser.getLocalName(), XMLResults.dfUnbound) ) {
+                      // An empty slot.
+                      parser.nextTag();
+                      elements.add(Node.UNDEF);
+                      continue;
+                  }
                   Node x = parseOneTerm(parser.getLocalName());
                   if ( x == null )
                       staxError("Bad term in <seq>");

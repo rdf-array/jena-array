@@ -210,8 +210,13 @@ public class RowSetReaderJSON_V1 implements RowSetReader {
                 // RDF sequences: { "type": "seq", "value": [ term, term, ... ] }
                 JsonArray elements = term.get(kValue).getAsArray();
                 List<Node> nodes = new ArrayList<>(elements.size());
-                for ( JsonValue e : elements )
-                    nodes.add(parseOneTerm(e.getAsObject(), labelMap));
+                for ( JsonValue e : elements ) {
+                    // An empty slot: { "type": "undef" }
+                    if ( kUnbound.equals(stringOrNull(e.getAsObject(), kType)) )
+                        nodes.add(Node.UNDEF);
+                    else
+                        nodes.add(parseOneTerm(e.getAsObject(), labelMap));
+                }
                 return NodeFactory.createSeqNode(nodes);
             }
 

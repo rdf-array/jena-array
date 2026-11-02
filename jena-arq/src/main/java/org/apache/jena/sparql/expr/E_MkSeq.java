@@ -18,12 +18,20 @@
 
 package org.apache.jena.sparql.expr;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.library.seq.SeqFunctions;
 import org.apache.jena.sparql.sse.Tags;
 
-/** {@code SEQ(expr, ...)} - build an RDF sequence from its elements. */
+/**
+ * {@code SEQ(expr, ...)} - build an RDF sequence from its elements. An argument that
+ * is an unbound variable or {@code undef} is an empty slot; any other error is the
+ * error of the whole expression.
+ */
 public class E_MkSeq extends ExprFunctionN {
     private static final String name = Tags.tagMkSeq;
 
@@ -34,6 +42,18 @@ public class E_MkSeq extends ExprFunctionN {
     @Override
     public Expr copy(ExprList newArgs) {
         return new E_MkSeq(newArgs);
+    }
+
+    @Override
+    protected NodeValue evalSpecial(Binding binding, FunctionEnv env) {
+        List<NodeValue> values = new ArrayList<>(numArgs());
+        for ( Expr arg : getArgs() ) {
+            if ( arg.isVariable() && !binding.contains(arg.asVar()) )
+                values.add(NodeValue.makeNode(Node.UNDEF));
+            else
+                values.add(arg.eval(binding, env));
+        }
+        return SeqFunctions.mkSeq(values);
     }
 
     @Override

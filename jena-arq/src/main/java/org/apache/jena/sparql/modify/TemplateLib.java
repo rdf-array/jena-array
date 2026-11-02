@@ -148,7 +148,7 @@ public class TemplateLib {
             q = new Quad(g1, s1, p1, o1);
 
         Quad q2 = Substitute.substitute(q, b);
-        return q2;
+        return Quad.create(q2.getGraph(), fillSlots(q2.getSubject()), q2.getPredicate(), fillSlots(q2.getObject()));
     }
 
     /** Substitute into a triple, with rewriting of bNodes */
@@ -175,7 +175,20 @@ public class TemplateLib {
             t = Triple.create(s1, p1, o1);
 
         Triple t2 = Substitute.substitute(t, b);
-        return t2;
+        return Triple.create(fillSlots(t2.getSubject()), t2.getPredicate(), fillSlots(t2.getObject()));
+    }
+
+    /**
+     * A member of a sequence whose variable has no value is an empty slot, so that what
+     * a pattern read from {@code ( 1 undef 3 )} writes back the same.
+     */
+    private static Node fillSlots(Node node) {
+        if ( !node.isNodeSeq() || node.isConcrete() )
+            return node;
+        List<Node> elts = new ArrayList<>(node.getSeq().size());
+        for ( Node elt : node.getSeq() )
+            elts.add(( Var.isVar(elt) && !Var.isBlankNodeVar(elt) ) ? Node.UNDEF : fillSlots(elt));
+        return NodeFactory.createSeqNode(elts);
     }
 
     /** generate a blank node consistently */

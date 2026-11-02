@@ -368,6 +368,8 @@ public class FmtUtils {
                 }
                 result.append(" )");
             }
+        } else if ( n.isNodeUndef() ) {
+            result.append("undef");
         } else if ( n instanceof Node_SeqGap gap ) {
             // RDF sequences: a gap "..." or "...?rest" in a sequence pattern
             result.append("...");

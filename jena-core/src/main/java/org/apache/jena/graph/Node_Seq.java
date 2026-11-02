@@ -34,7 +34,8 @@ import org.apache.jena.shared.PrefixMapping;
  * 1 and 2, not a ladder of blank nodes.
  * <p>
  * A sequence is concrete when all its elements are concrete; a sequence with
- * variables in it is a pattern (SPARQL).
+ * variables in it is a pattern (SPARQL). An element may be {@link Node#UNDEF}, an
+ * empty slot: it counts towards the size and has no value.
  */
 public class Node_Seq extends Node {
 

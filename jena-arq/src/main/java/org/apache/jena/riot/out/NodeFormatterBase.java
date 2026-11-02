@@ -52,6 +52,8 @@ public abstract class NodeFormatterBase implements NodeFormatter
             formatNodeTriple(w, n);
         else if ( n.isNodeSeq() )
             formatNodeSeq(w, n);
+        else if ( n.isNodeUndef() )
+            w.print("undef");
 //        else if ( n instanceof Node_Graph )
 //            formatNodeGraph(w, (Node_Graph)n);
         else

@@ -261,6 +261,8 @@ public class RowSetWriterJSON implements RowSetWriter {
                 writeValueNodeTriple(out, value, multiLine);
             else if ( value.isNodeSeq() )
                 writeValueNodeSeq(out, value, multiLine);
+            else if ( value.isNodeUndef() )
+                print(out, quoteName(kType), ": ", quote(kUnbound));
             else if ( value.isNodeGraph() )
                 writeValueNodeGraph(out, value, multiLine);
             else

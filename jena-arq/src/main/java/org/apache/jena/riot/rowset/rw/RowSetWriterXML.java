@@ -299,6 +299,12 @@ public class RowSetWriterXML implements RowSetWriter {
                 printSeqTerm(node);
                 return;
             }
+            if ( node.isNodeUndef() ) {
+                // An empty slot.
+                openTag(dfUnbound);
+                closeTag(dfUnbound);
+                return;
+            }
 
             if ( node.isNodeGraph() )
                 throw new UnsupportedOperationException("Graph terms");

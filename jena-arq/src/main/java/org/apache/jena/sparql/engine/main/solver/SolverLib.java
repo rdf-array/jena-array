@@ -95,6 +95,26 @@ public class SolverLib {
     }
 
     /**
+     * The term to find in the data for a pattern node {@code xNode}, given it after
+     * substitution, {@code tNode}. A sequence pattern is not looked up by its
+     * substituted form: {@code ( ?x )} with {@code ?x} bound also matches
+     * {@code ( undef )}.
+     */
+    public static Node nodeTopLevel(Node xNode, Node tNode) {
+        return hasSeqWithVars(xNode) ? Node.ANY : nodeTopLevel(tNode);
+    }
+
+    private static boolean hasSeqWithVars(Node node) {
+        if ( node.isNodeSeq() )
+            return ! node.isConcrete();
+        if ( node.isNodeTriple() ) {
+            Triple t = node.getTriple();
+            return hasSeqWithVars(t.getSubject()) || hasSeqWithVars(t.getPredicate()) || hasSeqWithVars(t.getObject());
+        }
+        return false;
+    }
+
+    /**
      * Convert a pattern node into ANY, or leave as a constant term. Any compound
      * term with a variable or a gap, that is {@code {@literal <<?var>>}},
      * {@code (?var)} or {@code ( ... )}, becomes an ANY.

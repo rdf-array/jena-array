@@ -60,7 +60,10 @@ public class SeqFunctions {
         }
         if ( idx < 1 || idx > elts.size() )
             throw new ExprEvalException("seqAt: Index out of range (1.."+elts.size()+"): "+nvIndex);
-        return NodeValue.makeNode(elts.get(idx-1));
+        Node elt = elts.get(idx-1);
+        if ( elt.isNodeUndef() )
+            throw new ExprEvalException("seqAt: Empty slot: "+nvIndex);
+        return NodeValue.makeNode(elt);
     }
 
     /**
@@ -103,6 +106,9 @@ public class SeqFunctions {
     public static boolean inSeq(NodeValue needle, NodeValue nvSeq) {
         List<Node> elts = elements("inSeq", nvSeq);
         for ( Node elt : elts ) {
+            // An empty slot holds nothing.
+            if ( elt.isNodeUndef() )
+                continue;
             try {
                 if ( NodeValue.sameValueAs(needle, NodeValue.makeNode(elt)) )
                     return true;

@@ -70,12 +70,14 @@ public class SolverRX3 {
 
     private static Iterator<Binding> rdfStarTripleSub(Binding input, Triple xPattern, ExecutionContext execCxt) {
         Triple tPattern = Substitute.substitute(xPattern, input);
-        Node s = nodeTopLevel(tPattern.getSubject());
-        Node p = nodeTopLevel(tPattern.getPredicate());
-        Node o = nodeTopLevel(tPattern.getObject());
+        Node s = nodeTopLevel(xPattern.getSubject(), tPattern.getSubject());
+        Node p = nodeTopLevel(xPattern.getPredicate(), tPattern.getPredicate());
+        Node o = nodeTopLevel(xPattern.getObject(), tPattern.getObject());
         Graph graph = execCxt.getActiveGraph();
         ExtendedIterator<Triple> graphIter = graph.find(s, p, o);
-        return Iter.flatMap(graphIter, tData->matchTriple(input, tData, tPattern));
+        // Match on the pattern before substitution: a variable bound in the input is
+        // still compatible with an empty slot, where a constant does not match it.
+        return Iter.flatMap(graphIter, tData->matchTriple(input, tData, xPattern));
     }
 
     /**
@@ -113,6 +115,11 @@ public class SolverRX3 {
             return Iter.singleton(input);
         if ( nData == Node.ANY )
             return Iter.singleton(input);
+
+        // An empty slot has no value to bind: a variable leaves the binding as it is, as
+        // UNDEF does in VALUES. Of the constants, only undef itself matches it.
+        if ( nData.isNodeUndef() )
+            return ( Var.isVar(nPattern) || nPattern.isNodeUndef() ) ? Iter.singleton(input) : Iter.nullIterator();
 
         // Shallow substitute - nested variables are seen as the structure is walked.
         nPattern = Var.lookup(input::get, nPattern);

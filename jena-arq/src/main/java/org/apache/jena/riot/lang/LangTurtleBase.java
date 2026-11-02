@@ -42,6 +42,8 @@ public abstract class LangTurtleBase extends LangBase {
     //protected final static String  KW_LOG_IMPLIES = "=>";
     protected final static String  KW_TRUE        = "true";
     protected final static String  KW_FALSE       = "false";
+    // An empty slot, only as a member of a sequence. As in SPARQL, case insensitive.
+    protected final static String  KW_UNDEF       = "undef";
 
     protected final static boolean VERBOSE        = false;
     // protected final static boolean CHECKING = true;
@@ -523,6 +525,12 @@ public abstract class LangTurtleBase extends LangBase {
             if ( lookingAt(RPAREN) ) {
                 nextToken();
                 break;
+            }
+
+            if ( lookingAt(KEYWORD) && KW_UNDEF.equalsIgnoreCase(peekToken().getImage()) ) {
+                nextToken();
+                elements.add(Node.UNDEF);
+                continue;
             }
 
             Token elementToken = peekToken();

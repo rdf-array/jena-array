@@ -36,4 +36,5 @@ public interface NodeVisitor
     Object visitTriple( Node_Triple it, Triple triple);
     Object visitGraph( Node_Graph it, Graph graph);
     Object visitSeq( Node_Seq it, List<Node> elements);
+    default Object visitUndef( Node_Undef it ) { return null; }
     }

@@ -46,6 +46,12 @@ public class NodeCmp {
             return Expr.CMP_GREATER;
 
         // No nulls.
+
+        // An empty slot sorts before every term; it only occurs inside a sequence.
+        if ( node1.isNodeUndef() )
+            return node2.isNodeUndef() ? Expr.CMP_EQUAL : Expr.CMP_LESS;
+        if ( node2.isNodeUndef() )
+            return Expr.CMP_GREATER;
         if ( node1.isLiteral() && node2.isLiteral() )
             return compareLiteralsBySyntax(node1, node2);
 

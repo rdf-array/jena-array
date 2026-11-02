@@ -120,6 +120,11 @@ public class ItemWriter
             return;
         }
 
+        if ( node.isNodeUndef() ) {
+            out.print(Tags.tagUndef);
+            return;
+        }
+
         if ( node instanceof Node_SeqGap gap ) {
             // As (seqgap) or (seqgap ?rest)
             out.print("(");

@@ -335,6 +335,9 @@ NON-TERMINALS
 	Constraint	:=	( BrackettedExpression | BuiltInCall | FunctionCall )
 	FunctionCall	:=	iri ArgList
 	ArgList	:=	( <NIL> | <LPAREN> ( <DISTINCT> )? Expression ( <COMMA> Expression )* <RPAREN> )
+	SeqArgs	:=	( <NIL> | <LPAREN> SeqArg ( <COMMA> SeqArg )* <RPAREN> )
+	SeqArg	:=	Expression
+		|	<UNDEF>
 	ExpressionList	:=	( <NIL> | <LPAREN> Expression ( <COMMA> Expression )* <RPAREN> )
 	ConstructTemplate	:=	<LBRACE> ( ConstructTriples )? <RBRACE>
 	ConstructTriples	:=	TriplesSameSubject ( <DOT> ( ConstructTriples )? )?
@@ -369,9 +372,12 @@ NON-TERMINALS
 	TriplesNodePath	:=	CollectionPath
 		|	BlankNodePropertyListPath
 	BlankNodePropertyListPath	:=	<LBRACKET> PropertyListPathNotEmpty <RBRACKET>
-	Collection	:=	<LPAREN> ( GraphNode )+ <RPAREN>
+	Collection	:=	<LPAREN> ( SeqMember )+ <RPAREN>
+	SeqMember	:=	GraphNode
+		|	<UNDEF>
 	CollectionPath	:=	<LPAREN> ( SeqMemberPath )+ <RPAREN>
 	SeqMemberPath	:=	GraphNodePath
+		|	<UNDEF>
 		|	<ELLIPSIS>
 		|	<GAPVAR>
 	AnnotationPath	:=	( <L_ANN> PropertyListPathNotEmpty <R_ANN> )?
@@ -395,7 +401,7 @@ NON-TERMINALS
 	ConditionalAndExpression	:=	ValueLogical ( <SC_AND> ValueLogical )*
 	ValueLogical	:=	RelationalExpression
 	RelationalExpression	:=	NumericExpression ( <EQ> NumericExpression | <NE> NumericExpression | <LT> NumericExpression | <GT> NumericExpression | <LE> NumericExpression | <GE> NumericExpression | <IN> ( ExpressionList | SeqRef ) | <NOT> <IN> ( ExpressionList | SeqRef ) )?
-	SeqRef	:=	( Var | <SEQ> ExpressionList ) ( <LBRACKET> Expression <RBRACKET> )*
+	SeqRef	:=	( Var | <SEQ> SeqArgs ) ( <LBRACKET> Expression <RBRACKET> )*
 	NumericExpression	:=	AdditiveExpression
 	AdditiveExpression	:=	MultiplicativeExpression ( <PLUS> MultiplicativeExpression | <MINUS> MultiplicativeExpression | ( NumericLiteralPositive | NumericLiteralNegative ) ( ( <STAR> UnaryExpression ) | ( <SLASH> UnaryExpression ) )* )*
 	MultiplicativeExpression	:=	UnaryExpression ( <STAR> UnaryExpression | <SLASH> UnaryExpression )*
@@ -465,7 +471,7 @@ NON-TERMINALS
 		|	<IS_TRIPLE> <LPAREN> Expression <RPAREN>
 		|	<IS_SEQ> <LPAREN> Expression <RPAREN>
 		|	<SEQLEN> <LPAREN> Expression <RPAREN>
-		|	<SEQ> ExpressionList
+		|	<SEQ> SeqArgs
 		|	<TRIPLE> <LPAREN> Expression <COMMA> Expression <COMMA> Expression <RPAREN>
 		|	<SUBJECT> <LPAREN> Expression <RPAREN>
 		|	<PREDICATE> <LPAREN> Expression <RPAREN>

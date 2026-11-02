@@ -40,7 +40,8 @@ import org.apache.jena.sparql.util.NodeFactoryExtra;
  * when it is a sequence, yield one binding per member with {@code ?x} bound to the
  * member and {@code ?i}, if given, to its 1-based position. An unbound or erroring
  * expression, or a value that is not a sequence, yields nothing. A variable already
- * bound in the input keeps only the members (positions) equal to its value.
+ * bound in the input keeps only the members (positions) equal to its value. At an
+ * empty slot {@code ?x} is left as it is, with {@code ?i} bound to the position.
  */
 public class QueryIterUnnest extends QueryIterRepeatApply {
     private final Expr expr;
@@ -77,7 +78,7 @@ public class QueryIterUnnest extends QueryIterRepeatApply {
 
     private Binding extend(Binding binding, Node member, int position) {
         BindingBuilder b = Binding.builder(binding);
-        if ( !set(b, var, member) )
+        if ( !member.isNodeUndef() && !set(b, var, member) )
             return null;
         if ( posVar != null && !set(b, posVar, NodeFactoryExtra.intToNode(position)) )
             return null;

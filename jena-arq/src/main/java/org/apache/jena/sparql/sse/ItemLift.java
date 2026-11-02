@@ -199,6 +199,8 @@ public class ItemLift {
                 return n;
             if ( "ANY".equals(item.getSymbol()) )
                 return Node.ANY;
+            if ( Tags.tagUndef.equals(item.getSymbol()) )
+                return Node.UNDEF;
         }
         if ( ! item.isList() || ! isCompound(item.getList()) )
             throw new SSE_Exception("Not valid for a compound term (quoted triple, sequence): "+item.toString());

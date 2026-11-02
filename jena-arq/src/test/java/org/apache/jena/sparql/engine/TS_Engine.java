@@ -27,6 +27,7 @@ import org.junit.runners.Suite ;
       , TestQueryEngineFromContext.class
       , TestJsonEval.class
       , TestSequenceQueries.class
+      , TestUndefSlots.class
       , TestArraySyntaxExamples.class
 })
 

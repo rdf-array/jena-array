@@ -70,12 +70,13 @@ public class SolverRX4 {
         Node graphName = Substitute.substitute(xGraphName, binding);
         Node gPattern = (graphName == null) ? Quad.defaultGraphIRI : graphName;
         Node g = nodeTopLevel(gPattern);
-        Node s = nodeTopLevel(tPattern.getSubject());
-        Node p = nodeTopLevel(tPattern.getPredicate());
-        Node o = nodeTopLevel(tPattern.getObject());
+        Node s = nodeTopLevel(xPattern.getSubject(), tPattern.getSubject());
+        Node p = nodeTopLevel(xPattern.getPredicate(), tPattern.getPredicate());
+        Node o = nodeTopLevel(xPattern.getObject(), tPattern.getObject());
         DatasetGraph dsg = execCxt.getDataset();
         Iterator<Quad> dataIter = dsg.find(g, s, p, o);
-        return Iter.flatMap(dataIter, qData->matchQuad(binding, qData, gPattern, tPattern));
+        // On the pattern before substitution: see SolverRX3.
+        return Iter.flatMap(dataIter, qData->matchQuad(binding, qData, gPattern, xPattern));
     }
 
     private static final Predicate<Quad> NoFilter = null;
