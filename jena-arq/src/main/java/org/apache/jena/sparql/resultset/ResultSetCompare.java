@@ -368,6 +368,10 @@ public class ResultSetCompare
                 return true;
             }
 
+            // The empty slot of a sequence: one object, equal only to itself
+            if ( n1.isNodeUndef() && n2.isNodeUndef() )
+                return true;
+
             return false;
         }
     }

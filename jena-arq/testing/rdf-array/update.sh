@@ -5,7 +5,7 @@ set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-git clone --quiet --depth 1 https://github.com/rdf-array/rdf-tests-contrib.git "$tmp/rdf-tests-contrib"
+git clone --quiet --depth 1 --branch rdf-undef https://github.com/rdf-array/rdf-tests-contrib.git "$tmp/rdf-tests-contrib"
 git -C "$tmp/rdf-tests-contrib" rev-parse HEAD > "$here/rdf-tests-contrib.commit"
 rm -rf "$here/rdf-tests-contrib"
 mkdir -p "$here/rdf-tests-contrib"

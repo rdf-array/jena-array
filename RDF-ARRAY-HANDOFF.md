@@ -291,3 +291,17 @@ Never `install` from this worktree: it would overwrite the 5.0.0-SNAPSHOT jars i
 `~/.m2` that the main checkout resolves offline. Grammar regeneration:
 `jena-arq/Grammar/grammar` and `jena-shex/shexc/shex-parser` with `javacc`,
 `jjdoc` and a comment-stripping `cpp` on the PATH (see the memory note).
+
+## rdf-undef
+
+Branch `rdf-undef`: the empty slot of a sequence, `( 1 undef 3 )`, as rdf-array's docs/rdf-undef.md says.
+`Node.UNDEF` (`Node_Undef`) is one object, a member of a `Node_Seq` and nothing else. The behaviours are
+`TestUndefSlots` (43 tests, in `TS_Engine`). The contrib copy in `jena-arq/testing/rdf-array` is at
+rdf-tests-contrib's `rdf-undef` branch: `Scripts_RdfArrayContrib` 58 and `Scripts_RdfArrayContribSPARQL` 207,
+no failures, including its `undef-*` tests. Those found that `ResultSetCompare.BNodeIso` had no case for a slot.
+
+`VALUES` takes no sequence, with or without a slot, so slots reach data through `INSERT DATA` and `DELETE DATA`.
+CSV results write `?` for any sequence (Comunica and Oxigraph write it out). Both predate slots.
+
+ShEx and SHACL are not decided (docs/rdf-undef.md §5): no code in jena-shex or jena-shacl names a slot. Today
+`LIST * xsd:integer` fails over `( 1 undef )`, and `LIST * .` holds, where rudof-array has it fail.
