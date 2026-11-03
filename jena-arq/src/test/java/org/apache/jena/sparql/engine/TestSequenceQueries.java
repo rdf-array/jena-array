@@ -442,4 +442,31 @@ public class TestSequenceQueries {
             assertTrue(json, json.contains("\"seq\""));
         }
     }
+
+    /** rdf:first and rdf:rest triples are ordinary triples: printing a query must not fold them into ( ). */
+    @Test public void printedQueryKeepsLadderTriples() {
+        String q = PREFIX + "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+                 + "SELECT * { ?s :p ?l . ?l rdf:first 1 ; rdf:rest rdf:nil }";
+        Query query = QueryFactory.create(q);
+        String printed = query.serialize();
+        assertFalse(printed, printed.contains("("));
+        assertEquals(query, QueryFactory.create(printed));
+    }
+
+    @Test public void printedQueryKeepsSequences() {
+        Query query = QueryFactory.create(PREFIX + "SELECT * { ?s :p ( 1 ( ?x ) () ) . ( ?s ) :q ?o }");
+        assertEquals(query, QueryFactory.create(query.serialize()));
+    }
+
+    /** Going back from the algebra, a property function's list of arguments is one sequence term. */
+    @Test public void opAsQueryWritesPropertyFunctionListsAsSequences() {
+        for ( String args : new String[] {"( ?a ?b )", "()"} ) {
+            Query query = QueryFactory.create(PREFIX + "PREFIX apf: <http://jena.apache.org/ARQ/property#>\n"
+                                            + "SELECT * { ?s apf:splitIRI " + args + " }");
+            Op op = Algebra.optimize(Algebra.compile(query));
+            String printed = org.apache.jena.sparql.algebra.OpAsQuery.asQuery(op).serialize();
+            assertFalse(printed, printed.contains("rdf-syntax-ns"));
+            assertTrue(printed, printed.contains(args));
+        }
+    }
 }

@@ -24,6 +24,7 @@ import java.util.stream.Collectors ;
 
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.NodeFactory ;
 import org.apache.jena.graph.Triple ;
 import org.apache.jena.query.Query ;
 import org.apache.jena.query.QueryFactory ;
@@ -46,8 +47,6 @@ import org.apache.jena.sparql.syntax.syntaxtransform.ElementTransform;
 import org.apache.jena.sparql.syntax.syntaxtransform.ElementTransformCleanGroupsOfOne;
 import org.apache.jena.sparql.syntax.syntaxtransform.ElementTransformer;
 import org.apache.jena.sparql.syntax.syntaxtransform.ExprTransformApplyElementTransform;
-import org.apache.jena.sparql.util.graph.GraphList ;
-import org.apache.jena.vocabulary.RDF ;
 
 /**
  * Convert an Op expression in SPARQL syntax, that is, the reverse of algebra
@@ -492,14 +491,8 @@ public class OpAsQuery {
             if ( args.isNode() )
                 return args.getArg() ;
 
-            // List ...
-            List<Node> list = args.getArgList() ;
-            if ( list.size() == 0 )
-                return RDF.Nodes.nil ;
-            BasicPattern bgp = new BasicPattern() ;
-            Node head = GraphList.listToTriples(list, bgp) ;
-            currentGroup().addElement(process(bgp)) ;
-            return head ;
+            // rdf-array: a list of arguments is one sequence term.
+            return NodeFactory.createSeqNode(args.getArgList()) ;
         }
 
         // There is one special case to consider:
